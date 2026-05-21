@@ -188,5 +188,100 @@
   "footer": {
     "address2": "Ciudad de México, 06700",
     "geoLabel": "19.43°N · 99.13°W"
+  },
+  "booking": {
+    "pageTitle": "Book a tour — Los Chillangos",
+    "pageDescription": "Pick a date, tell us who's coming, and we'll finalize on WhatsApp.",
+    "noPublishedTour": "We don't have a tour ready to book yet. Check back soon or message us directly.",
+    "configMissing": "Configure WhatsApp or email in /admin → ContactInfo before accepting bookings.",
+    "progressLabel": "Step {current} of {total}",
+    "buttons": {
+      "next": "Continue",
+      "back": "Back",
+      "confirmWhatsapp": "Confirm and open WhatsApp",
+      "confirmEmail": "Confirm and open email",
+      "fallbackLink": "Didn't open? Click here"
+    },
+    "steps": {
+      "date": {
+        "title": "Pick a date",
+        "lede": "Mondays we rest. Pick any other day from here forward.",
+        "timeTitle": "Pick a time"
+      },
+      "people": {
+        "title": "How many riders?",
+        "lede": "Eight max per tour, including teens. Kids 12+ welcome.",
+        "adultLabel": "Adults",
+        "adultHint": "Full price · 13+",
+        "teenLabel": "Teens",
+        "teenHint": "20% off · 12–17",
+        "addonsTitle": "Add-ons",
+        "privatizeLabel": "Privatize this tour",
+        "privatizeHint": "+USD 140 · just your group"
+      },
+      "details": {
+        "title": "Your details",
+        "lede": "We'll send the confirmation through WhatsApp.",
+        "nameLabel": "Full name",
+        "namePlaceholder": "Hana Kobayashi",
+        "emailLabel": "Email",
+        "emailPlaceholder": "you@example.com",
+        "whatsappLabel": "WhatsApp number (optional)",
+        "whatsappPlaceholder": "+1 718 555 0119",
+        "whatsappHint": "International format. Helps us reach you faster."
+      },
+      "confirm": {
+        "title": "Ready to confirm",
+        "lede": "We're taking you to WhatsApp. Talk to the team to finalize.",
+        "redirectLede": "Didn't open? Use the link below.",
+        "footer": "Sent from loschillangos.com"
+      }
+    },
+    "summary": {
+      "title": "Your booking",
+      "tour": "Tour",
+      "date": "Date",
+      "time": "Time",
+      "riders": "Riders",
+      "adults": "{count, plural, one {# adult} other {# adults}}",
+      "teens": "{count, plural, one {# teen} other {# teens}}",
+      "privatize": "Privatized",
+      "subtotal": "Subtotal",
+      "addon": "Add-ons",
+      "total": "Estimated total",
+      "totalNote": "Final price confirmed on WhatsApp"
+    },
+    "message": {
+      "greeting": "Hi Los Chillangos! I'd like to book a tour.",
+      "labels": {
+        "name": "Name",
+        "tour": "Tour",
+        "date": "Date",
+        "time": "Time",
+        "people": "People",
+        "privatize": "Add-on",
+        "total": "Estimated total",
+        "email": "Email",
+        "whatsapp": "WhatsApp"
+      },
+      "privatizeValue": "Privatize this tour (+USD 140)",
+      "footer": "Sent from loschillangos.com",
+      "subject": "New booking request — {tour}"
+    },
+    "errors": {
+      "mondayClosed": "We rest on Mondays. Pick another day.",
+      "pastDate": "Pick a date from today onwards.",
+      "dateRequired": "Pick a date.",
+      "timeRequired": "Pick a time slot.",
+      "nameRequired": "Tell us your name.",
+      "emailInvalid": "That email doesn't look right.",
+      "whatsappInvalid": "Use a valid international format, e.g. +52 55 1234 5678.",
+      "maxGroup": "Eight riders max per tour.",
+      "minAdults": "At least one adult per booking."
+    },
+    "calendar": {
+      "prev": "Previous month",
+      "next": "Next month"
+    }
   }
 }

@@ -24,6 +24,8 @@ const eslintConfig = [
       'app/(payload)/admin/importMap.js',
       'src/payload-types.ts',
       'media/**',
+      // Test artifacts (PR 5)
+      'coverage/**',
     ],
   },
 ];

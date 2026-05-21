@@ -213,7 +213,7 @@ export default async function TourDetailPage({ params }: Props) {
               <span>${tour.price}</span>
             </div>
             <Link
-              href={`/book/${tour.slug}`}
+              href={{ pathname: '/book', query: { tour: tour.slug } }}
               className="btn btn-terra btn-lg"
               style={{ width: '100%', marginTop: 16 }}
             >
