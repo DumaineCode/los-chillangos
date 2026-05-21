@@ -247,7 +247,11 @@ async function seedGlobals(
   i18n: I18N
 ): Promise<void> {
   // --- Navigation ---
-  await payload.updateGlobal({
+  // Arrays with localized fields require a 2-pass write: pass 1 creates the
+  // rows (Payload assigns each item an `id`), pass 2 updates the same rows
+  // by `id` to set the ES labels. Without the `id` on pass 2, Payload would
+  // treat them as new items and overwrite the EN data.
+  const navEn = await payload.updateGlobal({
     slug: 'navigation',
     locale: 'en',
     data: {
@@ -261,17 +265,22 @@ async function seedGlobals(
       bookCtaLabel: i18n.en.nav.book,
     },
   });
+  const navEsLabels = [
+    i18n.es.nav.tours,
+    i18n.es.nav.about,
+    i18n.es.nav.services,
+    i18n.es.nav.journal,
+    i18n.es.nav.book,
+  ];
   await payload.updateGlobal({
     slug: 'navigation',
     locale: 'es',
     data: {
-      links: [
-        { label: i18n.es.nav.tours, href: 'tours' },
-        { label: i18n.es.nav.about, href: 'about' },
-        { label: i18n.es.nav.services, href: 'services' },
-        { label: i18n.es.nav.journal, href: 'journal' },
-        { label: i18n.es.nav.book, href: 'book' },
-      ],
+      links: (navEn.links ?? []).map((link, i) => ({
+        id: link.id,
+        label: navEsLabels[i],
+        href: link.href,
+      })),
       bookCtaLabel: i18n.es.nav.book,
     },
   });
@@ -332,7 +341,9 @@ async function seedGlobals(
   console.log('[seed] global "hero" upserted (en + es).');
 
   // --- Footer ---
-  await payload.updateGlobal({
+  // Same 2-pass pattern as Navigation (columns[].title and columns[].links[].label
+  // are both localized; we must reuse the ids Payload assigns on pass 1).
+  const footerEn = await payload.updateGlobal({
     slug: 'footer',
     locale: 'en',
     data: {
@@ -368,6 +379,17 @@ async function seedGlobals(
       ],
     },
   });
+
+  const esColumnTitles = [
+    i18n.es.footer.colTour,
+    i18n.es.footer.colCompany,
+    i18n.es.footer.colHelp,
+  ];
+  const esColumnLinks: Array<Array<string>> = [
+    ['CDMX clásica en bici', 'Arte contemporáneo', 'Excursión a Teotihuacán'],
+    ['Nosotros', 'Servicios', 'Diario'],
+    ['FAQ', 'Cancelación', 'Contacto'],
+  ];
   await payload.updateGlobal({
     slug: 'footer',
     locale: 'es',
@@ -376,32 +398,15 @@ async function seedGlobals(
       teaseEm: i18n.es.footer.teaseEm,
       cta: i18n.es.footer.cta,
       copyright: i18n.es.footer.copyright,
-      columns: [
-        {
-          title: i18n.es.footer.colTour,
-          links: [
-            { label: 'CDMX clásica en bici', href: 'tours/ebike-classic' },
-            { label: 'Arte contemporáneo', href: 'tours/ebike-art' },
-            { label: 'Excursión a Teotihuacán', href: 'tours/teotihuacan' },
-          ],
-        },
-        {
-          title: i18n.es.footer.colCompany,
-          links: [
-            { label: 'Nosotros', href: 'about' },
-            { label: 'Servicios', href: 'services' },
-            { label: 'Diario', href: 'journal' },
-          ],
-        },
-        {
-          title: i18n.es.footer.colHelp,
-          links: [
-            { label: 'FAQ', href: '#faq' },
-            { label: 'Cancelación', href: '#faq' },
-            { label: 'Contacto', href: 'book' },
-          ],
-        },
-      ],
+      columns: (footerEn.columns ?? []).map((col, colIdx) => ({
+        id: col.id,
+        title: esColumnTitles[colIdx],
+        links: (col.links ?? []).map((link, linkIdx) => ({
+          id: link.id,
+          label: esColumnLinks[colIdx][linkIdx],
+          href: link.href,
+        })),
+      })),
     },
   });
   console.log('[seed] global "footer" upserted (en + es).');
