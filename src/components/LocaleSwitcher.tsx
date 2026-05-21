@@ -27,7 +27,7 @@ export function LocaleSwitcher() {
   };
 
   return (
-    <div className="lang-toggle" role="group" aria-label="Language">
+    <div className="lang-toggle" role="group" aria-label="Language" data-testid="locale-switcher">
       {routing.locales.map((loc) => (
         <button
           key={loc}
@@ -36,6 +36,7 @@ export function LocaleSwitcher() {
           aria-pressed={loc === current}
           disabled={isPending}
           onClick={() => change(loc)}
+          data-testid={`locale-switcher-${loc}`}
         >
           {loc.toUpperCase()}
         </button>

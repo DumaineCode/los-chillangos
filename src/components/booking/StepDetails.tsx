@@ -32,7 +32,7 @@ export function StepDetails({
     ) : null;
 
   return (
-    <div>
+    <div data-testid="booking-step-3">
       <h2>{t('title')}</h2>
       <p className="lede">{t('lede')}</p>
       <div className="field-grid" style={{ marginTop: 24 }}>

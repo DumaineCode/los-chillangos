@@ -1,79 +1,143 @@
 # Los Chillangos
 
-> **🚧 Migration in progress.** This repo is being rewritten as a Next.js 15 + Payload CMS 3 app
-> (SDD: `migrate-to-next-payload`). The legacy static site below is still the source of truth on
-> `main` until the migration lands. New dev commands:
->
-> ```bash
-> pnpm install
-> pnpm dev        # http://localhost:3000
-> pnpm typecheck
-> pnpm lint
-> pnpm build
-> ```
->
-> The legacy files (`index.html`, `styles.css`, `data.js`, `components/`, `assets/`, `vercel.json`)
-> remain in place and will be removed in the final migration PR.
-
----
-
-CDMX E-Bike & Walking Tours — small-group rides, walking tours, and day trips led by locals.
-
-Static site (HTML + CSS + React via CDN). No build step required.
+CDMX e-bike & walking tours marketing site. Tour catalog, booking intent flow (WhatsApp), bilingual (en/es), client-editable via Payload CMS.
 
 ## Stack
 
-- React 18 (UMD via unpkg, production build)
-- Babel Standalone (in-browser JSX transform)
-- Plain CSS, Google Fonts (Instrument Serif, DM Sans, JetBrains Mono, Anton)
+- Next.js 15 (App Router) + React 19 + TypeScript (strict)
+- Payload CMS 3 (mounted in-app at `/admin`)
+- PostgreSQL (Neon recommended)
+- Cloudflare R2 (S3-compatible) for user-uploaded media; filesystem in dev
+- next-intl 4.x for i18n routing (en, es)
+- Vitest + Playwright for tests
 
-## Local development
-
-Just open `index.html` with any static server:
-
-```bash
-npx serve .
-# or
-python3 -m http.server 8000
-```
-
-Then visit `http://localhost:3000` (or `:8000`).
-
-## Project layout
-
-```
-.
-├── index.html              # Entry point
-├── styles.css              # All styles
-├── data.js                 # i18n strings + tour catalog
-├── assets/                 # Logos, images
-├── components/
-│   ├── App.jsx             # Root + router
-│   ├── shared.jsx          # Nav, Footer, TourCard, Logo
-│   ├── Home.jsx            # Landing page
-│   ├── Detail.jsx          # Tour detail
-│   └── Booking.jsx         # 5-step booking flow
-└── vercel.json             # Vercel config (caching, SPA rewrites)
-```
-
-## Deploy on Vercel
-
-This is a pure static site — no build step.
-
-1. Push to GitHub
-2. Import the repo on https://vercel.com/new
-3. Framework preset: **Other** (no build command, output dir = root)
-4. Deploy
-
-Or via CLI:
+## Quick start
 
 ```bash
-npm i -g vercel
-vercel
+pnpm install
+cp .env.example .env
+# Edit .env with your DATABASE_URL, PAYLOAD_SECRET, SEED_ADMIN_*, optionally R2_*
+pnpm payload generate:types        # one-time after schema changes
+pnpm seed:admin                    # creates first admin user
+pnpm seed                          # creates 6 tour drafts + 5 globals
+pnpm dev                           # http://localhost:3000
 ```
 
-## Notes
+After `pnpm dev`, log into `/admin` with your `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`.
 
-- `components/*.jsx` is transformed in-browser by Babel Standalone. Fine for a marketing site at this size; if traffic grows, migrate to Vite for a precompiled bundle.
-- Languages: English / Spanish toggle in the nav.
-- Routes are client-side (React state, no URL changes). The `vercel.json` rewrite ensures any path falls back to `index.html`.
+## Environment
+
+See `.env.example` for the full list. Required:
+
+| Var                    | Required        | Description                                                                       |
+| ---------------------- | --------------- | --------------------------------------------------------------------------------- |
+| `DATABASE_URL`         | yes             | Postgres connection string. Use `sslmode=require` (or `verify-full`) for Neon.    |
+| `PAYLOAD_SECRET`       | yes             | 32+ char random secret for Payload auth. Generate with `openssl rand -base64 48`. |
+| `SEED_ADMIN_EMAIL`     | yes (first run) | Email for the first admin user.                                                   |
+| `SEED_ADMIN_PASSWORD`  | yes (first run) | Password for the first admin user. Change it from `/admin` after first login.     |
+| `MEDIA_STORAGE`        | no              | `local` (default, dev) or `r2` (production).                                      |
+| `R2_ACCOUNT_ID`        | if `r2`         | Cloudflare account ID.                                                            |
+| `R2_BUCKET`            | if `r2`         | Bucket name (must already exist).                                                 |
+| `R2_ACCESS_KEY_ID`     | if `r2`         | R2 API token access key.                                                          |
+| `R2_SECRET_ACCESS_KEY` | if `r2`         | R2 API token secret.                                                              |
+| `R2_PUBLIC_URL`        | if `r2`         | Public read URL (custom domain or `*.r2.dev`).                                    |
+| `NEXT_PUBLIC_SITE_URL` | no              | Used for OG tags and hreflang. Defaults to localhost.                             |
+| `BASE_URL`             | no              | Playwright base URL. Defaults to `http://localhost:3000`.                         |
+
+## Project structure
+
+```
+app/
+├── (payload)/admin/...        # Payload admin UI
+├── (payload)/api/...          # Payload REST + GraphQL
+├── [locale]/                  # Public site (en, es)
+│   ├── layout.tsx
+│   ├── page.tsx               # Home
+│   ├── tours/[slug]/page.tsx  # Tour detail
+│   ├── book/page.tsx          # Booking flow
+│   └── not-found.tsx
+├── globals.css                # Ported from legacy styles.css
+└── layout.tsx                 # Pass-through root
+
+src/
+├── collections/Tours.ts
+├── collections/Users.ts
+├── collections/Media.ts
+├── globals/{Navigation,ContactInfo,Hero,Footer,SocialLinks}.ts
+├── components/                # Shared UI (Nav, Footer, TourCard, ...)
+├── components/booking/        # 4-step booking flow + tests
+├── lib/booking/               # Pure deep-link + schema + pricing (+ tests)
+├── lib/payload.ts             # getPayload() helper
+├── hooks/                     # Payload afterChange hooks for revalidation
+├── payload.config.ts          # Payload main config
+└── payload-types.ts           # Autogenerated
+
+i18n/                          # next-intl routing config
+messages/                      # en.json, es.json (static UI strings)
+public/brand/                  # Brand assets (logos, mural)
+scripts/                       # seed-admin.ts, seed.ts
+e2e/                           # Playwright E2E specs
+```
+
+## Scripts
+
+| Script                         | What                                                                |
+| ------------------------------ | ------------------------------------------------------------------- |
+| `pnpm dev`                     | Next dev server with HMR                                            |
+| `pnpm build`                   | Production build                                                    |
+| `pnpm start`                   | Run the production build locally                                    |
+| `pnpm lint`                    | ESLint                                                              |
+| `pnpm typecheck`               | `tsc --noEmit`                                                      |
+| `pnpm format` / `format:check` | Prettier                                                            |
+| `pnpm test`                    | Vitest unit + component tests                                       |
+| `pnpm test:watch`              | Vitest in watch mode                                                |
+| `pnpm test:coverage`           | Vitest with v8 coverage report                                      |
+| `pnpm e2e`                     | Playwright E2E (needs `pnpm exec playwright install chromium` once) |
+| `pnpm e2e:ui`                  | Playwright in UI mode                                               |
+| `pnpm e2e:report`              | Open the last Playwright HTML report                                |
+| `pnpm seed:admin`              | Create first admin user (idempotent)                                |
+| `pnpm seed`                    | Seed 6 tours + 5 globals from the legacy data shape                 |
+| `pnpm seed:all`                | Both seeds in sequence                                              |
+| `pnpm payload generate:types`  | Regen Payload TS types after schema changes                         |
+
+## Editing content (for the client)
+
+After deploy:
+
+1. Go to `https://your-domain.com/admin` and log in.
+2. **Tours collection**: edit any of the 6 tours. Upload a hero image. Change the description, price, itinerary. Click **Publish** when ready (drafts don't appear on the public site).
+3. **Globals**:
+   - **Hero**: change the homepage headline, lede, CTAs.
+   - **Navigation**: edit nav labels per locale.
+   - **Contact Info**: set the WhatsApp number (E.164 format, e.g. `+525555555555`). This is what the booking flow uses for the deep link.
+   - **Footer**: edit the footer columns and tagline.
+   - **Social Links**: paste your Instagram / TikTok / etc. URLs.
+
+Each save triggers `revalidatePath` so the public site reflects changes within seconds.
+
+## Deploy
+
+Single Next 15 app on Vercel. No `vercel.json` needed — Vercel detects Next automatically.
+
+1. Push to GitHub.
+2. Import in Vercel.
+3. Set the env vars from the table above in Vercel's project settings.
+4. Deploy.
+5. After the first deploy, run `pnpm seed:admin` against the production DB (use Vercel's CLI to `exec`, or run locally once with `DATABASE_URL` pointing at prod).
+
+Production media uploads go to Cloudflare R2 when `MEDIA_STORAGE=r2`.
+
+## Future work
+
+Deferred to future SDDs:
+
+- Stripe + OXXO Pay payment processing
+- Bookings persistence (Bookings collection)
+- Real availability calendar with reservation locking
+- Email + WhatsApp confirmation notifications
+- Customer accounts and booking history
+- Tax calculation (Mexico IVA)
+
+## License
+
+Private. © Los Chillangos.

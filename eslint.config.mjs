@@ -17,15 +17,15 @@ const eslintConfig = [
       '.next/**',
       'out/**',
       'next-env.d.ts',
-      'components/**',
-      'data.js',
-      'assets/**',
       // Payload-generated (rebuilt on `pnpm generate:importmap` / `generate:types`).
       'app/(payload)/admin/importMap.js',
       'src/payload-types.ts',
       'media/**',
-      // Test artifacts (PR 5)
+      // Test artifacts
       'coverage/**',
+      'playwright-report/**',
+      'test-results/**',
+      'playwright/.cache/**',
     ],
   },
 ];

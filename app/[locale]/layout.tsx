@@ -1,10 +1,11 @@
-import { hasLocale, NextIntlClientProvider } from 'next-intl';
+import { hasLocale } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { Anton, DM_Sans, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
 import { notFound } from 'next/navigation';
 
 import { routing, type Locale } from '../../i18n/routing';
 import { Footer } from '../../src/components/Footer';
+import { IntlProvider } from '../../src/components/IntlProvider';
 import { Nav } from '../../src/components/Nav';
 import { getPayload } from '../../src/lib/payload';
 import '../globals.css';
@@ -86,11 +87,11 @@ export default async function LocaleLayout({ children, params }: Props) {
       className={`${instrumentSerif.variable} ${dmSans.variable} ${jetbrainsMono.variable} ${anton.variable}`}
     >
       <body>
-        <NextIntlClientProvider messages={messages}>
+        <IntlProvider messages={messages} locale={locale}>
           <Nav links={navLinks} bookCtaLabel={bookCtaLabel} overHero />
           <main id="main">{children}</main>
           <Footer locale={locale as Locale} />
-        </NextIntlClientProvider>
+        </IntlProvider>
       </body>
     </html>
   );

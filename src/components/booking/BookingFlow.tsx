@@ -4,11 +4,7 @@ import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
 import { calculatePrice } from '../../lib/booking/pricing';
-import {
-  stepDateSchema,
-  stepDetailsSchema,
-  stepPeopleSchema,
-} from '../../lib/booking/schema';
+import { stepDateSchema, stepDetailsSchema, stepPeopleSchema } from '../../lib/booking/schema';
 import { getTimeSlotsForCategory } from '../../lib/booking/timeSlots';
 import {
   BookingLinkError,
@@ -122,7 +118,19 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
       customerWhatsapp: whatsappOptional || undefined,
       locale,
     }),
-    [tour, date, time, adults, teens, privatize, breakdown.total, name, email, whatsappOptional, locale]
+    [
+      tour,
+      date,
+      time,
+      adults,
+      teens,
+      privatize,
+      breakdown.total,
+      name,
+      email,
+      whatsappOptional,
+      locale,
+    ]
   );
 
   const ctx: DeepLinkContext = useMemo(
@@ -195,12 +203,15 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
   return (
     <div className="booking-page">
       <div className="container">
-        <div className="steps" role="progressbar" aria-valuenow={step} aria-valuemin={1} aria-valuemax={TOTAL_STEPS}>
+        <div
+          className="steps"
+          role="progressbar"
+          aria-valuenow={step}
+          aria-valuemin={1}
+          aria-valuemax={TOTAL_STEPS}
+        >
           {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className={`step ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`}
-            >
+            <div key={i} className={`step ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`}>
               <span className="step-num">{i < step ? '✓' : i}</span>
               <span>{stepLabel(i, locale)}</span>
             </div>
@@ -347,7 +358,11 @@ function resolveDeepLink(
 
   if (hasWhatsapp) {
     try {
-      return { href: buildWhatsAppDeepLink(intent, ctx, labels), isMailto: false, configMissing: false };
+      return {
+        href: buildWhatsAppDeepLink(intent, ctx, labels),
+        isMailto: false,
+        configMissing: false,
+      };
     } catch (err) {
       if (!(err instanceof BookingLinkError)) throw err;
     }
