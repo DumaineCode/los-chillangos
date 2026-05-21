@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload';
 
+import { revalidateToursAfterChange, revalidateToursAfterDelete } from '../hooks/revalidateTours';
+
 /**
  * Tours collection — the heart of the site catalog.
  *
@@ -34,6 +36,10 @@ export const Tours: CollectionConfig = {
     create: ({ req: { user } }) => Boolean(user),
     update: ({ req: { user } }) => Boolean(user),
     delete: ({ req: { user } }) => Boolean(user),
+  },
+  hooks: {
+    afterChange: [revalidateToursAfterChange],
+    afterDelete: [revalidateToursAfterDelete],
   },
   fields: [
     {

@@ -1,5 +1,7 @@
 import type { GlobalConfig } from 'payload';
 
+import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
+
 /**
  * Navigation global — top-nav links + book CTA.
  *
@@ -12,6 +14,9 @@ export const Navigation: GlobalConfig = {
   access: {
     read: () => true,
     update: ({ req: { user } }) => Boolean(user),
+  },
+  hooks: {
+    afterChange: [revalidateGlobalAfterChange],
   },
   fields: [
     {

@@ -13,6 +13,10 @@ index.html
 assets
 vercel.json
 
+# Ported verbatim from legacy styles.css in PR 4 — do not reformat to preserve
+# fidelity. Tailwind refactor is a future SDD.
+app/globals.css
+
 # Misc
 .atl
 

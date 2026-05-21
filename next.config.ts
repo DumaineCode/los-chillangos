@@ -1,8 +1,34 @@
 import { withPayload } from '@payloadcms/next/withPayload';
 import type { NextConfig } from 'next';
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  images: {
+    // Allow Payload-served media (local dev) + Cloudflare R2 (prod).
+    remotePatterns: [
+      { protocol: 'https', hostname: '*.r2.dev' },
+      { protocol: 'https', hostname: '*.r2.cloudflarestorage.com' },
+    ],
+  },
+  async headers() {
+    return [
+      {
+        // Immutable cache for brand assets — mirrors legacy `vercel.json`
+        // policy on `/assets/*`. Long-lived because filenames are static and
+        // any swap requires a code change anyway.
+        source: '/brand/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
 };
 
-export default withPayload(nextConfig);
+export default withPayload(withNextIntl(nextConfig));
