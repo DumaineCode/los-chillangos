@@ -1,5 +1,7 @@
 import type { GlobalConfig } from 'payload';
 
+import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
+
 /**
  * Footer global — bottom-of-page link columns + tease copy + copyright.
  *
@@ -12,6 +14,9 @@ export const Footer: GlobalConfig = {
   access: {
     read: () => true,
     update: ({ req: { user } }) => Boolean(user),
+  },
+  hooks: {
+    afterChange: [revalidateGlobalAfterChange],
   },
   fields: [
     {

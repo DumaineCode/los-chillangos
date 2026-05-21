@@ -1,0 +1,192 @@
+{
+  "common": {
+    "from": "desde",
+    "perPerson": "por persona",
+    "perPersonShort": "/ persona",
+    "duration": "Duración",
+    "group": "Grupo",
+    "new": "Nuevo",
+    "popular": "Más reservado",
+    "view": "VER →",
+    "skipToContent": "Saltar al contenido",
+    "loading": "Cargando…"
+  },
+  "nav": {
+    "tours": "Tours",
+    "about": "Nosotros",
+    "services": "Servicios",
+    "journal": "Diario",
+    "faq": "FAQ",
+    "book": "Reservar"
+  },
+  "locale": {
+    "switchToEnglish": "English",
+    "switchToSpanish": "Español",
+    "switchAria": "Cambiar idioma",
+    "current": "ES"
+  },
+  "hero": {
+    "live": "En vivo · CDMX · 19.43°N 99.13°W",
+    "estLabel": "Est. 2024",
+    "neighborhoods": "Roma · Condesa · Coyoacán · Centro",
+    "scroll": "Desliza",
+    "stats": {
+      "routesNum": "12",
+      "routesLbl": "Rutas curadas\nde la ciudad",
+      "perTourNum": "3–4h",
+      "perTourLbl": "Por tour\nritmo conversacional",
+      "groupNum": "8 máx",
+      "groupLbl": "Tamaño de grupo\nsin autobuses",
+      "ratingNum": "4.96",
+      "ratingLbl": "★ promedio\n+1,200 invitados"
+    },
+    "search": {
+      "tour": "Tour",
+      "date": "Fecha",
+      "people": "Personas",
+      "cta": "Ver disponibilidad",
+      "any": "Cualquier experiencia",
+      "today": "Elige fecha",
+      "twoAdults": "2 adultos"
+    }
+  },
+  "marquee": "Coyoacán · Roma Norte · Condesa · San Ángel · Polanco · Xochimilco · Teotihuacán · Centro Histórico ·",
+  "values": {
+    "eyebrow": "Por qué nosotros",
+    "title": "Tours que no se sienten como tours.",
+    "sub": "Operamos directo. Contratamos a las guías, diseñamos rutas, gestionamos logística. Sin intermediarios.",
+    "items": [
+      {
+        "t": "Tres o cuatro horas",
+        "d": "Suficiente para enamorarse. Te dejamos el resto del día libre."
+      },
+      {
+        "t": "Locales, no narradores",
+        "d": "Las guías viven en los barrios que te muestran. Tienen sus tacos favoritos."
+      },
+      {
+        "t": "Fuera de la postal",
+        "d": "Sí, vemos los íconos. También las calles que nadie fotografía."
+      },
+      {
+        "t": "Hecho para grupos",
+        "d": "Cumpleaños, despedidas, offsites. Adaptamos la ruta al grupo."
+      }
+    ]
+  },
+  "catalog": {
+    "eyebrow": "Los tours",
+    "title": "Elige tu ritmo.",
+    "sub": "Cuatro formatos, una obsesión por la ciudad.",
+    "filters": {
+      "all": "Todos",
+      "ebike": "Bici eléctrica",
+      "walking": "Caminata",
+      "daytrip": "Excursión",
+      "new": "Nuevo"
+    }
+  },
+  "editorial": {
+    "eyebrow": "Nuestro enfoque",
+    "title": "Empezamos esto porque los tours que veíamos se sentían como línea de ensamblaje.",
+    "p1": "Camiones con treinta desconocidos. Audífonos. Una bandera. Una guía recitando Wikipedia. Queríamos algo más cercano a cómo le mostraríamos la ciudad a un amigo: en bici cuando tiene sentido, a pie cuando no, en van cuando la distancia lo pide.",
+    "p2": "Cada ruta está pensada para una conversación real. Cada parada se ganó su lugar. Y cada reserva la atiende una persona del equipo — nada de algoritmos.",
+    "imageLabel": "Retrato del equipo · taller, Roma Sur",
+    "meetCta": "Conoce a las guías →"
+  },
+  "services": {
+    "eyebrow": "Más allá del tour",
+    "title": "Lo que también hacemos.",
+    "sub": "Mismo equipo, mismo estándar.",
+    "inquireCta": "Consultar →",
+    "items": [
+      {
+        "t": "Traslados aeropuerto",
+        "d": "CDMX (MEX/NLU) a tu hotel, en un coche limpio y con una guía que te cuenta la ciudad de camino."
+      },
+      {
+        "t": "Guía privada por día",
+        "d": "Itinerario abierto. Vamos donde el día nos lleve — mercados, museos, mezcalerías."
+      },
+      {
+        "t": "Experiencias a la medida",
+        "d": "Cumpleaños, retiros, activaciones de marca. Cuéntanos el brief, armamos el día."
+      }
+    ]
+  },
+  "testimonial": {
+    "eyebrow": "Notas de visitantes",
+    "quote": "La ruta en bici por Roma y Condesa fue lo mejor que hicimos en la ciudad. Nuestra guía Mariana hizo que se sintiera como pasear con una amiga de toda la vida.",
+    "name": "Hana K.",
+    "loc": "Brooklyn, NY · Mar 2026"
+  },
+  "faq": {
+    "eyebrow": "Lo práctico",
+    "title": "Preguntas, respondidas.",
+    "items": [
+      {
+        "q": "¿Qué tan en forma hay que estar para el tour en bici?",
+        "a": "Si te puedes parar en una bici y apretar un freno, calificas. El motor hace las subidas. Vamos a ritmo de conversación y paramos a menudo."
+      },
+      {
+        "q": "¿Cuál es la política de cancelación?",
+        "a": "Cancelación gratis hasta 24 horas antes. Después cobramos una tarifa mínima para cubrir el día de la guía. Las cancelaciones por clima son siempre gratis."
+      },
+      {
+        "q": "¿Manejan restricciones alimentarias?",
+        "a": "Sí. Los tours con comida (Girly Tour, rutas a medida) funcionan con vegetariano, vegano, sin gluten y la mayoría de alergias. Avísanos al reservar."
+      },
+      {
+        "q": "¿Pasan por nosotros al hotel?",
+        "a": "En excursiones y traslados, sí. En tours de bici y caminata nos vemos en un punto de encuentro que hace funcionar la ruta — normalmente un café que te alegrará conocer."
+      },
+      {
+        "q": "¿Qué idiomas?",
+        "a": "Todas nuestras guías hablan español e inglés. Francés, italiano, alemán y portugués disponibles con anticipación."
+      }
+    ]
+  },
+  "detail": {
+    "back": "Inicio",
+    "breadcrumbTours": "Tours",
+    "duration": "Duración",
+    "group": "Tamaño del grupo",
+    "meet": "Punto de encuentro",
+    "lang": "Idiomas",
+    "level": "Dificultad",
+    "categoryLabel": {
+      "ebike": "Tour en bici eléctrica",
+      "walking": "Tour caminando",
+      "daytrip": "Excursión",
+      "food": "Tour gastronómico"
+    },
+    "sectionAbout": "Sobre este tour",
+    "sectionItin": "Tu tarde",
+    "sectionIncl": "Qué incluye",
+    "sectionMeet": "Punto de encuentro",
+    "freeCancel": "Cancelación gratis · 24h antes",
+    "galleryPlaceholder": {
+      "main": "Foto principal",
+      "detail1": "Detalle · bici en empedrado",
+      "detail2": "Retrato de la guía",
+      "detail3": "Parada · café avellaneda",
+      "detail4": "Grupo · lago de Chapultepec"
+    },
+    "mapPlaceholder": "Mapa · punto de encuentro",
+    "summary": {
+      "fee": "Cargo de reserva",
+      "total": "Total"
+    },
+    "fallbackEmpty": "Contenido próximamente."
+  },
+  "notFound": {
+    "title": "Página no encontrada.",
+    "lede": "El camino que seguiste ya no existe — o nunca existió. Elige un tour o vuelve al inicio.",
+    "homeCta": "Volver al inicio",
+    "toursCta": "Ver tours"
+  },
+  "footer": {
+    "address2": "Ciudad de México, 06700",
+    "geoLabel": "19.43°N · 99.13°W"
+  }
+}
