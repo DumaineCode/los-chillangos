@@ -19,7 +19,9 @@
     "payload": "payload",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
-    "seed:admin": "tsx scripts/seed-admin.ts"
+    "seed:admin": "tsx scripts/seed-admin.ts",
+    "seed": "tsx scripts/seed.ts",
+    "seed:all": "pnpm seed:admin && pnpm seed"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.84.1",

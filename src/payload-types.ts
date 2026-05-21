@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    tours: Tour;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +79,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    tours: ToursSelect<false> | ToursSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -86,10 +88,22 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
-  locale: null;
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'es') | ('en' | 'es')[];
+  globals: {
+    navigation: Navigation;
+    'contact-info': ContactInfo;
+    hero: Hero;
+    footer: Footer;
+    'social-links': SocialLink;
+  };
+  globalsSelect: {
+    navigation: NavigationSelect<false> | NavigationSelect<true>;
+    'contact-info': ContactInfoSelect<false> | ContactInfoSelect<true>;
+    hero: HeroSelect<false> | HeroSelect<true>;
+    footer: FooterSelect<false> | FooterSelect<true>;
+    'social-links': SocialLinksSelect<false> | SocialLinksSelect<true>;
+  };
+  locale: 'en' | 'es';
   widgets: {
     collections: CollectionsWidget;
   };
@@ -193,6 +207,110 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tours".
+ */
+export interface Tour {
+  id: number;
+  /**
+   * URL-safe identifier (kebab-case). Same slug serves both locales.
+   */
+  slug: string;
+  title: string;
+  category: 'ebike' | 'walking' | 'daytrip' | 'food';
+  /**
+   * E.g. "3.5h", "4h", "8h".
+   */
+  duration: string;
+  /**
+   * E.g. "14 km". Optional — only e-bike tours typically have it.
+   */
+  distance?: string | null;
+  /**
+   * USD price per person.
+   */
+  price: number;
+  /**
+   * Optional badge like "Most booked" / "Más reservado".
+   */
+  tag?: string | null;
+  /**
+   * Badge color. Optional.
+   */
+  tagColor?: ('terra' | 'cloud' | 'navy' | 'forest') | null;
+  /**
+   * One-liner used on cards (max 200 chars).
+   */
+  shortDescription: string;
+  /**
+   * What the hero photo should depict (e.g. "Coyoacán plaza · golden hour"). Hint for the client choosing an image to upload.
+   */
+  photoDescription?: string | null;
+  heroImage: number | Media;
+  gallery?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Detail page — first paragraph.
+   */
+  aboutP1?: string | null;
+  /**
+   * Detail page — second paragraph.
+   */
+  aboutP2?: string | null;
+  /**
+   * Detail page headline part A (e.g. "The classic CDMX,").
+   */
+  headlineA?: string | null;
+  /**
+   * Detail page headline part B (e.g. " on a bike.").
+   */
+  headlineB?: string | null;
+  /**
+   * Short label, e.g. "Café Avellaneda, Coyoacán".
+   */
+  meetingPoint?: string | null;
+  /**
+   * Longer description of how to find the meeting point.
+   */
+  meetingPointText?: string | null;
+  /**
+   * E.g. "Up to 8" / "Hasta 8".
+   */
+  groupSize?: string | null;
+  /**
+   * E.g. "EN · ES". Same string in both locales — non-localized.
+   */
+  languages?: string | null;
+  /**
+   * Difficulty label, e.g. "Easy" / "Fácil".
+   */
+  level?: string | null;
+  itinerary?:
+    | {
+        /**
+         * E.g. "14:00". Same in both locales.
+         */
+        time: string;
+        heading: string;
+        description: string;
+        id?: string | null;
+      }[]
+    | null;
+  includes?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -222,6 +340,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'tours';
+        value: number | Tour;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -342,6 +464,55 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tours_select".
+ */
+export interface ToursSelect<T extends boolean = true> {
+  slug?: T;
+  title?: T;
+  category?: T;
+  duration?: T;
+  distance?: T;
+  price?: T;
+  tag?: T;
+  tagColor?: T;
+  shortDescription?: T;
+  photoDescription?: T;
+  heroImage?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
+  aboutP1?: T;
+  aboutP2?: T;
+  headlineA?: T;
+  headlineB?: T;
+  meetingPoint?: T;
+  meetingPointText?: T;
+  groupSize?: T;
+  languages?: T;
+  level?: T;
+  itinerary?:
+    | T
+    | {
+        time?: T;
+        heading?: T;
+        description?: T;
+        id?: T;
+      };
+  includes?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -379,6 +550,203 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation".
+ */
+export interface Navigation {
+  id: number;
+  links?:
+    | {
+        label: string;
+        /**
+         * Path or anchor (e.g. "tours", "about"). Locale prefix is added by routing.
+         */
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Label for the primary "Book a tour" CTA in the nav.
+   */
+  bookCtaLabel?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-info".
+ */
+export interface ContactInfo {
+  id: number;
+  /**
+   * International format including country code, e.g. "+525555555555".
+   */
+  whatsapp?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  /**
+   * Physical address — same in both locales.
+   */
+  address?: string | null;
+  /**
+   * Optional label like "Studio" / "Estudio".
+   */
+  addressLabel?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "hero".
+ */
+export interface Hero {
+  id: number;
+  eyebrow?: string | null;
+  h1a?: string | null;
+  h1b?: string | null;
+  h1c?: string | null;
+  h1d?: string | null;
+  lede?: string | null;
+  ctaPrimary?: string | null;
+  ctaGhost?: string | null;
+  heroImage?: (number | null) | Media;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer".
+ */
+export interface Footer {
+  id: number;
+  /**
+   * Main tease line, e.g. "Come ride with us.".
+   */
+  tease?: string | null;
+  /**
+   * Emphasized (italic) tease, e.g. "CDMX is waiting.".
+   */
+  teaseEm?: string | null;
+  cta?: string | null;
+  copyright?: string | null;
+  columns?:
+    | {
+        title: string;
+        links?:
+          | {
+              label: string;
+              href: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-links".
+ */
+export interface SocialLink {
+  id: number;
+  instagram?: string | null;
+  tiktok?: string | null;
+  youtube?: string | null;
+  facebook?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation_select".
+ */
+export interface NavigationSelect<T extends boolean = true> {
+  links?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  bookCtaLabel?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-info_select".
+ */
+export interface ContactInfoSelect<T extends boolean = true> {
+  whatsapp?: T;
+  email?: T;
+  phone?: T;
+  address?: T;
+  addressLabel?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "hero_select".
+ */
+export interface HeroSelect<T extends boolean = true> {
+  eyebrow?: T;
+  h1a?: T;
+  h1b?: T;
+  h1c?: T;
+  h1d?: T;
+  lede?: T;
+  ctaPrimary?: T;
+  ctaGhost?: T;
+  heroImage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer_select".
+ */
+export interface FooterSelect<T extends boolean = true> {
+  tease?: T;
+  teaseEm?: T;
+  cta?: T;
+  copyright?: T;
+  columns?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-links_select".
+ */
+export interface SocialLinksSelect<T extends boolean = true> {
+  instagram?: T;
+  tiktok?: T;
+  youtube?: T;
+  facebook?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

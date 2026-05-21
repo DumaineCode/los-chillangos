@@ -9,6 +9,12 @@ import sharp from 'sharp';
 
 import { Users } from './collections/Users';
 import { Media } from './collections/Media';
+import { Tours } from './collections/Tours';
+import { Navigation } from './globals/Navigation';
+import { ContactInfo } from './globals/ContactInfo';
+import { Hero } from './globals/Hero';
+import { Footer } from './globals/Footer';
+import { SocialLinks } from './globals/SocialLinks';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -98,15 +104,13 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [
-    Users,
-    Media,
-    // TODO(PR 3): import and register `Tours` here.
-    // import { Tours } from './collections/Tours';
-  ],
-  // TODO(PR 3): register the 5 globals here:
-  //   - Navigation, ContactInfo, Hero, Footer, SocialLinks
-  // globals: [Navigation, ContactInfo, Hero, Footer, SocialLinks],
+  collections: [Users, Media, Tours],
+  globals: [Navigation, ContactInfo, Hero, Footer, SocialLinks],
+  localization: {
+    locales: ['en', 'es'],
+    defaultLocale: 'en',
+    fallback: true,
+  },
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
