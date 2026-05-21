@@ -2,6 +2,7 @@
   "name": "los-chillangos",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "CDMX E-Bike & Walking Tours — Next.js 15 + Payload CMS migration in progress.",
   "engines": {
     "node": ">=20"
@@ -14,12 +15,24 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "payload": "payload",
+    "generate:types": "payload generate:types",
+    "generate:importmap": "payload generate:importmap",
+    "seed:admin": "tsx scripts/seed-admin.ts"
   },
   "dependencies": {
-    "next": "^15.0.0",
+    "@payloadcms/db-postgres": "3.84.1",
+    "@payloadcms/next": "3.84.1",
+    "@payloadcms/richtext-lexical": "3.84.1",
+    "@payloadcms/storage-s3": "3.84.1",
+    "dotenv": "^16.4.7",
+    "graphql": "^16.8.1",
+    "next": "15.4.11",
+    "payload": "3.84.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "sharp": "^0.34.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -27,8 +40,9 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
-    "eslint-config-next": "^15.0.0",
+    "eslint-config-next": "15.4.11",
     "prettier": "^3.3.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.6.0"
   }
 }

@@ -20,6 +20,10 @@ const eslintConfig = [
       'components/**',
       'data.js',
       'assets/**',
+      // Payload-generated (rebuilt on `pnpm generate:importmap` / `generate:types`).
+      'app/(payload)/admin/importMap.js',
+      'src/payload-types.ts',
+      'media/**',
     ],
   },
 ];
