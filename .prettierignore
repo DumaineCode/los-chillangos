@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+coverage
+pnpm-lock.yaml
+package-lock.json
+
+# Legacy files (will be removed in PR 6 — do not reformat)
+components
+data.js
+styles.css
+index.html
+assets
+vercel.json
+
+# Misc
+.atl

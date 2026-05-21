@@ -1,0 +1,23 @@
+/*
+ * Global styles — placeholder for PR 1.
+ * The full port of legacy styles.css lands in PR 4.
+ */
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family:
+    var(--font-dm-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
+}

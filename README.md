@@ -1,5 +1,22 @@
 # Los Chillangos
 
+> **🚧 Migration in progress.** This repo is being rewritten as a Next.js 15 + Payload CMS 3 app
+> (SDD: `migrate-to-next-payload`). The legacy static site below is still the source of truth on
+> `main` until the migration lands. New dev commands:
+>
+> ```bash
+> pnpm install
+> pnpm dev        # http://localhost:3000
+> pnpm typecheck
+> pnpm lint
+> pnpm build
+> ```
+>
+> The legacy files (`index.html`, `styles.css`, `data.js`, `components/`, `assets/`, `vercel.json`)
+> remain in place and will be removed in the final migration PR.
+
+---
+
 CDMX E-Bike & Walking Tours — small-group rides, walking tours, and day trips led by locals.
 
 Static site (HTML + CSS + React via CDN). No build step required.
