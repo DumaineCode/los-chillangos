@@ -100,11 +100,11 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
       whatsapp: tMsgLabels('whatsapp'),
       privatizeValue: tMsg('privatizeValue'),
       footer: tMsg('footer'),
-      subject: tMsg('subject'),
+      subject: tMsg('subject', { tour: tour.title }),
       adultsValue: tSummary('adults', { count: adults }),
       teensValue: tSummary('teens', { count: teens }),
     }),
-    [tMsg, tMsgLabels, tSummary, adults, teens]
+    [tMsg, tMsgLabels, tSummary, adults, teens, tour.title]
   );
 
   const intent: BookingIntent = useMemo(
