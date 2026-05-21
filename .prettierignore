@@ -15,3 +15,8 @@ vercel.json
 
 # Misc
 .atl
+
+# Payload-generated (rebuilt on `pnpm generate:types` / `generate:importmap`)
+src/payload-types.ts
+app/(payload)/admin/importMap.js
+media
