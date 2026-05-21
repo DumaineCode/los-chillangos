@@ -44,3 +44,4 @@ media/
 # Test artifacts (added in PR 5/6)
 playwright-report/
 test-results/
+playwright/.cache/

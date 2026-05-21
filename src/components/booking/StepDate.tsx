@@ -29,7 +29,7 @@ export function StepDate({
   const tCal = useTranslations('booking.calendar');
 
   return (
-    <div>
+    <div data-testid="booking-step-1">
       <h2>{t('title')}</h2>
       <p className="lede">{t('lede')}</p>
       <MiniCalendar

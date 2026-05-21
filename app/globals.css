@@ -614,7 +614,7 @@ a { color: inherit; text-decoration: none; }
 .section-head {
   display: flex;
   justify-content: space-between;
-  align-items: end;
+  align-items: flex-end;
   gap: 32px;
   margin-bottom: 48px;
   border-top: 1px solid var(--line-strong);

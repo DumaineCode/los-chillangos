@@ -41,7 +41,7 @@ export function StepPeople({
   const groupAtMax = adults + teens >= 8;
 
   return (
-    <div>
+    <div data-testid="booking-step-2">
       <h2>{t('title')}</h2>
       <p className="lede">{t('lede')}</p>
 

@@ -152,7 +152,11 @@ export default async function HomePage({ params }: Props) {
           </div>
 
           <div className="hero-cine-mid">
-            <div className="hero-cine-eyebrow fade-in" style={{ animationDelay: '0.25s' }}>
+            <div
+              className="hero-cine-eyebrow fade-in"
+              style={{ animationDelay: '0.25s' }}
+              data-testid="hero-eyebrow"
+            >
               {heroEyebrow}
             </div>
             <h1 className="hero-cine-headline">

@@ -5,17 +5,14 @@ coverage
 pnpm-lock.yaml
 package-lock.json
 
-# Legacy files (will be removed in PR 6 — do not reformat)
-components
-data.js
-styles.css
-index.html
-assets
-vercel.json
-
 # Ported verbatim from legacy styles.css in PR 4 — do not reformat to preserve
 # fidelity. Tailwind refactor is a future SDD.
 app/globals.css
+
+# Test artifacts
+playwright-report
+test-results
+playwright/.cache
 
 # Misc
 .atl

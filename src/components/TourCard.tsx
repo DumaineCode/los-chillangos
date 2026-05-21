@@ -39,9 +39,7 @@ export async function TourCard({ tour, locale }: Props) {
             style={{ objectFit: 'cover' }}
           />
         ) : null}
-        {tour.tag ? (
-          <span className={`tour-card-tag ${tagColorClass}`}>{tour.tag}</span>
-        ) : null}
+        {tour.tag ? <span className={`tour-card-tag ${tagColorClass}`}>{tour.tag}</span> : null}
       </div>
       <div className="tour-card-meta">
         <span>{tour.duration}</span>

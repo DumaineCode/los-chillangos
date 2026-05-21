@@ -84,7 +84,7 @@ describe('BookingFlow', () => {
 
     // Step 4 — confirmation link is rendered with the wa.me URL.
     expect(screen.getByRole('heading', { name: /ready to confirm/i })).toBeInTheDocument();
-    const link = screen.getByTestId('booking-confirm-link') as HTMLAnchorElement;
+    const link = screen.getByTestId('booking-confirm') as HTMLAnchorElement;
     expect(link).toBeInTheDocument();
     expect(link.getAttribute('href')).toMatch(/^https:\/\/wa\.me\/525555555555\?text=/);
   });
@@ -103,7 +103,7 @@ describe('BookingFlow', () => {
     });
     fireEvent.click(screen.getByTestId('booking-next'));
 
-    const link = screen.getByTestId('booking-confirm-link') as HTMLAnchorElement;
+    const link = screen.getByTestId('booking-confirm') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toMatch(/^mailto:hola@loschillangos\.com\?/);
   });
 

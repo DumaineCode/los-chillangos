@@ -33,7 +33,7 @@ export function StepConfirm({ href, isMailto, configMissing, onConfirm }: Props)
 
   if (configMissing) {
     return (
-      <div role="alert" style={{ padding: 32, textAlign: 'center' }}>
+      <div role="alert" style={{ padding: 32, textAlign: 'center' }} data-testid="booking-step-4">
         <h2>{t('title')}</h2>
         <p
           style={{
@@ -52,7 +52,7 @@ export function StepConfirm({ href, isMailto, configMissing, onConfirm }: Props)
   }
 
   return (
-    <div style={{ textAlign: 'center' }}>
+    <div style={{ textAlign: 'center' }} data-testid="booking-step-4">
       <h2>{t('title')}</h2>
       <p className="lede">{t('lede')}</p>
       <a
@@ -69,7 +69,7 @@ export function StepConfirm({ href, isMailto, configMissing, onConfirm }: Props)
         target={isMailto ? undefined : '_blank'}
         rel={isMailto ? undefined : 'noopener noreferrer'}
         style={{ marginTop: 24 }}
-        data-testid="booking-confirm-link"
+        data-testid="booking-confirm"
       >
         {isMailto ? tButtons('confirmEmail') : tButtons('confirmWhatsapp')} →
       </a>
