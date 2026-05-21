@@ -188,5 +188,100 @@
   "footer": {
     "address2": "Ciudad de México, 06700",
     "geoLabel": "19.43°N · 99.13°W"
+  },
+  "booking": {
+    "pageTitle": "Reserva un tour — Los Chillangos",
+    "pageDescription": "Elige fecha, dinos quiénes vienen y cerramos por WhatsApp.",
+    "noPublishedTour": "Todavía no tenemos un tour listo para reservar. Vuelve pronto o escríbenos directo.",
+    "configMissing": "Configura WhatsApp o email en /admin → ContactInfo antes de aceptar reservas.",
+    "progressLabel": "Paso {current} de {total}",
+    "buttons": {
+      "next": "Continuar",
+      "back": "Atrás",
+      "confirmWhatsapp": "Confirmar y abrir WhatsApp",
+      "confirmEmail": "Confirmar y abrir correo",
+      "fallbackLink": "¿No abrió? Toca aquí"
+    },
+    "steps": {
+      "date": {
+        "title": "Elige la fecha",
+        "lede": "Los lunes descansamos. Elige cualquier otro día desde hoy.",
+        "timeTitle": "Elige la hora"
+      },
+      "people": {
+        "title": "¿Cuántos van?",
+        "lede": "Máximo ocho por tour, incluyendo adolescentes. Niños 12+ bienvenidos.",
+        "adultLabel": "Adultos",
+        "adultHint": "Precio completo · 13+",
+        "teenLabel": "Adolescentes",
+        "teenHint": "20% off · 12–17",
+        "addonsTitle": "Extras",
+        "privatizeLabel": "Privatizar este tour",
+        "privatizeHint": "+USD 140 · solo tu grupo"
+      },
+      "details": {
+        "title": "Tus datos",
+        "lede": "Te confirmamos por WhatsApp.",
+        "nameLabel": "Nombre completo",
+        "namePlaceholder": "Hana Kobayashi",
+        "emailLabel": "Email",
+        "emailPlaceholder": "tu@ejemplo.com",
+        "whatsappLabel": "WhatsApp (opcional)",
+        "whatsappPlaceholder": "+52 55 1234 5678",
+        "whatsappHint": "Formato internacional. Nos ayuda a contestarte más rápido."
+      },
+      "confirm": {
+        "title": "Listo para confirmar",
+        "lede": "Te llevamos a WhatsApp. Cierra los detalles directo con el equipo.",
+        "redirectLede": "¿No abrió? Usa el enlace de abajo.",
+        "footer": "Enviado desde loschillangos.com"
+      }
+    },
+    "summary": {
+      "title": "Tu reserva",
+      "tour": "Tour",
+      "date": "Fecha",
+      "time": "Hora",
+      "riders": "Personas",
+      "adults": "{count, plural, one {# adulto} other {# adultos}}",
+      "teens": "{count, plural, one {# adolescente} other {# adolescentes}}",
+      "privatize": "Privatizado",
+      "subtotal": "Subtotal",
+      "addon": "Extras",
+      "total": "Total estimado",
+      "totalNote": "Confirmamos el precio final por WhatsApp"
+    },
+    "message": {
+      "greeting": "¡Hola Los Chillangos! Quiero reservar un tour.",
+      "labels": {
+        "name": "Nombre",
+        "tour": "Tour",
+        "date": "Fecha",
+        "time": "Hora",
+        "people": "Personas",
+        "privatize": "Extra",
+        "total": "Total estimado",
+        "email": "Email",
+        "whatsapp": "WhatsApp"
+      },
+      "privatizeValue": "Privatizar este tour (+USD 140)",
+      "footer": "Enviado desde loschillangos.com",
+      "subject": "Nueva solicitud de reserva — {tour}"
+    },
+    "errors": {
+      "mondayClosed": "Los lunes descansamos. Elige otro día.",
+      "pastDate": "Elige una fecha de hoy en adelante.",
+      "dateRequired": "Elige una fecha.",
+      "timeRequired": "Elige un horario.",
+      "nameRequired": "Cuéntanos tu nombre.",
+      "emailInvalid": "Ese email no parece válido.",
+      "whatsappInvalid": "Usa un formato internacional, ej. +52 55 1234 5678.",
+      "maxGroup": "Máximo ocho personas por tour.",
+      "minAdults": "Al menos un adulto por reserva."
+    },
+    "calendar": {
+      "prev": "Mes anterior",
+      "next": "Mes siguiente"
+    }
   }
 }
