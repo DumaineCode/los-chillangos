@@ -25,7 +25,7 @@ export function Logo({ variant = 'light', height = 40, className }: Props) {
       width={Math.round(height * 4)}
       height={height}
       className={['logo-img', className].filter(Boolean).join(' ')}
-      style={{ height, width: 'auto', display: 'block' }}
+      style={{ height, width: 'auto' }}
       priority
     />
   );

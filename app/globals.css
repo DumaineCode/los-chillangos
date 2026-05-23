@@ -133,20 +133,30 @@ a { color: inherit; text-decoration: none; }
 
 /* === Nav === */
 .nav {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 40;
   backdrop-filter: blur(14px);
   background: color-mix(in oklab, var(--bg) 80%, transparent);
   border-bottom: 1px solid var(--line);
   transition: background 240ms ease, border-color 240ms ease, color 240ms ease;
 }
+/* Reserve space for the fixed nav globally; home owns the full viewport via the hero. */
+body { padding-top: 72px; }
+body:has(.hero-cine) { padding-top: 0; }
 .nav.over-hero {
   background: transparent;
   backdrop-filter: none;
   border-bottom-color: transparent;
   color: #FFF3D6;
 }
+/* Default state: only show the light (default) logo. The dark variant is
+   always rendered in the DOM so we can swap via CSS without a flash; we hide
+   it with !important to beat any inline display from next/image. */
+.logo-over-hero { display: none !important; }
+.logo-default { display: block !important; }
 .nav.over-hero .logo-default { display: none !important; }
 .nav.over-hero .logo-over-hero { display: block !important; }
 .nav.over-hero .nav-links a { color: rgba(255,243,214,0.78); text-shadow: 0 1px 8px rgba(13,24,42,0.4); }
@@ -209,7 +219,7 @@ a { color: inherit; text-decoration: none; }
 .hero-cine {
   position: relative;
   min-height: 880px;
-  height: calc(100vh - 72px);
+  height: 100vh;
   max-height: 1040px;
   width: 100%;
   overflow: hidden;
@@ -266,7 +276,7 @@ a { color: inherit; text-decoration: none; }
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 40px 0 48px;
+  padding: 112px 0 48px;
 }
 
 /* Top meta row inside hero */
