@@ -10,6 +10,7 @@ import sharp from 'sharp';
 import { Users } from './collections/Users';
 import { Media } from './collections/Media';
 import { Tours } from './collections/Tours';
+import { Bookings } from './collections/Bookings';
 import { Navigation } from './globals/Navigation';
 import { ContactInfo } from './globals/ContactInfo';
 import { Hero } from './globals/Hero';
@@ -104,7 +105,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Tours],
+  collections: [Users, Media, Tours, Bookings],
   globals: [Navigation, ContactInfo, Hero, Footer, SocialLinks],
   localization: {
     locales: ['en', 'es'],

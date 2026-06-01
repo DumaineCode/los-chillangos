@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     tours: Tour;
+    bookings: Booking;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +81,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     tours: ToursSelect<false> | ToursSelect<true>;
+    bookings: BookingsSelect<false> | BookingsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -281,6 +283,26 @@ export interface Tour {
    */
   groupSize?: string | null;
   /**
+   * Days of the week this tour runs. Leave empty if the tour is paused. The site uses these to gate the booking calendar.
+   */
+  availableDays?: ('0' | '1' | '2' | '3' | '4' | '5' | '6')[] | null;
+  /**
+   * Departure times the tour runs and how many seats each one has. The booking flow reads this per-tour — no global default applies anymore.
+   */
+  timeSlots?:
+    | {
+        /**
+         * 24h format HH:MM (e.g. "09:00", "14:30").
+         */
+        time: string;
+        /**
+         * Maximum persons (adults + teens) bookable in this departure slot.
+         */
+        capacity: number;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * E.g. "EN · ES". Same string in both locales — non-localized.
    */
   languages?: string | null;
@@ -308,6 +330,78 @@ export interface Tour {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings".
+ */
+export interface Booking {
+  id: number;
+  /**
+   * Auto-generated public booking reference.
+   */
+  reference: string;
+  /**
+   * Which tour was booked.
+   */
+  tour: number | Tour;
+  /**
+   * Local calendar date of the departure (no time component).
+   */
+  date: string;
+  /**
+   * Departure time in HH:MM. Must match one of the tour timeSlots at booking time.
+   */
+  time: string;
+  adults: number;
+  teens: number;
+  /**
+   * adults + teens — stored for fast capacity queries.
+   */
+  totalPersons: number;
+  privatize?: boolean | null;
+  /**
+   * USD per person at the time of booking (snapshot — not linked).
+   */
+  pricePerPerson: number;
+  /**
+   * Snapshot of the privatize flat fee at booking time (matches the legacy +USD 140 constant; not enforced here).
+   */
+  privatizeFee: number;
+  currency: string;
+  /**
+   * Cached total. Stripe charges this amount.
+   */
+  totalAmount: number;
+  customer: {
+    name: string;
+    email: string;
+    whatsapp?: string | null;
+    locale: 'en' | 'es';
+  };
+  /**
+   * pending: hold active; counts against capacity until holdExpiresAt. paid: confirmed; counts against capacity permanently. expired: hold expired without payment; does NOT count. cancelled: customer or admin cancelled; does NOT count. refunded: paid then refunded; does NOT count.
+   */
+  status: 'pending' | 'paid' | 'expired' | 'cancelled' | 'refunded';
+  /**
+   * When the pending hold lapses. Only meaningful while status = pending. Sub-etapa B will sweep expired holds.
+   */
+  holdExpiresAt?: string | null;
+  /**
+   * Stripe Checkout Session ID (cs_test_… in test mode). Filled when the checkout session is created in Sub-etapa C.
+   */
+  stripeCheckoutSessionId?: string | null;
+  /**
+   * Stripe PaymentIntent ID. Filled by the Stripe webhook in Sub-etapa C when payment succeeds.
+   */
+  stripePaymentIntentId?: string | null;
+  paidAt?: string | null;
+  /**
+   * Internal admin notes (not sent to the customer).
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -344,6 +438,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tours';
         value: number | Tour;
+      } | null)
+    | ({
+        relationTo: 'bookings';
+        value: number | Booking;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -491,6 +589,14 @@ export interface ToursSelect<T extends boolean = true> {
   meetingPoint?: T;
   meetingPointText?: T;
   groupSize?: T;
+  availableDays?: T;
+  timeSlots?:
+    | T
+    | {
+        time?: T;
+        capacity?: T;
+        id?: T;
+      };
   languages?: T;
   level?: T;
   itinerary?:
@@ -510,6 +616,40 @@ export interface ToursSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings_select".
+ */
+export interface BookingsSelect<T extends boolean = true> {
+  reference?: T;
+  tour?: T;
+  date?: T;
+  time?: T;
+  adults?: T;
+  teens?: T;
+  totalPersons?: T;
+  privatize?: T;
+  pricePerPerson?: T;
+  privatizeFee?: T;
+  currency?: T;
+  totalAmount?: T;
+  customer?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        whatsapp?: T;
+        locale?: T;
+      };
+  status?: T;
+  holdExpiresAt?: T;
+  stripeCheckoutSessionId?: T;
+  stripePaymentIntentId?: T;
+  paidAt?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -210,12 +210,66 @@ export const Tours: CollectionConfig = {
       },
     },
     {
+      // Display-only marketing label. Real capacity lives in `timeSlots[].capacity`.
       name: 'groupSize',
       type: 'text',
       localized: true,
       admin: {
         description: 'E.g. "Up to 8" / "Hasta 8".',
       },
+    },
+    {
+      name: 'availableDays',
+      type: 'select',
+      hasMany: true,
+      admin: {
+        description:
+          'Days of the week this tour runs. Leave empty if the tour is paused. The site uses these to gate the booking calendar.',
+      },
+      options: [
+        { label: 'Sunday', value: '0' },
+        { label: 'Monday', value: '1' },
+        { label: 'Tuesday', value: '2' },
+        { label: 'Wednesday', value: '3' },
+        { label: 'Thursday', value: '4' },
+        { label: 'Friday', value: '5' },
+        { label: 'Saturday', value: '6' },
+      ],
+    },
+    {
+      name: 'timeSlots',
+      type: 'array',
+      labels: { singular: 'Time slot', plural: 'Time slots' },
+      admin: {
+        description:
+          'Departure times the tour runs and how many seats each one has. The booking flow reads this per-tour — no global default applies anymore.',
+      },
+      fields: [
+        {
+          name: 'time',
+          type: 'text',
+          required: true,
+          admin: {
+            description: '24h format HH:MM (e.g. "09:00", "14:30").',
+          },
+          validate: (value: string | null | undefined) => {
+            if (!value) return 'Time is required.';
+            if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) {
+              return 'Time must be HH:MM in 24h format.';
+            }
+            return true;
+          },
+        },
+        {
+          name: 'capacity',
+          type: 'number',
+          required: true,
+          min: 1,
+          admin: {
+            description: 'Maximum persons (adults + teens) bookable in this departure slot.',
+          },
+        },
+      ],
     },
     {
       name: 'languages',
