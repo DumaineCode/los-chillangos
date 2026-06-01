@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -6,14 +6,15 @@ import enMessages from '../../../messages/en.json';
 import { BookingFlow } from './BookingFlow';
 
 /**
- * Smoke tests for the 4-step booking wizard after the Sub-etapa B rewire.
+ * Smoke tests for the 4-step booking wizard after the Sub-etapa C rewire.
  *
- * The tour fixture now carries `availableDays` + `timeSlots[].capacity` so
- * the calendar disables closed days and Step 2 caps the headcount per slot.
+ * Confirm step now POSTs to /api/booking/checkout and redirects to a
+ * Stripe Checkout URL. We stub `fetch` globally:
+ *   - GET /api/booking/availability → empty slots (StepDate falls back)
+ *   - POST /api/booking/checkout → returns a stubbed checkoutUrl
  *
- * We stub `fetch` so the live-availability call inside StepDate doesn't
- * trigger a real network request — instead it resolves to an empty body and
- * StepDate falls back to the static capacity from `tour.timeSlots`.
+ * We do NOT actually navigate — `window.location.assign` is stubbed so the
+ * test asserts the wizard called it with the expected URL.
  */
 
 const baseTour = {
@@ -22,8 +23,6 @@ const baseTour = {
   title: 'Coyoacán Classic E-Bike',
   category: 'ebike' as const,
   price: 89,
-  // Every day open except Monday, so the existing "pick first available" test
-  // pattern keeps working (most months have non-Monday days available).
   availableDays: ['0', '2', '3', '4', '5', '6'] as ReadonlyArray<
     '0' | '1' | '2' | '3' | '4' | '5' | '6'
   >,
@@ -35,10 +34,6 @@ const baseTour = {
 
 const baseProps = {
   tour: baseTour,
-  contact: {
-    whatsapp: '+525555555555',
-    email: 'hola@loschillangos.com',
-  },
   siteUrl: 'https://loschillangos.com',
   locale: 'en' as const,
 };
@@ -52,14 +47,22 @@ function renderFlow(props = baseProps) {
 }
 
 beforeEach(() => {
-  // Best-effort fetch stub for the availability endpoint. Returns no slots
-  // so StepDate keeps the static fallback (everything enabled).
+  // Default stub: availability returns no taken seats; checkout returns a URL.
   vi.stubGlobal(
     'fetch',
-    vi.fn(async () => ({
-      ok: true,
-      json: async () => ({ slots: [] }),
-    }))
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      if (init?.method === 'POST' && url.includes('/api/booking/checkout')) {
+        return {
+          ok: true,
+          json: async () => ({
+            checkoutUrl: 'https://checkout.stripe.com/c/pay/cs_test_smoke',
+            reference: 'LC-12345678',
+          }),
+        };
+      }
+      return { ok: true, json: async () => ({ slots: [] }) };
+    })
   );
 });
 
@@ -70,23 +73,24 @@ afterEach(() => {
 describe('BookingFlow', () => {
   it('renders step 1 (Pick a date) initially', () => {
     renderFlow();
-
     expect(screen.getByRole('heading', { name: /pick a date/i })).toBeInTheDocument();
     expect(screen.getByText(/step 1 of 4/i)).toBeInTheDocument();
   });
 
   it('does not advance past step 1 when no date or time is selected', () => {
     renderFlow();
-
-    const next = screen.getByTestId('booking-next');
-    fireEvent.click(next);
-
-    // Still on step 1
+    fireEvent.click(screen.getByTestId('booking-next'));
     expect(screen.getByRole('heading', { name: /pick a date/i })).toBeInTheDocument();
-    expect(screen.getByText(/step 1 of 4/i)).toBeInTheDocument();
   });
 
-  it('advances through all 4 steps when each step receives valid input', () => {
+  it('reaches the confirm step and POSTs to /api/booking/checkout on click', async () => {
+    // Stub window.location.assign so the redirect doesn't actually navigate.
+    const assign = vi.fn();
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...window.location, assign },
+    });
+
     renderFlow();
 
     selectAFutureNonMondayDay();
@@ -106,44 +110,32 @@ describe('BookingFlow', () => {
     fireEvent.click(screen.getByTestId('booking-next'));
 
     expect(screen.getByRole('heading', { name: /ready to confirm/i })).toBeInTheDocument();
-    const link = screen.getByTestId('booking-confirm') as HTMLAnchorElement;
-    expect(link).toBeInTheDocument();
-    expect(link.getAttribute('href')).toMatch(/^https:\/\/wa\.me\/525555555555\?text=/);
-  });
+    const payButton = screen.getByTestId('booking-confirm');
+    fireEvent.click(payButton);
 
-  it('falls back to mailto: when WhatsApp is empty', () => {
-    renderFlow({ ...baseProps, contact: { whatsapp: '', email: 'hola@loschillangos.com' } });
-    selectAFutureNonMondayDay();
-    fireEvent.click(screen.getByRole('button', { name: /09:00/ }));
-    fireEvent.click(screen.getByTestId('booking-next'));
-    fireEvent.click(screen.getByTestId('booking-next'));
-    fireEvent.change(screen.getByLabelText(/full name/i), {
-      target: { value: 'Hana Kobayashi' },
+    await waitFor(() => {
+      expect(assign).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_test_smoke');
     });
-    fireEvent.change(screen.getByLabelText(/^email$/i), {
-      target: { value: 'hana@example.com' },
-    });
-    fireEvent.click(screen.getByTestId('booking-next'));
 
-    const link = screen.getByTestId('booking-confirm') as HTMLAnchorElement;
-    expect(link.getAttribute('href')).toMatch(/^mailto:hola@loschillangos\.com\?/);
-  });
-
-  it('shows the config-missing alert when both channels are empty', () => {
-    renderFlow({ ...baseProps, contact: { whatsapp: '', email: '' } });
-    selectAFutureNonMondayDay();
-    fireEvent.click(screen.getByRole('button', { name: /09:00/ }));
-    fireEvent.click(screen.getByTestId('booking-next'));
-    fireEvent.click(screen.getByTestId('booking-next'));
-    fireEvent.change(screen.getByLabelText(/full name/i), {
-      target: { value: 'Hana Kobayashi' },
+    // The fetch we care about was the checkout POST.
+    const fetchMock = vi.mocked(global.fetch);
+    const checkoutCall = fetchMock.mock.calls.find(([url, init]) => {
+      const u = typeof url === 'string' ? url : String(url);
+      return u.includes('/api/booking/checkout') && init?.method === 'POST';
     });
-    fireEvent.change(screen.getByLabelText(/^email$/i), {
-      target: { value: 'hana@example.com' },
-    });
-    fireEvent.click(screen.getByTestId('booking-next'));
-
-    expect(screen.getByRole('alert')).toHaveTextContent(/Configure WhatsApp or email/i);
+    expect(checkoutCall).toBeDefined();
+    const body = JSON.parse(checkoutCall![1]!.body as string) as {
+      tourId: number;
+      time: string;
+      adults: number;
+      customer: { name: string; email: string; locale: string };
+    };
+    expect(body.tourId).toBe(1);
+    expect(body.time).toBe('09:00');
+    expect(body.adults).toBe(2);
+    expect(body.customer.name).toBe('Hana Kobayashi');
+    expect(body.customer.email).toBe('hana@example.com');
+    expect(body.customer.locale).toBe('en');
   });
 
   it('shows the tourPaused banner when availableDays is empty', () => {
@@ -153,12 +145,45 @@ describe('BookingFlow', () => {
     });
     expect(screen.getByText(/currently unavailable/i)).toBeInTheDocument();
   });
+
+  it('renders an error message when the checkout API returns no-seats-left', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = typeof input === 'string' ? input : input.toString();
+        if (init?.method === 'POST' && url.includes('/api/booking/checkout')) {
+          return {
+            ok: false,
+            json: async () => ({ error: 'no-seats-left', remaining: 0 }),
+          };
+        }
+        return { ok: true, json: async () => ({ slots: [] }) };
+      })
+    );
+
+    renderFlow();
+    selectAFutureNonMondayDay();
+    fireEvent.click(screen.getByRole('button', { name: /09:00/ }));
+    fireEvent.click(screen.getByTestId('booking-next'));
+    fireEvent.click(screen.getByTestId('booking-next'));
+    fireEvent.change(screen.getByLabelText(/full name/i), {
+      target: { value: 'Hana Kobayashi' },
+    });
+    fireEvent.change(screen.getByLabelText(/^email$/i), {
+      target: { value: 'hana@example.com' },
+    });
+    fireEvent.click(screen.getByTestId('booking-next'));
+    fireEvent.click(screen.getByTestId('booking-confirm'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/just filled up/i);
+    });
+  });
 });
 
 /**
- * Click the first calendar day cell that is `available` (i.e. enabled by
- * the parent-supplied predicate). The MiniCalendar opens on the current
- * month by default. Mondays are filtered out by the fixture's availableDays.
+ * Click the first calendar day cell that is `available`. Mondays are
+ * filtered out by the fixture's availableDays.
  */
 function selectAFutureNonMondayDay() {
   const buttons = screen.getAllByRole('button');

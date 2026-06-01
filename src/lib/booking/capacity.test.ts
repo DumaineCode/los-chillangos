@@ -108,12 +108,9 @@ describe('countSeatsTaken', () => {
     expect(total).toBe(0);
   });
 
-  it('still resolves a count when the sweep update throws', async () => {
+  it('does not call payload.update — the sweep is owned by the cron route now', async () => {
     const payload = makePayload({
       find: async () => ({ docs: [{ totalPersons: 4 }] }),
-      update: async () => {
-        throw new Error('boom');
-      },
     });
      
     const total = await countSeatsTaken({
@@ -125,6 +122,7 @@ describe('countSeatsTaken', () => {
       now: NOW,
     });
     expect(total).toBe(4);
+    expect(payload.update).not.toHaveBeenCalled();
   });
 
   it('coerces missing totalPersons to 0 defensively', async () => {
