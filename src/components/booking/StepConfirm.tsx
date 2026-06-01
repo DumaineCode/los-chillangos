@@ -1,94 +1,115 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
+type CheckoutPayload = {
+  tourId: number;
+  date: string;
+  time: string;
+  adults: number;
+  teens: number;
+  privatize: boolean;
+  customer: {
+    name: string;
+    email: string;
+    whatsapp: string;
+    locale: 'en' | 'es';
+  };
+};
+
 type Props = {
-  /** The final URL (wa.me or mailto:) the button will navigate to. */
-  href: string;
-  /** True when we're falling back to mailto: because WhatsApp is empty. */
-  isMailto: boolean;
-  /** True when neither WhatsApp nor email is configured in Payload. */
-  configMissing: boolean;
-  /** Click handler that performs the redirect (so we can `window.location.href = …`). */
-  onConfirm: () => void;
+  /** Fully built payload ready to POST to /api/booking/checkout. */
+  payload: CheckoutPayload;
 };
 
 /**
- * Confirmation step — a single primary button that opens the deep link.
+ * Confirmation step (Sub-etapa C).
  *
- * The button is rendered as an `<a>` with the actual URL in its `href`, so:
- *   - Right-click "open in new tab" works
- *   - Screen readers announce the destination
- *   - The smoke test in `BookingFlow.test.tsx` can assert
- *     `getAttribute('href')` against the built deep link
+ * Replaces the WhatsApp deep-link CTA (Sub-etapa B) with a Stripe Checkout
+ * redirect:
+ *   1. Click "Pay & confirm" → POST /api/booking/checkout
+ *   2. Server validates availability, creates `bookings` row in `pending`,
+ *      creates Stripe Checkout Session, returns `checkoutUrl`.
+ *   3. Client redirects via `window.location.assign(checkoutUrl)`.
+ *   4. On Stripe, the customer pays. On return, success / cancelled pages
+ *      handle the result (`/[locale]/book/success?ref=...&session_id=...`).
  *
- * We still attach an `onClick` that calls `onConfirm()` so the parent can
- * trigger `window.location.href = …` (matching the user's prompt). Both
- * paths land on the same URL.
+ * Error mapping uses the `error` string returned by the server. Anything
+ * unknown falls back to `errors.unexpected`.
  */
-export function StepConfirm({ href, isMailto, configMissing, onConfirm }: Props) {
+export function StepConfirm({ payload }: Props) {
   const t = useTranslations('booking.steps.confirm');
-  const tButtons = useTranslations('booking.buttons');
   const tBooking = useTranslations('booking');
+  const tErrors = useTranslations('booking.errors');
 
-  if (configMissing) {
-    return (
-      <div role="alert" style={{ padding: 32, textAlign: 'center' }} data-testid="booking-step-4">
-        <h2>{t('title')}</h2>
-        <p
-          style={{
-            color: 'var(--terra)',
-            marginTop: 16,
-            padding: '16px 18px',
-            background: 'var(--cream)',
-            borderRadius: 6,
-            border: '1px solid var(--terra)',
-          }}
-        >
-          {tBooking('configMissing')}
-        </p>
-      </div>
-    );
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  async function handlePay() {
+    setSubmitting(true);
+    setErrorMessage(null);
+    try {
+      const res = await fetch('/api/booking/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setErrorMessage(translateError(body.error, tErrors));
+        setSubmitting(false);
+        return;
+      }
+
+      const body = (await res.json()) as { checkoutUrl?: string };
+      if (!body.checkoutUrl) {
+        setErrorMessage(tErrors('unexpected'));
+        setSubmitting(false);
+        return;
+      }
+      // Leave to Stripe.
+      window.location.assign(body.checkoutUrl);
+    } catch (err) {
+      console.error('[checkout] request failed', err);
+      setErrorMessage(tErrors('unexpected'));
+      setSubmitting(false);
+    }
   }
 
   return (
     <div style={{ textAlign: 'center' }} data-testid="booking-step-4">
       <h2>{t('title')}</h2>
       <p className="lede">{t('lede')}</p>
-      <a
-        href={href}
+
+      <button
+        type="button"
         className="btn btn-terra btn-lg"
-        onClick={(e) => {
-          // Let the browser handle the navigation natively. We also call
-          // onConfirm() to support the wa.me deep-link sometimes needing a
-          // `window.location.href = …` push on certain browsers. Don't
-          // preventDefault — the native click does the heavier lifting.
-          onConfirm();
-          void e;
-        }}
-        target={isMailto ? undefined : '_blank'}
-        rel={isMailto ? undefined : 'noopener noreferrer'}
+        onClick={handlePay}
+        disabled={submitting}
         style={{ marginTop: 24 }}
         data-testid="booking-confirm"
       >
-        {isMailto ? tButtons('confirmEmail') : tButtons('confirmWhatsapp')} →
-      </a>
-      <p style={{ marginTop: 24, fontSize: 14, color: 'var(--ink-soft)' }}>{t('redirectLede')}</p>
-      <a
-        href={href}
-        target={isMailto ? undefined : '_blank'}
-        rel={isMailto ? undefined : 'noopener noreferrer'}
-        style={{
-          display: 'inline-block',
-          marginTop: 8,
-          fontSize: 13,
-          color: 'var(--ink)',
-          textDecoration: 'underline',
-          wordBreak: 'break-all',
-        }}
-      >
-        {tButtons('fallbackLink')}
-      </a>
+        {submitting ? tBooking('creating') : `${tBooking('payCta')} →`}
+      </button>
+
+      {errorMessage ? (
+        <p
+          role="alert"
+          style={{
+            marginTop: 16,
+            padding: '12px 16px',
+            background: 'var(--cream)',
+            border: '1px solid var(--terra)',
+            borderRadius: 6,
+            color: 'var(--terra)',
+          }}
+        >
+          {errorMessage}
+        </p>
+      ) : null}
+
       <p
         className="mono"
         style={{
@@ -103,4 +124,30 @@ export function StepConfirm({ href, isMailto, configMissing, onConfirm }: Props)
       </p>
     </div>
   );
+}
+
+function translateError(
+  code: string | undefined,
+  tErrors: ReturnType<typeof useTranslations<'booking.errors'>>
+): string {
+  switch (code) {
+    case 'no-seats-left':
+      return tErrors('noSeatsLeft');
+    case 'cutoff-passed':
+      return tErrors('cutoffPassed');
+    case 'day-closed':
+      return tErrors('dayClosed');
+    case 'past-date':
+      return tErrors('pastDate');
+    case 'unknown-slot':
+      return tErrors('unknownSlot');
+    case 'over-slot-capacity':
+      return tErrors('maxGroupSlot');
+    case 'tour-not-published':
+      return tErrors('tourNotPublished');
+    case 'tour-not-found':
+      return tErrors('tourNotFound');
+    default:
+      return tErrors('unexpected');
+  }
 }

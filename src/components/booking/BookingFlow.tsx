@@ -3,17 +3,9 @@
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
-import { getTimeSlotsForTour } from '../../lib/booking/availability';
+import { TOUR_TIMEZONE, getTimeSlotsForTour } from '../../lib/booking/availability';
 import { calculatePrice } from '../../lib/booking/pricing';
 import { stepDateSchema, stepDetailsSchema, stepPeopleSchema } from '../../lib/booking/schema';
-import {
-  BookingLinkError,
-  buildMailtoLink,
-  buildWhatsAppDeepLink,
-  type BookingIntent,
-  type BookingMessageLabels,
-  type DeepLinkContext,
-} from '../../lib/booking/whatsappDeepLink';
 import { BookingSummary } from './BookingSummary';
 import { StepConfirm } from './StepConfirm';
 import { StepDate, type StepDateTour } from './StepDate';
@@ -32,7 +24,12 @@ type BookingTour = {
 
 type Props = {
   tour: BookingTour;
-  contact: {
+  /**
+   * Kept for backward compat with the page boundary, but no longer consumed
+   * by the wizard now that Sub-etapa C routes confirmation through Stripe
+   * Checkout. Sub-etapa D's email templates may pull from this again.
+   */
+  contact?: {
     whatsapp: string;
     email: string;
   };
@@ -44,25 +41,19 @@ type StepKey = 1 | 2 | 3 | 4;
 const TOTAL_STEPS = 4;
 
 /**
- * Booking flow state machine (Sub-etapa B).
+ * Booking flow state machine (Sub-etapa C update).
  *
  * Four steps: date → people → details → confirm. Each step validates with
- * its Zod schema before the user can advance. The Confirm step builds the
- * WhatsApp deep link (or mailto: fallback) and renders it as the primary
- * CTA.
+ * its Zod schema before the user can advance. The Confirm step now POSTs
+ * to `/api/booking/checkout` which returns a Stripe Checkout URL.
  *
  * Capacity is per-slot, sourced from `tour.timeSlots[].capacity`. The
  * `stepPeopleSchema` factory takes the chosen slot's capacity so the
- * adults+teens cap is enforced against the right number. If the user has
- * not picked a time yet, we fall back to the first slot's capacity (the
- * Continue button on step 1 also enforces a time selection).
+ * adults+teens cap is enforced against the right number.
  */
-export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
+export function BookingFlow({ tour, locale }: Props) {
   const tButtons = useTranslations('booking.buttons');
   const tProgress = useTranslations('booking');
-  const tMsg = useTranslations('booking.message');
-  const tMsgLabels = useTranslations('booking.message.labels');
-  const tSummary = useTranslations('booking.summary');
 
   const [step, setStep] = useState<StepKey>(1);
   const [date, setDate] = useState<Date | null>(null);
@@ -88,9 +79,7 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
     [tour.timeSlots]
   );
 
-  // Slot capacity drives Step 2's headcount cap. If the user hasn't picked
-  // a slot yet (shouldn't happen — Step 1 enforces it) fall back to the
-  // first slot's capacity, or 8 as a final safety net.
+  // Slot capacity drives Step 2's headcount cap.
   const slotCapacity = useMemo(() => {
     const chosen = baseSlots.find((s) => s.time === time);
     if (chosen) return chosen.capacity;
@@ -98,9 +87,6 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
     return 8;
   }, [baseSlots, time]);
 
-  // The Step 1 tour subset — we pass a stable shape that StepDate can use
-  // to derive the calendar predicate, time-slot chips, and live availability
-  // fetch by id. (Cast availableDays to the mutable shape Payload type wants.)
   const stepDateTour: StepDateTour = useMemo(
     () => ({
       id: tour.id,
@@ -115,68 +101,25 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
     [tour.price, adults, teens, privatize]
   );
 
-  const labels: BookingMessageLabels = useMemo(
+  // The exact payload that StepConfirm posts to /api/booking/checkout.
+  // We build it eagerly so StepConfirm stays focused on UX, not data shape.
+  const checkoutPayload = useMemo(
     () => ({
-      greeting: tMsg('greeting'),
-      name: tMsgLabels('name'),
-      tour: tMsgLabels('tour'),
-      date: tMsgLabels('date'),
-      time: tMsgLabels('time'),
-      people: tMsgLabels('people'),
-      privatize: tMsgLabels('privatize'),
-      total: tMsgLabels('total'),
-      email: tMsgLabels('email'),
-      whatsapp: tMsgLabels('whatsapp'),
-      privatizeValue: tMsg('privatizeValue'),
-      footer: tMsg('footer'),
-      subject: tMsg('subject', { tour: tour.title }),
-      adultsValue: tSummary('adults', { count: adults }),
-      teensValue: tSummary('teens', { count: teens }),
-    }),
-    [tMsg, tMsgLabels, tSummary, adults, teens, tour.title]
-  );
-
-  const intent: BookingIntent = useMemo(
-    () => ({
-      tourTitle: tour.title,
-      tourSlug: tour.slug,
-      date: date ?? new Date(),
+      tourId: tour.id,
+      date: date ? formatCDMXDate(date) : '',
       time,
       adults,
       teens,
       privatize,
-      estimatedTotal: breakdown.total,
-      customerName: name,
-      customerEmail: email,
-      customerWhatsapp: whatsappOptional || undefined,
-      locale,
+      customer: {
+        name,
+        email,
+        whatsapp: whatsappOptional,
+        locale,
+      },
     }),
-    [
-      tour,
-      date,
-      time,
-      adults,
-      teens,
-      privatize,
-      breakdown.total,
-      name,
-      email,
-      whatsappOptional,
-      locale,
-    ]
+    [tour.id, date, time, adults, teens, privatize, name, email, whatsappOptional, locale]
   );
-
-  const ctx: DeepLinkContext = useMemo(
-    () => ({ contactWhatsapp: contact.whatsapp, contactEmail: contact.email, siteUrl }),
-    [contact.whatsapp, contact.email, siteUrl]
-  );
-
-  const link = useMemo(() => {
-    // Don't even attempt link-building until the user reaches the confirm
-    // step — the schemas already gated everything that matters by then.
-    if (step !== 4) return { href: '#', isMailto: false, configMissing: false };
-    return resolveDeepLink(intent, ctx, labels);
-  }, [step, intent, ctx, labels]);
 
   function handleNext() {
     if (step === 1) {
@@ -224,17 +167,6 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
     setStep((s) => (s > 1 ? ((s - 1) as StepKey) : s));
   }
 
-  function handleConfirm() {
-    if (link.href === '#') return;
-    // The <a> already navigates. We still set window.location.href as a
-    // belt-and-suspenders push for wa.me on some mobile browsers.
-    try {
-      window.location.href = link.href;
-    } catch {
-      // window.location is read-only in some test environments — fine.
-    }
-  }
-
   return (
     <div className="booking-page">
       <div className="container">
@@ -269,12 +201,7 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
         {step === 4 ? (
           <div className="booking-layout">
             <div className="booking-main">
-              <StepConfirm
-                href={link.href}
-                isMailto={link.isMailto}
-                configMissing={link.configMissing}
-                onConfirm={handleConfirm}
-              />
+              <StepConfirm payload={checkoutPayload} />
               <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 32 }}>
                 <button type="button" className="btn btn-ghost" onClick={handleBack}>
                   ← {tButtons('back')}
@@ -384,33 +311,17 @@ function stepLabel(i: number, locale: 'en' | 'es'): string {
   return ['Date', 'People', 'Details', 'Confirm'][i - 1] ?? '';
 }
 
-function resolveDeepLink(
-  intent: BookingIntent,
-  ctx: DeepLinkContext,
-  labels: BookingMessageLabels
-): { href: string; isMailto: boolean; configMissing: boolean } {
-  const hasWhatsapp = ctx.contactWhatsapp.replace(/\D+/g, '').length > 0;
-  const hasEmail = ctx.contactEmail.trim().length > 0;
+const CDMX_YMD = new Intl.DateTimeFormat('en-CA', {
+  timeZone: TOUR_TIMEZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
 
-  if (hasWhatsapp) {
-    try {
-      return {
-        href: buildWhatsAppDeepLink(intent, ctx, labels),
-        isMailto: false,
-        configMissing: false,
-      };
-    } catch (err) {
-      if (!(err instanceof BookingLinkError)) throw err;
-    }
-  }
-
-  if (hasEmail) {
-    try {
-      return { href: buildMailtoLink(intent, ctx, labels), isMailto: true, configMissing: false };
-    } catch (err) {
-      if (!(err instanceof BookingLinkError)) throw err;
-    }
-  }
-
-  return { href: '#', isMailto: false, configMissing: true };
+/**
+ * Format a Date as YYYY-MM-DD in CDMX. `en-CA` formats numerically with `-`
+ * separators so we can use the output directly without parsing.
+ */
+function formatCDMXDate(date: Date): string {
+  return CDMX_YMD.format(date);
 }

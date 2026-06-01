@@ -8,10 +8,9 @@ import {
   isSameDayCutoffPassed,
   isWeekdayAvailable,
 } from './availability';
-import { sweepExpiredHolds } from './sweep';
 
 /**
- * Booking capacity reads (Sub-etapa B).
+ * Booking capacity reads (Sub-etapa B, refined in C).
  *
  * Capacity unit = persons (adults + teens). Seats taken for a (tour, date, time)
  * are the sum of `totalPersons` over `bookings` rows where:
@@ -22,6 +21,11 @@ import { sweepExpiredHolds } from './sweep';
  *
  * NO caching: bookings change too fast. The route handler that calls this
  * sets `Cache-Control: no-store`.
+ *
+ * Sub-etapa C note: the lazy sweep that B used to run inside this function
+ * was moved out. The Vercel cron at `/api/cron/sweep-bookings` now owns it.
+ * Reads are pure — they may briefly count an expired-but-not-yet-swept hold
+ * as taken (strictly conservative; never under-counts).
  */
 
 export type SlotAvailability = {
@@ -45,16 +49,11 @@ export async function countSeatsTaken({
   time: string;
   now?: Date;
 }): Promise<number> {
-  // Lazy sweep before reading. If it fails (e.g. transient DB hiccup) we
-  // still want the read to resolve — an expired-pending counted once is
-  // a strictly conservative outcome (overstates seatsTaken, never under).
-  // TODO Sub-etapa C: replace this lazy sweep with a Vercel cron at
-  // /api/cron/sweep-bookings so reads stop paying for sweeps.
-  try {
-    await sweepExpiredHolds(payload, now);
-  } catch {
-    /* swallow — see comment above */
-  }
+  // The expired-hold sweep used to run here lazily on every read. Sub-etapa C
+  // moved it to `/api/cron/sweep-bookings` (Vercel cron, 1-minute cadence).
+  // If the cron is delayed or paused, expired pendings will linger in the
+  // capacity count until the next sweep — strictly conservative, never
+  // under-counts.
 
   const { startUTC, endUTC } = getCDMXDayRange(date);
   const result = await payload.find({

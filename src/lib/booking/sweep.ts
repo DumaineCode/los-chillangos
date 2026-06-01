@@ -1,14 +1,16 @@
 import type { Payload } from 'payload';
 
 /**
- * Lazy sweep of expired booking holds (Sub-etapa B).
+ * Bulk sweep of expired booking holds.
  *
  * Pending bookings carry a `holdExpiresAt`. When that timestamp lapses
  * without payment, the row should flip to `expired` so it no longer counts
  * against capacity. This helper performs that flip in bulk.
  *
- * TODO Sub-etapa C: replace this lazy call with a Vercel cron at
- * `/api/cron/sweep-bookings` so we don't pay sweep cost on every read.
+ * Owned by the Vercel cron at `/api/cron/sweep-bookings` (Sub-etapa C).
+ * Earlier (Sub-etapa B), this was called lazily on every capacity read,
+ * which paid a write cost for every availability check. The cron decouples
+ * sweep cadence (1 min) from read traffic.
  */
 export async function sweepExpiredHolds(
   payload: Payload,

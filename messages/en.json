@@ -278,7 +278,32 @@
       "maxGroup": "Eight riders max per tour.",
       "minAdults": "At least one adult per booking.",
       "dayClosed": "This tour does not run on that day.",
-      "maxGroupSlot": "This departure has limited capacity."
+      "maxGroupSlot": "This departure has limited capacity.",
+      "noSeatsLeft": "Sorry, this departure just filled up.",
+      "cutoffPassed": "Too late to book this departure.",
+      "unknownSlot": "That time slot is no longer available.",
+      "tourNotPublished": "This tour is not currently available for booking.",
+      "tourNotFound": "We couldn't find that tour. Please pick another.",
+      "unexpected": "Something went wrong. Please try again."
+    },
+    "payCta": "Pay & confirm",
+    "creating": "Creating your booking…",
+    "success": {
+      "title": "You're booked!",
+      "pendingTitle": "Confirming your payment…",
+      "referenceLabel": "Reference",
+      "tourLabel": "Tour",
+      "dateLabel": "Date",
+      "timeLabel": "Time",
+      "personsLabel": "People",
+      "totalLabel": "Total paid",
+      "pendingMessage": "Your payment is processing. We'll email your confirmation as soon as it lands.",
+      "timeoutMessage": "It's taking longer than expected. Please check your email or contact us with your reference."
+    },
+    "cancelled": {
+      "title": "Booking cancelled",
+      "message": "Your seats were released. No charge was made.",
+      "retryCta": "Try again"
     },
     "calendar": {
       "prev": "Previous month",

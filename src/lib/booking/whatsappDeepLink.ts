@@ -1,6 +1,13 @@
 /**
  * WhatsApp + mailto deep-link builders (PR 5).
  *
+ * @deprecated Sub-etapa C replaced this flow with Stripe Checkout. This
+ * module is intentionally NOT deleted yet — it still ships under
+ * `src/lib/booking/whatsappDeepLink.ts` so Sub-etapa D can salvage the
+ * localized phrasing for the Resend confirmation email body. Once the email
+ * templates are wired, delete this file and its test in a single cleanup
+ * commit. (Tracker: Sub-etapa D cleanup.)
+ *
  * These are PURE functions — no React, no Next, no I/O. The booking flow
  * collects a `BookingIntent` from the wizard and a `DeepLinkContext` from
  * the Payload `ContactInfo` global, then asks this module for the URL.

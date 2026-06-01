@@ -278,7 +278,32 @@
       "maxGroup": "Máximo ocho personas por tour.",
       "minAdults": "Al menos un adulto por reserva.",
       "dayClosed": "Este tour no opera ese día.",
-      "maxGroupSlot": "Esta salida tiene cupo limitado."
+      "maxGroupSlot": "Esta salida tiene cupo limitado.",
+      "noSeatsLeft": "Esta salida se acaba de llenar.",
+      "cutoffPassed": "Es muy tarde para reservar esta salida.",
+      "unknownSlot": "Ese horario ya no está disponible.",
+      "tourNotPublished": "Este tour no está disponible para reservar.",
+      "tourNotFound": "No encontramos ese tour. Elegí otro.",
+      "unexpected": "Algo salió mal. Probá de nuevo."
+    },
+    "payCta": "Pagar y confirmar",
+    "creating": "Creando tu reserva…",
+    "success": {
+      "title": "¡Tu reserva está confirmada!",
+      "pendingTitle": "Confirmando tu pago…",
+      "referenceLabel": "Referencia",
+      "tourLabel": "Tour",
+      "dateLabel": "Fecha",
+      "timeLabel": "Hora",
+      "personsLabel": "Personas",
+      "totalLabel": "Total pagado",
+      "pendingMessage": "Tu pago se está procesando. Te enviamos la confirmación por email apenas se acredite.",
+      "timeoutMessage": "Está tardando más de lo esperado. Revisá tu email o contactanos con tu referencia."
+    },
+    "cancelled": {
+      "title": "Reserva cancelada",
+      "message": "Tus lugares fueron liberados. No te cobramos.",
+      "retryCta": "Reintentar"
     },
     "calendar": {
       "prev": "Mes anterior",

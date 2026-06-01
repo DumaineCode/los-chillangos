@@ -27,7 +27,8 @@ export interface PriceBreakdown {
 }
 
 const TEEN_DISCOUNT = 0.8; // 20% off the adult price
-const PRIVATIZE_FLAT = 140;
+/** Flat USD add-on charged when a customer privatizes the departure. */
+export const PRIVATIZE_FLAT = 140;
 
 export function calculatePrice(input: PriceInputs): PriceBreakdown {
   const pricePerTeen = Math.round(input.pricePerAdult * TEEN_DISCOUNT);
