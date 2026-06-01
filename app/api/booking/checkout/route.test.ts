@@ -48,6 +48,9 @@ const mockPayload: {
 
 const { stripe } = await import('../../../../src/lib/stripe/client');
 const { POST } = await import('./route');
+const { HOLD_TTL_MINUTES, STRIPE_SESSION_TTL_MINUTES } = await import(
+  '../../../../src/lib/booking/availability'
+);
 
 const mockCreateSession = vi.mocked(stripe.checkout.sessions.create);
 
@@ -231,6 +234,7 @@ describe('POST /api/booking/checkout', () => {
       customer_email: string;
       metadata: Record<string, string>;
       line_items: Array<{ price_data: { unit_amount: number; currency: string } }>;
+      expires_at: number;
     };
     const stripeOptions = stripeArgs?.[1] as { idempotencyKey: string };
     expect(sessionParams.mode).toBe('payment');
@@ -239,12 +243,48 @@ describe('POST /api/booking/checkout', () => {
     expect(sessionParams.line_items[0]?.price_data.currency).toBe('usd');
     expect(stripeOptions?.idempotencyKey).toMatch(/^booking-LC-/);
 
+    // expires_at is set to STRIPE_SESSION_TTL_MINUTES from "now", NOT
+    // HOLD_TTL_MINUTES — Stripe rejects < 30 minutes. The two timers are
+    // decoupled on purpose (see route.ts comment + webhook auto-refund).
+    const expectedExpiresAt = Math.floor(
+      (FAR_FUTURE_NOW.getTime() + STRIPE_SESSION_TTL_MINUTES * 60_000) / 1000
+    );
+    expect(sessionParams.expires_at).toBe(expectedExpiresAt);
+
     // Booking was updated with the session id
     expect(mockPayload.update).toHaveBeenCalledTimes(1);
     const updateCall = mockPayload.update.mock.calls[0]?.[0] as {
       data: { stripeCheckoutSessionId: string };
     };
     expect(updateCall.data.stripeCheckoutSessionId).toBe('cs_test_session_1');
+  });
+
+  it('persists holdExpiresAt at now + HOLD_TTL_MINUTES (decoupled from Stripe session expiry)', async () => {
+    mockPayload.findByID.mockResolvedValueOnce(makeTour());
+    mockPayload.find.mockResolvedValueOnce({ docs: [] });
+    mockPayload.create.mockResolvedValueOnce({ id: 77, reference: 'LC-HOLDTEST' });
+    mockCreateSession.mockResolvedValueOnce({
+      id: 'cs_test_hold',
+      url: 'https://checkout.stripe.com/c/pay/cs_test_hold',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    const res = await POST(makeRequest(makeBody()));
+    expect(res.status).toBe(200);
+
+    const createCall = mockPayload.create.mock.calls[0]?.[0] as {
+      data: { holdExpiresAt: string };
+    };
+    const expectedHold = new Date(
+      FAR_FUTURE_NOW.getTime() + HOLD_TTL_MINUTES * 60_000
+    ).toISOString();
+    expect(createCall.data.holdExpiresAt).toBe(expectedHold);
+
+    // Sanity: Stripe expiry > hold expiry (otherwise the fix is broken).
+    const stripeArgs = mockCreateSession.mock.calls[0];
+    const sessionParams = stripeArgs?.[0] as { expires_at: number };
+    const holdSeconds = Math.floor(new Date(expectedHold).getTime() / 1000);
+    expect(sessionParams.expires_at).toBeGreaterThan(holdSeconds);
   });
 
   it('returns 502 + cancels the booking when Stripe SDK throws', async () => {

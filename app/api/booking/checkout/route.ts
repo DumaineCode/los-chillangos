@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import {
   HOLD_TTL_MINUTES,
+  STRIPE_SESSION_TTL_MINUTES,
   getTimeSlotsForTour,
   isDateBeforeTodayInTourTZ,
   isSameDayCutoffPassed,
@@ -123,8 +124,22 @@ export async function POST(request: Request): Promise<Response> {
     privatizeFee,
   });
 
-  // 5. Create the booking row in pending state
+  // 5. Create the booking row in pending state.
+  //
+  // Two independent timers (don't conflate them again):
+  //   - holdExpiresAt: our business rule. How long we reserve seats for THIS
+  //     customer before another customer can grab them. 15 min.
+  //   - stripeSessionExpiresAt: Stripe Checkout's own session lifetime. Stripe
+  //     enforces a 30-minute MINIMUM (it rejects anything shorter). 30 min.
+  //
+  // Consequence: a customer can complete Stripe Checkout AFTER our 15-min hold
+  // has expired but BEFORE Stripe's 30-min cap. That's a paid booking with no
+  // reserved seat. The webhook detects this and auto-refunds — see
+  // `onCheckoutCompleted` in app/api/stripe/webhook/route.ts.
   const holdExpiresAt = new Date(now.getTime() + HOLD_TTL_MINUTES * 60_000);
+  const stripeSessionExpiresAt = new Date(
+    now.getTime() + STRIPE_SESSION_TTL_MINUTES * 60_000
+  );
   const reference = generateBookingReference();
 
   let booking: { id: number; reference?: string };
@@ -202,7 +217,12 @@ export async function POST(request: Request): Promise<Response> {
           tourSlug,
         },
         locale: data.customer.locale === 'es' ? 'es-419' : 'en',
-        expires_at: Math.floor(holdExpiresAt.getTime() / 1000),
+        // Stripe's expires_at is INDEPENDENT from our seat hold. Stripe rejects
+        // anything shorter than 30 minutes, so we use stripeSessionExpiresAt
+        // (= now + STRIPE_SESSION_TTL_MINUTES). Late payments (hold expired
+        // but Stripe session still alive) are auto-refunded by the webhook —
+        // see onCheckoutCompleted in app/api/stripe/webhook/route.ts.
+        expires_at: Math.floor(stripeSessionExpiresAt.getTime() / 1000),
         success_url: `${siteUrl}/${data.customer.locale}/book/success?ref=${reference}&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${siteUrl}/${data.customer.locale}/book/cancelled?ref=${reference}`,
       },

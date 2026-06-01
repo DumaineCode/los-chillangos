@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   HOLD_TTL_MINUTES,
   SAME_DAY_CUTOFF_HOURS,
+  STRIPE_SESSION_TTL_MINUTES,
   TOUR_TIMEZONE,
   computeSlotAvailability,
   getCDMXDayRange,
@@ -24,6 +25,21 @@ describe('constants', () => {
     expect(HOLD_TTL_MINUTES).toBe(15);
     expect(SAME_DAY_CUTOFF_HOURS).toBe(2);
     expect(TOUR_TIMEZONE).toBe('America/Mexico_City');
+  });
+
+  it('STRIPE_SESSION_TTL_MINUTES sits at or above Stripe\'s 30-minute floor', () => {
+    // Stripe rejects expires_at < 30 minutes from session creation with
+    // StripeInvalidRequestError. Keeping this >= 30 prevents a regression
+    // to the original bug where checkout.sessions.create always failed.
+    expect(STRIPE_SESSION_TTL_MINUTES).toBeGreaterThanOrEqual(30);
+  });
+
+  it('STRIPE_SESSION_TTL_MINUTES is strictly greater than HOLD_TTL_MINUTES', () => {
+    // Architectural invariant: the two timers are intentionally decoupled.
+    // If anyone sets them equal, the webhook's late-pay auto-refund branch
+    // becomes dead code and we're back to the original misleading-cancelled
+    // UX. This test is a tripwire so that branch stays alive.
+    expect(STRIPE_SESSION_TTL_MINUTES).toBeGreaterThan(HOLD_TTL_MINUTES);
   });
 });
 

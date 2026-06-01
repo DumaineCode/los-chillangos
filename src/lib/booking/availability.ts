@@ -16,6 +16,16 @@ import type { Tour } from '../../payload-types';
 /** Pending bookings hold a seat for this many minutes before lapsing. */
 export const HOLD_TTL_MINUTES = 15;
 
+/**
+ * Stripe Checkout Session expiry, in minutes from creation.
+ * Stripe's own minimum is 30 minutes; we sit at the floor.
+ *
+ * Intentionally LONGER than HOLD_TTL_MINUTES — a customer may complete
+ * Stripe Checkout after our hold has expired. The webhook auto-refunds
+ * such late payments (the seat may have been taken by someone else).
+ */
+export const STRIPE_SESSION_TTL_MINUTES = 30;
+
 /** A slot starting in less than this many hours from "now" is closed for same-day bookings. */
 export const SAME_DAY_CUTOFF_HOURS = 2;
 

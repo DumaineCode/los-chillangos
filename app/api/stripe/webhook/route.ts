@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 
+import { HOLD_TTL_MINUTES } from '../../../../src/lib/booking/availability';
 import { getPayload } from '../../../../src/lib/payload';
 import { stripe } from '../../../../src/lib/stripe/client';
 import { getWebhookSecret } from '../../../../src/lib/stripe/env';
@@ -103,18 +104,9 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session): Promise<vo
     return;
   }
 
-  if (booking.status === 'paid') {
-    // Idempotent re-delivery — no-op.
-    return;
-  }
-  if (booking.status !== 'pending') {
-    // Hold expired before the webhook landed, or the customer cancelled mid-flow.
-    // We do NOT flip to paid — the seat may have been resold. The funds Stripe
-    // captured will need a manual refund; we log loudly so ops sees it.
-    console.warn(
-      '[stripe-webhook] checkout.session.completed for non-pending booking; manual review',
-      { bookingId, currentStatus: booking.status, sessionId: session.id }
-    );
+  // Already-terminal idempotent short-circuits. Stripe re-delivers events on
+  // any non-2xx; both branches must return 200 without writing again.
+  if (booking.status === 'paid' || booking.status === 'refunded') {
     return;
   }
 
@@ -123,6 +115,71 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session): Promise<vo
       ? session.payment_intent
       : (session.payment_intent?.id ?? null);
 
+  // Late-payment auto-refund. The customer completed Stripe Checkout AFTER
+  // our 15-min seat hold lapsed (status expired) OR after we cancelled the
+  // booking for any reason. We don't keep the money: Stripe holds a 30-min
+  // session minimum, so this window can legitimately exist.
+  //
+  // Idempotency key `refund-{reference}` makes Stripe reject a second refund
+  // for the same booking even if this webhook is re-delivered.
+  if (booking.status === 'expired' || booking.status === 'cancelled') {
+    if (!paymentIntentId) {
+      // checkout.session.completed without a payment_intent should be
+      // impossible for `mode: 'payment'`. Log loudly and stop.
+      console.error(
+        '[stripe-webhook] completed event without payment_intent — cannot auto-refund',
+        { bookingId, sessionId: session.id, currentStatus: booking.status }
+      );
+      return;
+    }
+
+    const reference = booking.reference ?? `id-${bookingId}`;
+    try {
+      await stripe.refunds.create(
+        {
+          payment_intent: paymentIntentId,
+          // Closest valid RefundCreateParams.reason. The real reason lives in
+          // metadata.autoRefundReason for our own records.
+          reason: 'requested_by_customer',
+          metadata: {
+            bookingId: String(bookingId),
+            bookingReference: reference,
+            autoRefundReason: 'hold-expired-before-payment',
+          },
+        },
+        { idempotencyKey: `refund-${reference}` }
+      );
+    } catch (refundErr) {
+      // Throwing makes the outer handler return 500 → Stripe retries the
+      // webhook. The idempotencyKey above prevents the eventual successful
+      // retry from issuing a second refund.
+      console.error('[stripe-webhook] auto-refund failed', {
+        bookingId,
+        paymentIntentId,
+        currentStatus: booking.status,
+        err: refundErr,
+      });
+      throw refundErr;
+    }
+
+    const payload = await getPayload();
+    await payload.update({
+      collection: 'bookings',
+      id: bookingId,
+      overrideAccess: true,
+      data: {
+        status: 'refunded',
+        stripePaymentIntentId: paymentIntentId,
+        notes: appendNote(
+          booking.notes,
+          `Auto-refunded: customer completed Stripe Checkout after the ${HOLD_TTL_MINUTES}-minute hold expired.`
+        ),
+      },
+    });
+    return;
+  }
+
+  // Happy path: pending → paid.
   const payload = await getPayload();
   await payload.update({
     collection: 'bookings',
@@ -189,9 +246,14 @@ function readBookingId(metadata: Stripe.Metadata | null | undefined): number | n
   return n;
 }
 
-async function findBookingById(
-  id: number
-): Promise<{ id: number; status: string } | null> {
+type BookingForWebhook = {
+  id: number;
+  status: string;
+  reference?: string | null;
+  notes?: string | null;
+};
+
+async function findBookingById(id: number): Promise<BookingForWebhook | null> {
   const payload = await getPayload();
   const result = await payload.find({
     collection: 'bookings',
@@ -200,6 +262,16 @@ async function findBookingById(
     depth: 0,
     overrideAccess: true,
   });
-  const docs = (result as { docs?: Array<{ id: number; status: string }> }).docs ?? [];
+  const docs = (result as { docs?: BookingForWebhook[] }).docs ?? [];
   return docs[0] ?? null;
+}
+
+/**
+ * Append a new line to an existing notes string without losing earlier
+ * history. Returns just the new line if `existing` is empty. Used by the
+ * late-pay auto-refund branch so admin-visible notes don't get clobbered.
+ */
+function appendNote(existing: string | null | undefined, line: string): string {
+  if (!existing || existing.trim().length === 0) return line;
+  return `${existing}\n${line}`;
 }

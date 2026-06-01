@@ -22,6 +22,9 @@ vi.mock('../../../../src/lib/stripe/client', () => ({
     webhooks: {
       constructEvent: vi.fn(),
     },
+    refunds: {
+      create: vi.fn(async () => ({ id: 're_test_dummy' })),
+    },
   },
   STRIPE_API_VERSION: '2026-05-27.dahlia',
 }));
@@ -46,6 +49,7 @@ const { stripe } = await import('../../../../src/lib/stripe/client');
 const { POST } = await import('./route');
 
 const mockConstructEvent = vi.mocked(stripe.webhooks.constructEvent);
+const mockCreateRefund = vi.mocked(stripe.refunds.create);
 
 function makeReq(body: string, sig: string | null = 't=1,v1=fake'): Request {
   const headers = new Headers();
@@ -62,6 +66,9 @@ beforeEach(() => {
   mockPayload.find.mockReset();
   mockPayload.update.mockReset();
   mockPayload.update.mockResolvedValue({ doc: { id: 1 } });
+  mockCreateRefund.mockReset();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mockCreateRefund.mockResolvedValue({ id: 're_test_dummy' } as any);
 });
 
 describe('POST /api/stripe/webhook', () => {
@@ -135,25 +142,124 @@ describe('POST /api/stripe/webhook', () => {
     expect(mockPayload.update).not.toHaveBeenCalled();
   });
 
-  it('checkout.session.completed → status not pending and not paid → 200 warning, no write', async () => {
+  it('checkout.session.completed → booking expired (hold lapsed) → auto-refunds and marks refunded', async () => {
     mockConstructEvent.mockReturnValueOnce({
-      id: 'evt_late',
+      id: 'evt_late_expired',
       type: 'checkout.session.completed',
       data: {
         object: {
           id: 'cs_test_late',
           payment_intent: 'pi_test_late',
-          metadata: { bookingId: '99' },
+          metadata: { bookingId: '99', bookingReference: 'LC-LATE0001' },
         },
       },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     mockPayload.find.mockResolvedValueOnce({
-      docs: [{ id: 99, status: 'expired' }],
+      docs: [
+        {
+          id: 99,
+          status: 'expired',
+          reference: 'LC-LATE0001',
+          notes: null,
+        },
+      ],
     });
 
     const res = await POST(makeReq('{}'));
     expect(res.status).toBe(200);
+
+    // Refund issued with idempotency key derived from the booking reference
+    expect(mockCreateRefund).toHaveBeenCalledTimes(1);
+    const refundArgs = mockCreateRefund.mock.calls[0];
+    const refundParams = refundArgs?.[0] as {
+      payment_intent: string;
+      reason: string;
+      metadata: Record<string, string>;
+    };
+    const refundOptions = refundArgs?.[1] as { idempotencyKey: string };
+    expect(refundParams.payment_intent).toBe('pi_test_late');
+    expect(refundParams.reason).toBe('requested_by_customer');
+    expect(refundParams.metadata.bookingReference).toBe('LC-LATE0001');
+    expect(refundParams.metadata.autoRefundReason).toBe('hold-expired-before-payment');
+    expect(refundOptions.idempotencyKey).toBe('refund-LC-LATE0001');
+
+    // Booking flipped to refunded with the PI captured for traceability
+    expect(mockPayload.update).toHaveBeenCalledTimes(1);
+    const updateCall = mockPayload.update.mock.calls[0]?.[0] as {
+      collection: string;
+      id: number;
+      data: Record<string, unknown>;
+    };
+    expect(updateCall.collection).toBe('bookings');
+    expect(updateCall.id).toBe(99);
+    expect(updateCall.data.status).toBe('refunded');
+    expect(updateCall.data.stripePaymentIntentId).toBe('pi_test_late');
+    expect(String(updateCall.data.notes)).toMatch(/Auto-refunded/);
+  });
+
+  it('checkout.session.completed → booking cancelled (Stripe-create failure path) → auto-refunds', async () => {
+    mockConstructEvent.mockReturnValueOnce({
+      id: 'evt_late_cancelled',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_late_c',
+          payment_intent: 'pi_test_late_c',
+          metadata: { bookingId: '101', bookingReference: 'LC-LATE0002' },
+        },
+      },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockPayload.find.mockResolvedValueOnce({
+      docs: [
+        {
+          id: 101,
+          status: 'cancelled',
+          reference: 'LC-LATE0002',
+          notes: 'Earlier admin note',
+        },
+      ],
+    });
+
+    const res = await POST(makeReq('{}'));
+    expect(res.status).toBe(200);
+
+    expect(mockCreateRefund).toHaveBeenCalledTimes(1);
+    const refundArgs = mockCreateRefund.mock.calls[0];
+    const refundOptions = refundArgs?.[1] as { idempotencyKey: string };
+    expect(refundOptions.idempotencyKey).toBe('refund-LC-LATE0002');
+
+    expect(mockPayload.update).toHaveBeenCalledTimes(1);
+    const updateCall = mockPayload.update.mock.calls[0]?.[0] as {
+      data: { status: string; notes: string };
+    };
+    expect(updateCall.data.status).toBe('refunded');
+    // Earlier note is preserved (appendNote) — we don't blow away history.
+    expect(updateCall.data.notes).toMatch(/Earlier admin note/);
+    expect(updateCall.data.notes).toMatch(/Auto-refunded/);
+  });
+
+  it('checkout.session.completed → booking already refunded → idempotent no-op, no second refund', async () => {
+    mockConstructEvent.mockReturnValueOnce({
+      id: 'evt_dup_refund',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_dup_r',
+          payment_intent: 'pi_test_dup_r',
+          metadata: { bookingId: '202', bookingReference: 'LC-LATE0003' },
+        },
+      },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockPayload.find.mockResolvedValueOnce({
+      docs: [{ id: 202, status: 'refunded', reference: 'LC-LATE0003' }],
+    });
+
+    const res = await POST(makeReq('{}'));
+    expect(res.status).toBe(200);
+    expect(mockCreateRefund).not.toHaveBeenCalled();
     expect(mockPayload.update).not.toHaveBeenCalled();
   });
 
