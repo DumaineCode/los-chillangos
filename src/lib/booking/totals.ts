@@ -1,21 +1,20 @@
 /**
  * Booking totals — snapshotted at booking time.
  *
- * `pricing.ts` is the UI/marketing price model (with the teen 20% discount
- * and the +USD 140 privatize add-on). That model can change.
- *
- * This module is different: it computes the persisted snapshot that will be
- * stored on the `bookings` row (`totalPersons`, `totalAmount`). The Bookings
- * collection field hook calls this so admin-edited and API-created rows stay
- * consistent.
+ * `pricing.ts` is the wizard-side preview model (flat per-person price plus
+ * the +USD 140 privatize add-on). This module computes the persisted
+ * snapshot that will be stored on the `bookings` row (`totalPersons`,
+ * `totalAmount`) and sent to Stripe. The Bookings collection field hook
+ * calls this so admin-edited and API-created rows stay consistent.
  *
  * Design notes:
  *   - `pricePerPerson` is whatever the caller agreed to charge per head AT
  *     booking time. It is a snapshot, not a foreign key to `tours.price`.
- *   - This layer does NOT apply the teen discount — the caller (API route or
- *     admin) is expected to have already chosen the right per-person price.
- *     Keeping the math here trivial (headcount × price) means the DB total
- *     equals what Stripe will charge, with no hidden adjustments.
+ *   - The math here is intentionally trivial (headcount × price) so the DB
+ *     total equals what Stripe charges and what the wizard preview shows,
+ *     with no hidden adjustments.
+ *   - A parity test in `pricing.test.ts` asserts `calculatePrice` and
+ *     `computeBookingTotals` return the same total for the same inputs.
  *   - Undefined inputs collapse to 0 so a partial form save in `/admin`
  *     doesn't produce NaN.
  */

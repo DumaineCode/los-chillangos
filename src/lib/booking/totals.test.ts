@@ -16,9 +16,10 @@ describe('computeBookingTotals', () => {
     expect(out.totalAmount).toBe(178);
   });
 
-  it('charges teens at the same per-person price (no discount at this layer)', () => {
-    // This layer is the persisted SNAPSHOT total. The pricing/UI layer may
-    // apply discounts before saving; here we just multiply by headcount.
+  it('charges teens at the same per-person price (no discount)', () => {
+    // Everyone pays the flat per-person price — adults and teens alike.
+    // The wizard preview (`calculatePrice`) mirrors this; the parity test
+    // in `pricing.test.ts` guards against drift.
     const out = computeBookingTotals({
       adults: 2,
       teens: 1,

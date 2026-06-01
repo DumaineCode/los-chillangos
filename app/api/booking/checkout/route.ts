@@ -34,13 +34,11 @@ import { getSiteUrl } from '../../../../src/lib/stripe/env';
  * and surface 502 so the wizard can prompt the user to try again. Next
  * attempt creates a fresh booking row + idempotency key — clean.
  *
- * Pricing snapshot caveat (flagged for review): `pricePerPerson = tour.price`
- * is the full adult rate. The 20% teen discount in `pricing.calculatePrice`
- * is a UI-only model; `computeBookingTotals` (which the Bookings collection
- * hook enforces) charges everyone at the same rate. If a party has teens,
- * Stripe will collect MORE than the wizard preview. Resolve in a follow-up:
- * either (a) push the teen discount into `computeBookingTotals` or (b) make
- * the UI preview match the snapshot rules. Both have UX consequences.
+ * Pricing snapshot: `pricePerPerson = tour.price` is charged to every head,
+ * adult or teen. `pricing.calculatePrice` (wizard preview) mirrors this — a
+ * `pricing.test.ts` parity test asserts both functions return the same total
+ * for identical inputs so the wizard preview can never drift from what
+ * Stripe actually charges.
  */
 export async function POST(request: Request): Promise<Response> {
   // 1. Parse + validate payload
