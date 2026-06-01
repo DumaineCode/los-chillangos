@@ -68,10 +68,13 @@ export default async function BookPage({ params, searchParams }: Props) {
   return (
     <BookingFlow
       tour={{
+        id: tour.id,
         slug: tour.slug,
         title: tour.title,
         category: tour.category,
         price: tour.price,
+        availableDays: tour.availableDays ?? [],
+        timeSlots: (tour.timeSlots ?? []).map((s) => ({ time: s.time, capacity: s.capacity })),
       }}
       contact={{
         whatsapp: contact?.whatsapp ?? '',

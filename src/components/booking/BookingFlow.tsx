@@ -3,9 +3,9 @@
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
+import { getTimeSlotsForTour } from '../../lib/booking/availability';
 import { calculatePrice } from '../../lib/booking/pricing';
 import { stepDateSchema, stepDetailsSchema, stepPeopleSchema } from '../../lib/booking/schema';
-import { getTimeSlotsForCategory } from '../../lib/booking/timeSlots';
 import {
   BookingLinkError,
   buildMailtoLink,
@@ -16,15 +16,18 @@ import {
 } from '../../lib/booking/whatsappDeepLink';
 import { BookingSummary } from './BookingSummary';
 import { StepConfirm } from './StepConfirm';
-import { StepDate } from './StepDate';
+import { StepDate, type StepDateTour } from './StepDate';
 import { StepDetails } from './StepDetails';
 import { StepPeople } from './StepPeople';
 
 type BookingTour = {
+  id: number;
   slug: string;
   title: string;
   category: 'ebike' | 'walking' | 'daytrip' | 'food';
   price: number;
+  availableDays: ReadonlyArray<'0' | '1' | '2' | '3' | '4' | '5' | '6'>;
+  timeSlots: ReadonlyArray<{ time: string; capacity: number }>;
 };
 
 type Props = {
@@ -41,14 +44,18 @@ type StepKey = 1 | 2 | 3 | 4;
 const TOTAL_STEPS = 4;
 
 /**
- * Booking flow state machine (PR 5).
+ * Booking flow state machine (Sub-etapa B).
  *
  * Four steps: date → people → details → confirm. Each step validates with
  * its Zod schema before the user can advance. The Confirm step builds the
  * WhatsApp deep link (or mailto: fallback) and renders it as the primary
  * CTA.
  *
- * Zero persistence, zero payment — this is intent-only.
+ * Capacity is per-slot, sourced from `tour.timeSlots[].capacity`. The
+ * `stepPeopleSchema` factory takes the chosen slot's capacity so the
+ * adults+teens cap is enforced against the right number. If the user has
+ * not picked a time yet, we fall back to the first slot's capacity (the
+ * Continue button on step 1 also enforces a time selection).
  */
 export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
   const tButtons = useTranslations('booking.buttons');
@@ -75,7 +82,33 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
     whatsapp?: string | null;
   }>({});
 
-  const timeSlots = useMemo(() => getTimeSlotsForCategory(tour.category), [tour.category]);
+  const availableDays = tour.availableDays;
+  const baseSlots = useMemo(
+    () => getTimeSlotsForTour({ timeSlots: [...tour.timeSlots] }),
+    [tour.timeSlots]
+  );
+
+  // Slot capacity drives Step 2's headcount cap. If the user hasn't picked
+  // a slot yet (shouldn't happen — Step 1 enforces it) fall back to the
+  // first slot's capacity, or 8 as a final safety net.
+  const slotCapacity = useMemo(() => {
+    const chosen = baseSlots.find((s) => s.time === time);
+    if (chosen) return chosen.capacity;
+    if (baseSlots[0]) return baseSlots[0].capacity;
+    return 8;
+  }, [baseSlots, time]);
+
+  // The Step 1 tour subset — we pass a stable shape that StepDate can use
+  // to derive the calendar predicate, time-slot chips, and live availability
+  // fetch by id. (Cast availableDays to the mutable shape Payload type wants.)
+  const stepDateTour: StepDateTour = useMemo(
+    () => ({
+      id: tour.id,
+      availableDays: [...tour.availableDays],
+      timeSlots: tour.timeSlots.map((s) => ({ time: s.time, capacity: s.capacity })),
+    }),
+    [tour.id, tour.availableDays, tour.timeSlots]
+  );
 
   const breakdown = useMemo(
     () => calculatePrice({ pricePerAdult: tour.price, adults, teens, privatize }),
@@ -147,7 +180,8 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
 
   function handleNext() {
     if (step === 1) {
-      const result = stepDateSchema.safeParse({ date, time });
+      const schema = stepDateSchema({ availableDays });
+      const result = schema.safeParse({ date, time });
       if (!result.success) {
         setDateError(result.error.issues[0]?.message ?? null);
         return;
@@ -157,7 +191,8 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
       return;
     }
     if (step === 2) {
-      const result = stepPeopleSchema.safeParse({ adults, teens, privatize });
+      const schema = stepPeopleSchema({ slotCapacity });
+      const result = schema.safeParse({ adults, teens, privatize });
       if (!result.success) {
         setPeopleError(result.error.issues[0]?.message ?? null);
         return;
@@ -262,9 +297,9 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
             <div className="booking-main">
               {step === 1 && (
                 <StepDate
+                  tour={stepDateTour}
                   date={date}
                   time={time}
-                  timeSlots={timeSlots}
                   onDateChange={setDate}
                   onTimeChange={setTime}
                   locale={locale}
@@ -277,6 +312,7 @@ export function BookingFlow({ tour, contact, siteUrl, locale }: Props) {
                   teens={teens}
                   privatize={privatize}
                   pricePerAdult={tour.price}
+                  slotCapacity={slotCapacity}
                   locale={locale}
                   onAdultsChange={setAdults}
                   onTeensChange={setTeens}

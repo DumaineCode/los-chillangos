@@ -8,18 +8,32 @@ type Props = {
   locale: 'en' | 'es';
   prevLabel: string;
   nextLabel: string;
+  /**
+   * Predicate decides whether a calendar cell is clickable. The booking
+   * page wires this from `tour.availableDays` + `isDateBeforeTodayInTourTZ`
+   * so the calendar disables both closed weekdays and past dates.
+   *
+   * If omitted, every date is enabled (used by stories / standalone tests).
+   */
+  isDateAvailable?: (date: Date) => boolean;
 };
 
 /**
- * Mini calendar — ported from legacy `components/Booking.jsx`.
+ * Mini calendar — month grid with prev/next nav.
  *
- * Single-month view with prev/next navigation. All dates from today onwards
- * are clickable except Mondays (closed, per locked PR 5 decision).
- *
- * Pure UI: no persistence, no real availability. Locale only drives the
- * month-name + weekday-letter rendering via `Intl.DateTimeFormat`.
+ * No more hardcoded "Mondays closed" rule. Availability is driven by the
+ * `isDateAvailable` prop the parent builds from the tour's `availableDays`
+ * field. Locale only drives the month-name + weekday-letter rendering via
+ * `Intl.DateTimeFormat`.
  */
-export function MiniCalendar({ value, onChange, locale, prevLabel, nextLabel }: Props) {
+export function MiniCalendar({
+  value,
+  onChange,
+  locale,
+  prevLabel,
+  nextLabel,
+  isDateAvailable,
+}: Props) {
   const today = useMemo(() => {
     const t = new Date();
     t.setHours(0, 0, 0, 0);
@@ -59,11 +73,9 @@ export function MiniCalendar({ value, onChange, locale, prevLabel, nextLabel }: 
   }
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(view.y, view.m, d);
-    const past = date < today;
     const isToday = date.getTime() === today.getTime();
     const selected = value ? value.getTime() === date.getTime() : false;
-    const closed = date.getDay() === 1;
-    const disabled = past || closed;
+    const disabled = isDateAvailable ? !isDateAvailable(date) : false;
 
     cells.push(
       <button

@@ -269,7 +269,6 @@
       "subject": "New booking request — {tour}"
     },
     "errors": {
-      "mondayClosed": "We rest on Mondays. Pick another day.",
       "pastDate": "Pick a date from today onwards.",
       "dateRequired": "Pick a date.",
       "timeRequired": "Pick a time slot.",
@@ -277,11 +276,17 @@
       "emailInvalid": "That email doesn't look right.",
       "whatsappInvalid": "Use a valid international format, e.g. +52 55 1234 5678.",
       "maxGroup": "Eight riders max per tour.",
-      "minAdults": "At least one adult per booking."
+      "minAdults": "At least one adult per booking.",
+      "dayClosed": "This tour does not run on that day.",
+      "maxGroupSlot": "This departure has limited capacity."
     },
     "calendar": {
       "prev": "Previous month",
       "next": "Next month"
-    }
+    },
+    "tourPaused": "This tour is currently unavailable. Please contact us.",
+    "slotSeatsLabel": "seats",
+    "slotSoldOut": "Sold out",
+    "slotTooLate": "Too late"
   }
 }

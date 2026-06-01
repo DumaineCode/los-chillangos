@@ -1,79 +1,98 @@
 import { z } from 'zod';
 
+import { isDateBeforeTodayInTourTZ, isWeekdayAvailable } from './availability';
+
 /**
- * Booking flow Zod schemas (PR 5).
+ * Booking flow Zod schemas (Sub-etapa B).
  *
  * Each step has its own schema so the wizard can validate incrementally.
  * Error messages are i18n KEYS (not human strings) — the form renders them
  * through `useTranslations('booking.errors')`. Keep keys flat and stable.
  *
- * NOTE: This is the only Zod surface in the booking flow. The wizard never
- * persists anything; these schemas exist purely to gate the Next button and
- * to give the deep-link builder a clean, validated payload.
+ * `stepDateSchema` and `stepPeopleSchema` are now FACTORIES that take a tour
+ * context (available weekdays, per-slot capacity). The factory pattern keeps
+ * the wizard form pure — the tour data flows in once at render time and the
+ * schemas only know about the validation rules.
+ *
+ * The wizard still owns "now" so tests can pin it. In production the caller
+ * passes nothing and the helper defaults to `new Date()`.
  */
 
 /**
  * Step 1 — Pick a date + time.
  *
- * - `date`: must be a Date, must not be a Monday (Mondays we rest), must not
- *   be in the past (compared at midnight local time).
- * - `time`: free-form string but required (the wizard offers fixed chips
- *   based on the tour's category; we don't enum the value because new
- *   tours may add slots without a schema change).
+ *   - `date` must be a Date and:
+ *       * its calendar weekday (in CDMX) must be in `availableDays`
+ *       * it must not be strictly before today (in CDMX)
+ *   - `time` is required (free-form; the wizard offers chips derived from
+ *     `tour.timeSlots`).
+ *
+ * Same-day cutoff is intentionally NOT enforced here — the client doesn't
+ * always know "now" with second precision, and re-rendering chips on a 1s
+ * tick would flicker. The server route in Sub-etapa C is the authoritative
+ * gate for `< 2h to departure`.
  */
-export const stepDateSchema = z
-  .object({
-    date: z.date({ message: 'errors.dateRequired' }),
-    time: z.string().min(1, 'errors.timeRequired'),
-  })
-  .superRefine((value, ctx) => {
-    if (value.date.getDay() === 1) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['date'],
-        message: 'errors.mondayClosed',
-      });
-    }
-    if (isBeforeToday(value.date)) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['date'],
-        message: 'errors.pastDate',
-      });
-    }
-  });
+export function stepDateSchema(ctx: {
+  availableDays: ReadonlyArray<string | number>;
+  now?: Date;
+}) {
+  return z
+    .object({
+      date: z.date({ message: 'errors.dateRequired' }),
+      time: z.string().min(1, 'errors.timeRequired'),
+    })
+    .superRefine((value, zctx) => {
+      if (!isWeekdayAvailable(value.date, ctx.availableDays)) {
+        zctx.addIssue({
+          code: 'custom',
+          path: ['date'],
+          message: 'errors.dayClosed',
+        });
+      }
+      if (isDateBeforeTodayInTourTZ(value.date, ctx.now)) {
+        zctx.addIssue({
+          code: 'custom',
+          path: ['date'],
+          message: 'errors.pastDate',
+        });
+      }
+    });
+}
 
 /**
  * Step 2 — How many people + privatize add-on.
  *
- * Constraints:
- *   - adults: integer, 1..8 (no booking without an adult)
- *   - teens: integer, 0..7
- *   - adults + teens ≤ 8 (per legacy max group)
- *   - privatize: boolean (+USD 140 flat in the price preview)
+ * Capacity is dynamic per slot (Sub-etapa B). The factory takes the chosen
+ * slot's capacity and enforces:
+ *   - adults: integer, 1..capacity
+ *   - teens: integer, 0..capacity
+ *   - adults + teens <= capacity
+ *   - privatize: boolean (price preview only — flat fee snapshotted at write)
+ *
+ * TODO: when next-intl error rendering grows placeholder support, pass
+ * `{capacity}` into the localized `errors.maxGroupSlot` message instead of
+ * the current fixed string.
  */
-export const stepPeopleSchema = z
-  .object({
-    adults: z
-      .number({ message: 'errors.minAdults' })
-      .int()
-      .min(1, 'errors.minAdults')
-      .max(8, 'errors.maxGroup'),
-    teens: z.number().int().min(0).max(7, 'errors.maxGroup'),
-    privatize: z.boolean(),
-  })
-  .refine((d) => d.adults + d.teens <= 8, {
-    message: 'errors.maxGroup',
-    path: ['teens'],
-  });
+export function stepPeopleSchema(ctx: { slotCapacity: number }) {
+  const cap = Math.max(1, Math.trunc(ctx.slotCapacity));
+  return z
+    .object({
+      adults: z
+        .number({ message: 'errors.minAdults' })
+        .int()
+        .min(1, 'errors.minAdults')
+        .max(cap, 'errors.maxGroupSlot'),
+      teens: z.number().int().min(0).max(cap, 'errors.maxGroupSlot'),
+      privatize: z.boolean(),
+    })
+    .refine((d) => d.adults + d.teens <= cap, {
+      message: 'errors.maxGroupSlot',
+      path: ['teens'],
+    });
+}
 
 /**
- * Step 3 — Your details.
- *
- * - `name`: at least 2 chars
- * - `email`: RFC 5322 basic via Zod's built-in
- * - `whatsappOptional`: if provided, must look like an international phone.
- *   Empty string is allowed.
+ * Step 3 — Your details. Static (not tour-dependent).
  */
 export const stepDetailsSchema = z.object({
   name: z.string().trim().min(2, 'errors.nameRequired'),
@@ -86,14 +105,6 @@ export const stepDetailsSchema = z.object({
     .or(z.literal('')),
 });
 
-export type StepDateInput = z.infer<typeof stepDateSchema>;
-export type StepPeopleInput = z.infer<typeof stepPeopleSchema>;
+export type StepDateInput = z.infer<ReturnType<typeof stepDateSchema>>;
+export type StepPeopleInput = z.infer<ReturnType<typeof stepPeopleSchema>>;
 export type StepDetailsInput = z.infer<typeof stepDetailsSchema>;
-
-function isBeforeToday(date: Date): boolean {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const candidate = new Date(date);
-  candidate.setHours(0, 0, 0, 0);
-  return candidate.getTime() < today.getTime();
-}

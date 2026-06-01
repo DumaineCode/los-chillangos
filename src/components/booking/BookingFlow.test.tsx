@@ -1,30 +1,40 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import enMessages from '../../../messages/en.json';
 import { BookingFlow } from './BookingFlow';
 
 /**
- * Smoke tests for the 4-step booking wizard.
+ * Smoke tests for the 4-step booking wizard after the Sub-etapa B rewire.
  *
- * Per PR 5 prompt:
- *   - Step 1 renders initially
- *   - Cannot advance past step 1 without selecting date + time
- *   - After completing all 4 steps, the confirm link's href is the expected
- *     wa.me deep link
+ * The tour fixture now carries `availableDays` + `timeSlots[].capacity` so
+ * the calendar disables closed days and Step 2 caps the headcount per slot.
  *
- * We render with `NextIntlClientProvider` using the actual `messages/en.json`
- * so the translator behaves like production (no mock divergence).
+ * We stub `fetch` so the live-availability call inside StepDate doesn't
+ * trigger a real network request — instead it resolves to an empty body and
+ * StepDate falls back to the static capacity from `tour.timeSlots`.
  */
 
+const baseTour = {
+  id: 1,
+  slug: 'coyoacan-classic',
+  title: 'Coyoacán Classic E-Bike',
+  category: 'ebike' as const,
+  price: 89,
+  // Every day open except Monday, so the existing "pick first available" test
+  // pattern keeps working (most months have non-Monday days available).
+  availableDays: ['0', '2', '3', '4', '5', '6'] as ReadonlyArray<
+    '0' | '1' | '2' | '3' | '4' | '5' | '6'
+  >,
+  timeSlots: [
+    { time: '09:00', capacity: 8 },
+    { time: '14:00', capacity: 8 },
+  ],
+};
+
 const baseProps = {
-  tour: {
-    slug: 'coyoacan-classic',
-    title: 'Coyoacán Classic E-Bike',
-    category: 'ebike' as const,
-    price: 89,
-  },
+  tour: baseTour,
   contact: {
     whatsapp: '+525555555555',
     email: 'hola@loschillangos.com',
@@ -40,6 +50,22 @@ function renderFlow(props = baseProps) {
     </NextIntlClientProvider>
   );
 }
+
+beforeEach(() => {
+  // Best-effort fetch stub for the availability endpoint. Returns no slots
+  // so StepDate keeps the static fallback (everything enabled).
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ slots: [] }),
+    }))
+  );
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('BookingFlow', () => {
   it('renders step 1 (Pick a date) initially', () => {
@@ -63,16 +89,13 @@ describe('BookingFlow', () => {
   it('advances through all 4 steps when each step receives valid input', () => {
     renderFlow();
 
-    // Step 1 — pick a non-Monday future day from the calendar + a time slot.
     selectAFutureNonMondayDay();
     fireEvent.click(screen.getByRole('button', { name: /09:00/ }));
     fireEvent.click(screen.getByTestId('booking-next'));
 
-    // Step 2 — defaults are adults=2, teens=0, privatize=false (valid).
     expect(screen.getByRole('heading', { name: /how many riders/i })).toBeInTheDocument();
     fireEvent.click(screen.getByTestId('booking-next'));
 
-    // Step 3 — fill the details form.
     expect(screen.getByRole('heading', { name: /your details/i })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/full name/i), {
       target: { value: 'Hana Kobayashi' },
@@ -82,7 +105,6 @@ describe('BookingFlow', () => {
     });
     fireEvent.click(screen.getByTestId('booking-next'));
 
-    // Step 4 — confirmation link is rendered with the wa.me URL.
     expect(screen.getByRole('heading', { name: /ready to confirm/i })).toBeInTheDocument();
     const link = screen.getByTestId('booking-confirm') as HTMLAnchorElement;
     expect(link).toBeInTheDocument();
@@ -123,15 +145,22 @@ describe('BookingFlow', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent(/Configure WhatsApp or email/i);
   });
+
+  it('shows the tourPaused banner when availableDays is empty', () => {
+    renderFlow({
+      ...baseProps,
+      tour: { ...baseTour, availableDays: [] },
+    });
+    expect(screen.getByText(/currently unavailable/i)).toBeInTheDocument();
+  });
 });
 
 /**
- * Click the first calendar day cell that is `available` (not past, not
- * Monday). The MiniCalendar opens on the current month by default.
+ * Click the first calendar day cell that is `available` (i.e. enabled by
+ * the parent-supplied predicate). The MiniCalendar opens on the current
+ * month by default. Mondays are filtered out by the fixture's availableDays.
  */
 function selectAFutureNonMondayDay() {
-  // Find every enabled date button — the mini calendar renders weekday
-  // letters as plain divs and disabled days carry `disabled`.
   const buttons = screen.getAllByRole('button');
   const dayCells = buttons.filter((btn) => /^\d+$/.test(btn.textContent ?? ''));
   const available = dayCells.find((btn) => !(btn as HTMLButtonElement).disabled);

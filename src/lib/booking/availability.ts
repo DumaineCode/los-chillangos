@@ -1,0 +1,247 @@
+import type { Tour } from '../../payload-types';
+
+/**
+ * Pure availability helpers for the booking flow (Sub-etapa B).
+ *
+ * Scope:
+ *   - Time-zone-aware date math anchored to CDMX (UTC-6, no DST since 2022).
+ *   - Defensive normalization of `tour.timeSlots` (Payload's array shape).
+ *   - Weekday gating against `tour.availableDays` (Payload select stores strings).
+ *   - A pure per-slot availability calculator used by both client + server.
+ *
+ * Anti-scope:
+ *   - No Payload reads, no DB, no fetch. Capacity.ts handles I/O.
+ */
+
+/** Pending bookings hold a seat for this many minutes before lapsing. */
+export const HOLD_TTL_MINUTES = 15;
+
+/** A slot starting in less than this many hours from "now" is closed for same-day bookings. */
+export const SAME_DAY_CUTOFF_HOURS = 2;
+
+/** CDMX has not observed DST since 2022 — fixed offset UTC-6 effectively. */
+export const TOUR_TIMEZONE = 'America/Mexico_City';
+
+type YMD = { year: number; month: number; day: number };
+
+/**
+ * Return the Y/M/D of `now` interpreted in CDMX. `month` is 1-12 (not 0-indexed)
+ * because that's what `Intl.DateTimeFormat` parts give us and the only callers
+ * use this for display/comparison, never for `new Date(y, m, d)`.
+ */
+export function getTodayInTourTZ(now: Date = new Date()): YMD {
+  return getYMDInTourTZ(now);
+}
+
+/**
+ * Return true if `date` is strictly before today in CDMX, comparing calendar
+ * days only (the time-of-day component is intentionally ignored).
+ */
+export function isDateBeforeTodayInTourTZ(date: Date, now: Date = new Date()): boolean {
+  const today = getYMDInTourTZ(now);
+  const candidate = getYMDInTourTZ(date);
+  return compareYMD(candidate, today) < 0;
+}
+
+/**
+ * Same-day cutoff: a slot is blocked if it is "today" in CDMX AND less than
+ * `SAME_DAY_CUTOFF_HOURS` away from `now`. Other days always return false —
+ * future days don't have a cutoff, past days are blocked by `isDateBeforeTodayInTourTZ`.
+ */
+export function isSameDayCutoffPassed(
+  date: Date,
+  timeHHMM: string,
+  now: Date = new Date()
+): boolean {
+  const today = getYMDInTourTZ(now);
+  const slotDay = getYMDInTourTZ(date);
+  if (compareYMD(slotDay, today) !== 0) return false;
+
+  const slotInstant = ymdHHMMToCDMXInstant(slotDay, timeHHMM);
+  const diffMs = slotInstant.getTime() - now.getTime();
+  const diffHours = diffMs / 3_600_000;
+  return diffHours < SAME_DAY_CUTOFF_HOURS;
+}
+
+/**
+ * Returns true if `date.getDay()` (interpreted in CDMX) is in `availableDays`.
+ * Accepts both string and number values because Payload's `select` field
+ * stores them as strings (e.g. `'0'..'6'`) while ad-hoc callers may pass numbers.
+ *
+ * Empty list → false (paused tour: no bookable days).
+ */
+export function isWeekdayAvailable(
+  date: Date,
+  availableDays: ReadonlyArray<string | number>
+): boolean {
+  if (availableDays.length === 0) return false;
+  const normalized = new Set(
+    availableDays.map((d) => (typeof d === 'string' ? Number.parseInt(d, 10) : d))
+  );
+  const cdmxDow = getWeekdayInTourTZ(date);
+  return normalized.has(cdmxDow);
+}
+
+/**
+ * Returns the tour's time slots, defensively cleaned up:
+ *   - `time` trimmed
+ *   - `capacity` coerced to integer
+ *   - dropped if either is invalid (empty string, non-numeric, capacity < 1)
+ */
+export function getTimeSlotsForTour(
+  tour: Pick<Tour, 'timeSlots'>
+): Array<{ time: string; capacity: number }> {
+  const raw = tour.timeSlots ?? [];
+  const out: Array<{ time: string; capacity: number }> = [];
+  for (const slot of raw) {
+    if (!slot) continue;
+    const time = typeof slot.time === 'string' ? slot.time.trim() : '';
+    if (!time) continue;
+    const capacityRaw = slot.capacity;
+    const capacityNum =
+      typeof capacityRaw === 'number' ? capacityRaw : Number.parseFloat(String(capacityRaw));
+    if (!Number.isFinite(capacityNum)) continue;
+    const capacity = Math.trunc(capacityNum);
+    if (capacity < 1) continue;
+    out.push({ time, capacity });
+  }
+  return out;
+}
+
+/**
+ * Per-slot availability calculator. Pure: no time math, no DB.
+ *   - `remaining` is clamped at 0 (overbooking should never produce a negative).
+ *   - `canFit` requires at least one person AND room for the whole party.
+ */
+export function computeSlotAvailability({
+  slotCapacity,
+  seatsTaken,
+  requestedPersons,
+}: {
+  slotCapacity: number;
+  seatsTaken: number;
+  requestedPersons: number;
+}): { remaining: number; canFit: boolean } {
+  const remaining = Math.max(0, slotCapacity - seatsTaken);
+  const canFit = requestedPersons > 0 && requestedPersons <= remaining;
+  return { remaining, canFit };
+}
+
+/**
+ * Returns the UTC instants that bracket the CDMX calendar day containing
+ * `date`. Use with Payload's `greater_than_equal` + `less_than` to match a
+ * `date` column on the right calendar day regardless of server TZ.
+ *
+ * Example: anyInstantOnThatDay = 2026-06-15T20:00:00Z → CDMX day = 2026-06-15
+ *   startUTC = 2026-06-15T06:00:00.000Z
+ *   endUTC   = 2026-06-16T06:00:00.000Z
+ */
+export function getCDMXDayRange(date: Date): { startUTC: Date; endUTC: Date } {
+  const ymd = getYMDInTourTZ(date);
+  const startUTC = ymdHHMMToCDMXInstant(ymd, '00:00');
+  const endUTC = new Date(startUTC.getTime() + 24 * 3_600_000);
+  return { startUTC, endUTC };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Internals
+// ─────────────────────────────────────────────────────────────────────────
+
+const cdmxYMDFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: TOUR_TIMEZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+const cdmxWeekdayFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: TOUR_TIMEZONE,
+  weekday: 'short',
+});
+
+const WEEKDAY_INDEX: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
+
+function getYMDInTourTZ(date: Date): YMD {
+  const parts = cdmxYMDFormatter.formatToParts(date);
+  let year = 0;
+  let month = 0;
+  let day = 0;
+  for (const part of parts) {
+    if (part.type === 'year') year = Number.parseInt(part.value, 10);
+    else if (part.type === 'month') month = Number.parseInt(part.value, 10);
+    else if (part.type === 'day') day = Number.parseInt(part.value, 10);
+  }
+  return { year, month, day };
+}
+
+function getWeekdayInTourTZ(date: Date): number {
+  const short = cdmxWeekdayFormatter.format(date);
+  return WEEKDAY_INDEX[short] ?? date.getDay();
+}
+
+function compareYMD(a: YMD, b: YMD): number {
+  if (a.year !== b.year) return a.year - b.year;
+  if (a.month !== b.month) return a.month - b.month;
+  return a.day - b.day;
+}
+
+/**
+ * Build the UTC instant that corresponds to a wall-clock time on a calendar
+ * day in CDMX. We need the actual offset CDMX uses for that wall-clock — we
+ * derive it via `Intl` so we don't hardcode UTC-6 (even though CDMX has been
+ * UTC-6 year-round since 2022, this stays correct if Mexico ever changes).
+ */
+function ymdHHMMToCDMXInstant(ymd: YMD, timeHHMM: string): Date {
+  const [hhRaw, mmRaw] = timeHHMM.split(':');
+  const hh = Number.parseInt(hhRaw ?? '0', 10) || 0;
+  const mm = Number.parseInt(mmRaw ?? '0', 10) || 0;
+
+  // First guess: treat the wall-clock as if it were UTC, then correct by the
+  // CDMX offset at that instant. One iteration is enough because CDMX has a
+  // fixed offset year-round.
+  const utcGuess = Date.UTC(ymd.year, ymd.month - 1, ymd.day, hh, mm, 0, 0);
+  const offsetMs = getTZOffsetMs(new Date(utcGuess));
+  return new Date(utcGuess - offsetMs);
+}
+
+/**
+ * Returns the CDMX offset in milliseconds for a given UTC instant.
+ * Positive when CDMX is behind UTC (which it always is). Currently -360 min.
+ */
+function getTZOffsetMs(utcInstant: Date): number {
+  const tzFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: TOUR_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+  const parts = tzFormatter.formatToParts(utcInstant);
+  let y = 0;
+  let mo = 0;
+  let d = 0;
+  let h = 0;
+  let mi = 0;
+  let s = 0;
+  for (const p of parts) {
+    if (p.type === 'year') y = Number.parseInt(p.value, 10);
+    else if (p.type === 'month') mo = Number.parseInt(p.value, 10);
+    else if (p.type === 'day') d = Number.parseInt(p.value, 10);
+    else if (p.type === 'hour') h = Number.parseInt(p.value, 10) % 24; // some locales give "24"
+    else if (p.type === 'minute') mi = Number.parseInt(p.value, 10);
+    else if (p.type === 'second') s = Number.parseInt(p.value, 10);
+  }
+  const asUTC = Date.UTC(y, mo - 1, d, h, mi, s);
+  return asUTC - utcInstant.getTime();
+}

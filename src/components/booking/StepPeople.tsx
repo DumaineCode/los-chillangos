@@ -9,6 +9,8 @@ type Props = {
   teens: number;
   privatize: boolean;
   pricePerAdult: number;
+  /** Per-slot capacity from `tour.timeSlots[].capacity`. Defaults to 8 for safety. */
+  slotCapacity: number;
   locale: 'en' | 'es';
   onAdultsChange: (n: number) => void;
   onTeensChange: (n: number) => void;
@@ -21,6 +23,7 @@ export function StepPeople({
   teens,
   privatize,
   pricePerAdult,
+  slotCapacity,
   locale,
   onAdultsChange,
   onTeensChange,
@@ -38,7 +41,8 @@ export function StepPeople({
     maximumFractionDigits: 0,
   }).format(breakdown.total);
 
-  const groupAtMax = adults + teens >= 8;
+  const cap = Math.max(1, Math.trunc(slotCapacity));
+  const groupAtMax = adults + teens >= cap;
 
   return (
     <div data-testid="booking-step-2">
@@ -65,8 +69,8 @@ export function StepPeople({
             <button
               type="button"
               className="stepper-btn"
-              onClick={() => onAdultsChange(Math.min(8, adults + 1))}
-              disabled={adults >= 8 || groupAtMax}
+              onClick={() => onAdultsChange(Math.min(cap, adults + 1))}
+              disabled={adults >= cap || groupAtMax}
               aria-label="Increase adults"
             >
               +
@@ -93,8 +97,8 @@ export function StepPeople({
             <button
               type="button"
               className="stepper-btn"
-              onClick={() => onTeensChange(Math.min(7, teens + 1))}
-              disabled={teens >= 7 || groupAtMax}
+              onClick={() => onTeensChange(Math.min(cap, teens + 1))}
+              disabled={teens >= cap || groupAtMax}
               aria-label="Increase teens"
             >
               +
