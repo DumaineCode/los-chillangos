@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: '*.r2.dev' },
       { protocol: 'https', hostname: '*.r2.cloudflarestorage.com' },
+      // Custom R2 public domain (R2_PUBLIC_URL).
+      { protocol: 'https', hostname: 'cdn.loschillangos.com' },
     ],
   },
   async headers() {
