@@ -36,12 +36,23 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Telemetry off; build needs DATABASE_URL + PAYLOAD_SECRET to be present.
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# NEXT_PUBLIC_* are inlined at build time, so this one must be a build ARG.
+# Pass it from Dokploy "Build-time Arguments". Non-sensitive (it's a URL).
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 
 # Payload generates an admin import map that must exist before `next build`.
 RUN pnpm generate:importmap
-RUN pnpm build
+
+# `next build` collects page data for every route, which imports the Stripe
+# client module — that throws at import time if STRIPE_SECRET_KEY is missing.
+# We mount it as a BuildKit secret (NOT an ARG) so the value never lands in an
+# image layer. The secret id must match the "Build-time Secrets" key in Dokploy.
+RUN --mount=type=secret,id=STRIPE_SECRET_KEY \
+    STRIPE_SECRET_KEY="$(cat /run/secrets/STRIPE_SECRET_KEY 2>/dev/null || true)" \
+    pnpm build
 
 # ---------------------------------------------------------------------------
 # Runner — minimal runtime image (standalone server + static + media).
