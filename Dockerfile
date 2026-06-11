@@ -44,9 +44,13 @@ ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 
 # Payload generates an admin import map that must exist before `next build`.
-RUN pnpm generate:importmap
-
-# `next build` needs build-time secrets for two reasons:
+# CRITICAL: the import map content depends on which storage plugin is active,
+# which is decided by MEDIA_STORAGE in resolveStoragePlugins(). If we generate
+# the map WITHOUT MEDIA_STORAGE=r2, the S3ClientUploadHandler is omitted and the
+# admin panel crashes at runtime ("PayloadComponent not found in importMap").
+# So generate:importmap MUST run with the same storage env as the runtime.
+#
+# `next build` also needs build-time secrets for two reasons:
 #   - it imports the Stripe client module, which throws at import time if
 #     STRIPE_SECRET_KEY is missing;
 #   - generateStaticParams in /[locale]/tours/[slug] queries Payload, which
@@ -72,7 +76,7 @@ RUN --mount=type=secret,id=STRIPE_SECRET_KEY \
     R2_ACCESS_KEY_ID="$(cat /run/secrets/R2_ACCESS_KEY_ID 2>/dev/null || true)" \
     R2_SECRET_ACCESS_KEY="$(cat /run/secrets/R2_SECRET_ACCESS_KEY 2>/dev/null || true)" \
     R2_PUBLIC_URL="$(cat /run/secrets/R2_PUBLIC_URL 2>/dev/null || true)" \
-    pnpm build
+    sh -c 'pnpm generate:importmap && pnpm build'
 
 # ---------------------------------------------------------------------------
 # Runner — minimal runtime image (standalone server + static + media).
