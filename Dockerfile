@@ -50,33 +50,34 @@ ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 # admin panel crashes at runtime ("PayloadComponent not found in importMap").
 # So generate:importmap MUST run with the same storage env as the runtime.
 #
-# `next build` also needs build-time secrets for two reasons:
-#   - it imports the Stripe client module, which throws at import time if
-#     STRIPE_SECRET_KEY is missing;
-#   - generateStaticParams in /[locale]/tours/[slug] queries Payload, which
-#     initialises against Postgres and requires PAYLOAD_SECRET + DATABASE_URL.
+# `next build` needs build-time secrets, but NO LONGER needs the database:
+# all CMS-driven pages render at runtime via ISR (revalidate), so the build
+# never connects to Postgres. The remaining build-time requirements are:
+#   - STRIPE_SECRET_KEY: the Stripe client module throws at import time if unset.
+#   - MEDIA_STORAGE + R2_*: generate:importmap bakes the active storage handler
+#     into the admin import map; without R2 the admin crashes at runtime.
+# These are REQUIRED — the `${VAR:?...}` guard fails the build loudly if a
+# secret is missing, instead of silently producing a broken image.
+# PAYLOAD_SECRET is still passed so generate:importmap can initialise Payload.
 # All are mounted as BuildKit secrets (NOT ARGs) so they never land in an image
 # layer. Each secret id MUST match the "Build-time Secrets" key in Dokploy.
-# NOTE: Postgres must be reachable from the builder during the build.
 RUN --mount=type=secret,id=STRIPE_SECRET_KEY \
     --mount=type=secret,id=PAYLOAD_SECRET \
-    --mount=type=secret,id=DATABASE_URL \
     --mount=type=secret,id=MEDIA_STORAGE \
     --mount=type=secret,id=R2_ACCOUNT_ID \
     --mount=type=secret,id=R2_BUCKET \
     --mount=type=secret,id=R2_ACCESS_KEY_ID \
     --mount=type=secret,id=R2_SECRET_ACCESS_KEY \
     --mount=type=secret,id=R2_PUBLIC_URL \
-    STRIPE_SECRET_KEY="$(cat /run/secrets/STRIPE_SECRET_KEY 2>/dev/null || true)" \
-    PAYLOAD_SECRET="$(cat /run/secrets/PAYLOAD_SECRET 2>/dev/null || true)" \
-    DATABASE_URL="$(cat /run/secrets/DATABASE_URL 2>/dev/null || true)" \
-    MEDIA_STORAGE="$(cat /run/secrets/MEDIA_STORAGE 2>/dev/null || true)" \
-    R2_ACCOUNT_ID="$(cat /run/secrets/R2_ACCOUNT_ID 2>/dev/null || true)" \
-    R2_BUCKET="$(cat /run/secrets/R2_BUCKET 2>/dev/null || true)" \
-    R2_ACCESS_KEY_ID="$(cat /run/secrets/R2_ACCESS_KEY_ID 2>/dev/null || true)" \
-    R2_SECRET_ACCESS_KEY="$(cat /run/secrets/R2_SECRET_ACCESS_KEY 2>/dev/null || true)" \
-    R2_PUBLIC_URL="$(cat /run/secrets/R2_PUBLIC_URL 2>/dev/null || true)" \
-    sh -c 'pnpm generate:importmap && pnpm build'
+    STRIPE_SECRET_KEY="$(cat /run/secrets/STRIPE_SECRET_KEY)" \
+    PAYLOAD_SECRET="$(cat /run/secrets/PAYLOAD_SECRET)" \
+    MEDIA_STORAGE="$(cat /run/secrets/MEDIA_STORAGE)" \
+    R2_ACCOUNT_ID="$(cat /run/secrets/R2_ACCOUNT_ID)" \
+    R2_BUCKET="$(cat /run/secrets/R2_BUCKET)" \
+    R2_ACCESS_KEY_ID="$(cat /run/secrets/R2_ACCESS_KEY_ID)" \
+    R2_SECRET_ACCESS_KEY="$(cat /run/secrets/R2_SECRET_ACCESS_KEY)" \
+    R2_PUBLIC_URL="$(cat /run/secrets/R2_PUBLIC_URL)" \
+    sh -c ': "${STRIPE_SECRET_KEY:?missing build secret STRIPE_SECRET_KEY}" "${PAYLOAD_SECRET:?missing build secret PAYLOAD_SECRET}" "${MEDIA_STORAGE:?missing build secret MEDIA_STORAGE}" && pnpm generate:importmap && pnpm build'
 
 # ---------------------------------------------------------------------------
 # Runner — minimal runtime image (standalone server + static + media).

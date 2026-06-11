@@ -10,7 +10,10 @@ import { TourCard } from '../../src/components/TourCard';
 import { getPayload } from '../../src/lib/payload';
 import type { Media } from '../../src/payload-types';
 
-export const dynamicParams = false;
+// CMS-driven content: render the page per request and let the cache refresh on
+// an interval (ISR). The build no longer depends on a live database — content
+// edits in Payload surface within `revalidate` seconds, with no redeploy.
+export const revalidate = 60;
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

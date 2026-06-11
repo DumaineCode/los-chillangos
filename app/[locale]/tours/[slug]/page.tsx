@@ -4,34 +4,14 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Link } from '../../../../i18n/navigation';
-import { routing, type Locale } from '../../../../i18n/routing';
+import { type Locale } from '../../../../i18n/routing';
 import { getPayload } from '../../../../src/lib/payload';
 import type { Media, Tour } from '../../../../src/payload-types';
 
-export const dynamicParams = false;
-
-/**
- * Pre-render every (locale, slug) pair for published tours at build time.
- * We pre-render published tours only; drafts stay admin-only.
- */
-export async function generateStaticParams() {
-  const payload = await getPayload();
-  const out: { locale: string; slug: string }[] = [];
-  for (const locale of routing.locales) {
-    const { docs } = await payload.find({
-      collection: 'tours',
-      locale,
-      fallbackLocale: 'en',
-      where: { _status: { equals: 'published' } },
-      limit: 100,
-      depth: 0,
-    });
-    for (const tour of docs) {
-      out.push({ locale, slug: tour.slug });
-    }
-  }
-  return out;
-}
+// CMS-driven detail page: rendered on demand and cached with ISR. The build no
+// longer queries the database — new/updated tours appear without a redeploy.
+// Unknown slugs that aren't published resolve to `notFound()` inside the page.
+export const revalidate = 60;
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
