@@ -9,6 +9,7 @@ import sharp from 'sharp';
 
 import { Users } from './collections/Users';
 import { Media } from './collections/Media';
+import { MediaVideo } from './collections/MediaVideo';
 import { Tours } from './collections/Tours';
 import { Bookings } from './collections/Bookings';
 import { Navigation } from './globals/Navigation';
@@ -85,6 +86,15 @@ function resolveStoragePlugins(): Plugin[] {
               return `${publicUrl}/${key}`;
             },
           },
+          mediaVideo: {
+            disablePayloadAccessControl: true,
+            // Mirror `media`: serve hero videos from R2_PUBLIC_URL since the
+            // S3 endpoint is upload-only.
+            generateFileURL: ({ filename: f, prefix }) => {
+              const key = prefix ? `${prefix}/${f}` : f;
+              return `${publicUrl}/${key}`;
+            },
+          },
         },
         bucket: required.R2_BUCKET as string,
         config: {
@@ -112,7 +122,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Tours, Bookings],
+  collections: [Users, Media, MediaVideo, Tours, Bookings],
   globals: [
     Navigation,
     ContactInfo,

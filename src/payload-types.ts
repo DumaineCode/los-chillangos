@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    mediaVideo: MediaVideo;
     tours: Tour;
     bookings: Booking;
     'payload-kv': PayloadKv;
@@ -80,6 +81,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    mediaVideo: MediaVideoSelect<false> | MediaVideoSelect<true>;
     tours: ToursSelect<false> | ToursSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -220,6 +222,28 @@ export interface Media {
       filename?: string | null;
     };
   };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mediaVideo".
+ */
+export interface MediaVideo {
+  id: number;
+  /**
+   * Accessibility: short description of the video content.
+   */
+  alt: string;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -450,6 +474,10 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
+        relationTo: 'mediaVideo';
+        value: number | MediaVideo;
+      } | null)
+    | ({
         relationTo: 'tours';
         value: number | Tour;
       } | null)
@@ -573,6 +601,24 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mediaVideo_select".
+ */
+export interface MediaVideoSelect<T extends boolean = true> {
+  alt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -770,6 +816,18 @@ export interface Hero {
   ctaPrimary?: string | null;
   ctaGhost?: string | null;
   heroImage?: (number | null) | Media;
+  /**
+   * Choose the hero background medium.
+   */
+  mediaType?: ('image' | 'video') | null;
+  /**
+   * Background video (muted, looping). Mobile/reduced-motion show the poster only.
+   */
+  heroVideo?: (number | null) | MediaVideo;
+  /**
+   * Poster: first paint (LCP) + mobile/reduced-motion still. Strongly recommended.
+   */
+  posterImage?: (number | null) | Media;
   /**
    * Top status line, e.g. "Live · CDMX · 19.43°N 99.13°W".
    */
@@ -1070,6 +1128,9 @@ export interface HeroSelect<T extends boolean = true> {
   ctaPrimary?: T;
   ctaGhost?: T;
   heroImage?: T;
+  mediaType?: T;
+  heroVideo?: T;
+  posterImage?: T;
   live?: T;
   estLabel?: T;
   neighborhoods?: T;

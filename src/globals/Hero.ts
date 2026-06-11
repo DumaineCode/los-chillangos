@@ -65,6 +65,43 @@ export const Hero: GlobalConfig = {
       relationTo: 'media',
     },
     {
+      // Structural (NOT localized): chooses the hero background medium.
+      // Additive & backward-compatible — pre-existing records default to
+      // 'image' and keep rendering `heroImage`.
+      name: 'mediaType',
+      type: 'select',
+      defaultValue: 'image',
+      options: [
+        { label: 'Image', value: 'image' },
+        { label: 'Video', value: 'video' },
+      ],
+      admin: {
+        description: 'Choose the hero background medium.',
+      },
+    },
+    {
+      // Structural (NOT localized): background video shown when mediaType=video.
+      name: 'heroVideo',
+      type: 'upload',
+      relationTo: 'mediaVideo',
+      admin: {
+        condition: (data) => data?.mediaType === 'video',
+        description:
+          'Background video (muted, looping). Mobile/reduced-motion show the poster only.',
+      },
+    },
+    {
+      // Structural (NOT localized): first-paint (LCP) poster + mobile/reduced-motion still.
+      name: 'posterImage',
+      type: 'upload',
+      relationTo: 'media',
+      admin: {
+        condition: (data) => data?.mediaType === 'video',
+        description:
+          'Poster: first paint (LCP) + mobile/reduced-motion still. Strongly recommended.',
+      },
+    },
+    {
       name: 'live',
       type: 'text',
       localized: true,
