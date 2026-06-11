@@ -63,10 +63,9 @@ const anton = Anton({
   display: 'swap',
 });
 
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
-
+// No generateStaticParams: this layout fetches Payload globals (navigation,
+// branding), so it must render at request time, not at build time. Locales are
+// validated below via hasLocale() and the middleware enforces the prefix.
 type Props = {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;

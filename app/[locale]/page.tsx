@@ -3,21 +3,19 @@ import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Link } from '../../i18n/navigation';
-import { routing, type Locale } from '../../i18n/routing';
+import { type Locale } from '../../i18n/routing';
 import { CatalogFilter } from '../../src/components/CatalogFilter';
 import { FAQList } from '../../src/components/FAQ';
 import { TourCard } from '../../src/components/TourCard';
 import { getPayload } from '../../src/lib/payload';
 import type { Media } from '../../src/payload-types';
 
-// CMS-driven content: render the page per request and let the cache refresh on
-// an interval (ISR). The build no longer depends on a live database — content
-// edits in Payload surface within `revalidate` seconds, with no redeploy.
+// CMS-driven content. We intentionally OMIT generateStaticParams so Next does
+// NOT prerender these pages at build time (the database isn't reachable from
+// the Docker builder). The first request generates the page on demand and ISR
+// caches it for `revalidate` seconds; content edits in Payload surface within
+// that window with no redeploy.
 export const revalidate = 60;
-
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
 
 type Props = {
   params: Promise<{ locale: string }>;
