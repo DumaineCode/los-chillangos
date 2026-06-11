@@ -14,6 +14,12 @@ import { Bookings } from './collections/Bookings';
 import { Navigation } from './globals/Navigation';
 import { ContactInfo } from './globals/ContactInfo';
 import { Hero } from './globals/Hero';
+import { Marquee } from './globals/Marquee';
+import { Values } from './globals/Values';
+import { About } from './globals/About';
+import { Testimonial } from './globals/Testimonial';
+import { Services } from './globals/Services';
+import { Faq } from './globals/Faq';
 import { Footer } from './globals/Footer';
 import { SocialLinks } from './globals/SocialLinks';
 import { Branding } from './globals/Branding';
@@ -107,7 +113,20 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Tours, Bookings],
-  globals: [Navigation, ContactInfo, Hero, Footer, SocialLinks, Branding],
+  globals: [
+    Navigation,
+    ContactInfo,
+    Hero,
+    Marquee,
+    Values,
+    About,
+    Testimonial,
+    Services,
+    Faq,
+    Footer,
+    SocialLinks,
+    Branding,
+  ],
   localization: {
     locales: ['en', 'es'],
     defaultLocale: 'en',

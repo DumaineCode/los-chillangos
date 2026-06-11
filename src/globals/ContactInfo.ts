@@ -41,6 +41,13 @@ export const ContactInfo: GlobalConfig = {
       },
     },
     {
+      name: 'address2',
+      type: 'text',
+      admin: {
+        description: 'Second address line, e.g. "Ciudad de México, 06700".',
+      },
+    },
+    {
       name: 'addressLabel',
       type: 'text',
       localized: true,

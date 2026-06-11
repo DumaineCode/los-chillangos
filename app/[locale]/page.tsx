@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Link } from '../../i18n/navigation';
 import { routing, type Locale } from '../../i18n/routing';
@@ -8,6 +8,7 @@ import { CatalogFilter } from '../../src/components/CatalogFilter';
 import { FAQList } from '../../src/components/FAQ';
 import { TourCard } from '../../src/components/TourCard';
 import { getPayload } from '../../src/lib/payload';
+import type { Media } from '../../src/payload-types';
 
 export const dynamicParams = false;
 
@@ -55,37 +56,51 @@ export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const tHero = await getTranslations({ locale, namespace: 'hero' });
-  const tValues = await getTranslations({ locale, namespace: 'values' });
+  // `catalog` filter labels stay in next-intl (UI controls, not marketing copy).
   const tCatalog = await getTranslations({ locale, namespace: 'catalog' });
-  const tEditorial = await getTranslations({ locale, namespace: 'editorial' });
-  const tServices = await getTranslations({ locale, namespace: 'services' });
-  const tTestimonial = await getTranslations({ locale, namespace: 'testimonial' });
-  const tFaq = await getTranslations({ locale, namespace: 'faq' });
-  const messages = (await getMessages()) as RootMessages;
 
   const payload = await getPayload();
-  const [hero, toursResult] = await Promise.all([
-    payload
-      .findGlobal({ slug: 'hero', locale: locale as Locale, fallbackLocale: 'en' })
-      .catch(() => null),
-    payload.find({
-      collection: 'tours',
-      locale: locale as Locale,
-      fallbackLocale: 'en',
-      where: { _status: { equals: 'published' } },
-      limit: 12,
-      depth: 1,
-    }),
-  ]);
+  const [hero, marquee, values, about, testimonial, services, faq, toursResult] = await Promise.all(
+    [
+      payload
+        .findGlobal({ slug: 'hero', locale: locale as Locale, fallbackLocale: 'en' })
+        .catch(() => null),
+      payload
+        .findGlobal({ slug: 'marquee', locale: locale as Locale, fallbackLocale: 'en' })
+        .catch(() => null),
+      payload
+        .findGlobal({ slug: 'values', locale: locale as Locale, fallbackLocale: 'en' })
+        .catch(() => null),
+      payload
+        .findGlobal({ slug: 'about', locale: locale as Locale, fallbackLocale: 'en' })
+        .catch(() => null),
+      payload
+        .findGlobal({ slug: 'testimonial', locale: locale as Locale, fallbackLocale: 'en' })
+        .catch(() => null),
+      payload
+        .findGlobal({ slug: 'services', locale: locale as Locale, fallbackLocale: 'en' })
+        .catch(() => null),
+      payload
+        .findGlobal({ slug: 'faq', locale: locale as Locale, fallbackLocale: 'en' })
+        .catch(() => null),
+      payload.find({
+        collection: 'tours',
+        locale: locale as Locale,
+        fallbackLocale: 'en',
+        where: { _status: { equals: 'published' } },
+        limit: 12,
+        depth: 1,
+      }),
+    ]
+  );
 
   const tours = toursResult.docs;
 
-  // Build static-string arrays directly from the parsed messages.
-  const valuesItems = messages.values?.items ?? [];
-  const servicesItems = messages.services?.items ?? [];
-  const faqItems = messages.faq?.items ?? [];
-  const marqueeText = messages.marquee ?? '';
+  const valuesItems = (values?.items ?? []).map((v) => ({ t: v.title, d: v.description }));
+  const servicesItems = (services?.items ?? []).map((s) => ({ t: s.title, d: s.description }));
+  const faqItems = (faq?.items ?? []).map((f) => ({ q: f.question, a: f.answer }));
+  const heroStats = hero?.stats ?? [];
+  const marqueeText = marquee?.text ?? '';
 
   const filters: { key: 'all' | 'ebike' | 'walking' | 'daytrip' | 'new'; label: string }[] = [
     { key: 'all', label: tCatalog('filters.all') },
@@ -104,11 +119,14 @@ export default async function HomePage({ params }: Props) {
     node: <TourCard key={tour.id} tour={tour} locale={locale as Locale} />,
   }));
 
-  const heroImageUrl = resolveHeroImageUrl(hero?.heroImage);
+  const heroImageUrl = resolveMediaUrl(hero?.heroImage);
   const heroEyebrow = hero?.eyebrow ?? '';
   const heroLede = hero?.lede ?? '';
   const heroCtaPrimary = hero?.ctaPrimary ?? '';
   const heroCtaGhost = hero?.ctaGhost ?? '';
+
+  const aboutImageUrl = resolveMediaUrl(about?.image);
+  const testimonialAvatarUrl = resolveMediaUrl(testimonial?.avatar);
 
   return (
     <div>
@@ -142,12 +160,12 @@ export default async function HomePage({ params }: Props) {
           <div className="hero-cine-top fade-in" style={{ animationDelay: '0.1s' }}>
             <span>
               <span className="dot"></span>
-              {tHero('live')}
+              {hero?.live}
             </span>
             <span style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-              <span>{tHero('estLabel')}</span>
+              <span>{hero?.estLabel}</span>
               <span style={{ color: 'rgba(255,243,214,0.4)' }}>/</span>
-              <span>{tHero('neighborhoods')}</span>
+              <span>{hero?.neighborhoods}</span>
             </span>
           </div>
 
@@ -172,30 +190,14 @@ export default async function HomePage({ params }: Props) {
               {heroLede}
             </p>
             <div className="hero-cine-stats fade-in" style={{ animationDelay: '1.25s' }}>
-              <div className="hero-cine-stat">
-                <span className="num">{tHero('stats.routesNum')}</span>
-                <span className="lbl" style={{ whiteSpace: 'pre-line' }}>
-                  {tHero('stats.routesLbl')}
-                </span>
-              </div>
-              <div className="hero-cine-stat">
-                <span className="num">{tHero('stats.perTourNum')}</span>
-                <span className="lbl" style={{ whiteSpace: 'pre-line' }}>
-                  {tHero('stats.perTourLbl')}
-                </span>
-              </div>
-              <div className="hero-cine-stat">
-                <span className="num">{tHero('stats.groupNum')}</span>
-                <span className="lbl" style={{ whiteSpace: 'pre-line' }}>
-                  {tHero('stats.groupLbl')}
-                </span>
-              </div>
-              <div className="hero-cine-stat">
-                <span className="num">{tHero('stats.ratingNum')}</span>
-                <span className="lbl" style={{ whiteSpace: 'pre-line' }}>
-                  {tHero('stats.ratingLbl')}
-                </span>
-              </div>
+              {heroStats.map((stat, i) => (
+                <div className="hero-cine-stat" key={stat.id ?? i}>
+                  <span className="num">{stat.num}</span>
+                  <span className="lbl" style={{ whiteSpace: 'pre-line' }}>
+                    {stat.label}
+                  </span>
+                </div>
+              ))}
             </div>
             <div className="hero-cine-ctas fade-in" style={{ animationDelay: '1.4s' }}>
               <Link href="#tours" className="btn btn-primary btn-lg">
@@ -208,7 +210,7 @@ export default async function HomePage({ params }: Props) {
           </div>
         </div>
         <div className="hero-cine-scroll">
-          <span>{tHero('scroll')}</span>
+          <span>{hero?.scroll}</span>
           <span className="hero-cine-scroll-line"></span>
         </div>
       </section>
@@ -227,11 +229,11 @@ export default async function HomePage({ params }: Props) {
           <div className="section-head">
             <div>
               <div className="eyebrow" style={{ marginBottom: 16 }}>
-                {tValues('eyebrow')} <span style={{ margin: '0 8px' }}>·</span> 01
+                {values?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 01
               </div>
-              <h2 className="section-title">{tValues('title')}</h2>
+              <h2 className="section-title">{values?.title}</h2>
             </div>
-            <p className="section-sub">{tValues('sub')}</p>
+            <p className="section-sub">{values?.sub}</p>
           </div>
           <div className="values">
             {valuesItems.map((v, i) => (
@@ -265,19 +267,31 @@ export default async function HomePage({ params }: Props) {
       <section className="section" id="about" style={{ background: 'var(--bg-warm)' }}>
         <div className="container">
           <div className="editorial">
-            <div
-              className="editorial-img placeholder dark"
-              data-label={tEditorial('imageLabel')}
-            ></div>
+            {aboutImageUrl ? (
+              <div className="editorial-img" style={{ position: 'relative', overflow: 'hidden' }}>
+                <Image
+                  src={aboutImageUrl}
+                  alt={about?.imageLabel || about?.title || 'Los Chillangos'}
+                  fill
+                  sizes="(max-width: 900px) 100vw, 50vw"
+                  style={{ objectFit: 'cover' }}
+                />
+              </div>
+            ) : (
+              <div
+                className="editorial-img placeholder dark"
+                data-label={about?.imageLabel ?? ''}
+              ></div>
+            )}
             <div>
               <div className="eyebrow" style={{ marginBottom: 24 }}>
-                {tEditorial('eyebrow')} <span style={{ margin: '0 8px' }}>·</span> 03
+                {about?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 03
               </div>
-              <h3>{tEditorial('title')}</h3>
-              <p>{tEditorial('p1')}</p>
-              <p>{tEditorial('p2')}</p>
+              <h3>{about?.title}</h3>
+              <p>{about?.p1}</p>
+              <p>{about?.p2}</p>
               <button type="button" className="btn btn-ghost" style={{ marginTop: 16 }}>
-                {tEditorial('meetCta')}
+                {about?.meetCta}
               </button>
             </div>
           </div>
@@ -288,14 +302,29 @@ export default async function HomePage({ params }: Props) {
       <section className="section">
         <div className="container-tight" style={{ textAlign: 'center' }}>
           <div className="eyebrow" style={{ marginBottom: 32 }}>
-            {tTestimonial('eyebrow')}
+            {testimonial?.eyebrow}
           </div>
-          <p className="testimonial">{tTestimonial('quote')}</p>
+          <p className="testimonial">{testimonial?.quote}</p>
           <div className="testimonial-meta" style={{ justifyContent: 'center' }}>
-            <div className="testimonial-avatar placeholder" data-label=""></div>
+            {testimonialAvatarUrl ? (
+              <div
+                className="testimonial-avatar"
+                style={{ position: 'relative', overflow: 'hidden' }}
+              >
+                <Image
+                  src={testimonialAvatarUrl}
+                  alt={testimonial?.name || 'Guest'}
+                  fill
+                  sizes="64px"
+                  style={{ objectFit: 'cover' }}
+                />
+              </div>
+            ) : (
+              <div className="testimonial-avatar placeholder" data-label=""></div>
+            )}
             <div>
-              <div className="testimonial-name">{tTestimonial('name')}</div>
-              <div className="testimonial-loc">{tTestimonial('loc')}</div>
+              <div className="testimonial-name">{testimonial?.name}</div>
+              <div className="testimonial-loc">{testimonial?.loc}</div>
             </div>
           </div>
         </div>
@@ -307,19 +336,19 @@ export default async function HomePage({ params }: Props) {
           <div className="section-head">
             <div>
               <div className="eyebrow" style={{ marginBottom: 16 }}>
-                {tServices('eyebrow')} <span style={{ margin: '0 8px' }}>·</span> 04
+                {services?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 04
               </div>
-              <h2 className="section-title">{tServices('title')}</h2>
+              <h2 className="section-title">{services?.title}</h2>
             </div>
-            <p className="section-sub">{tServices('sub')}</p>
+            <p className="section-sub">{services?.sub}</p>
           </div>
           <div className="services">
             {servicesItems.map((s, i) => (
               <div className="service" key={i}>
-                <div className="service-icon">{['↗', '◐', '✦'][i]}</div>
+                <div className="service-icon">{['↗', '◐', '✦'][i % 3]}</div>
                 <h4>{s.t}</h4>
                 <p>{s.d}</p>
-                <a className="service-link">{tServices('inquireCta')}</a>
+                <a className="service-link">{services?.inquireCta}</a>
               </div>
             ))}
           </div>
@@ -332,9 +361,9 @@ export default async function HomePage({ params }: Props) {
           <div className="section-head">
             <div>
               <div className="eyebrow" style={{ marginBottom: 16 }}>
-                {tFaq('eyebrow')} <span style={{ margin: '0 8px' }}>·</span> 05
+                {faq?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 05
               </div>
-              <h2 className="section-title">{tFaq('title')}</h2>
+              <h2 className="section-title">{faq?.title}</h2>
             </div>
           </div>
           <FAQList items={faqItems} />
@@ -344,20 +373,7 @@ export default async function HomePage({ params }: Props) {
   );
 }
 
-/**
- * Local shape of the message bundle. We only narrow the parts we read here.
- */
-type RootMessages = {
-  marquee?: string;
-  values?: { items?: Array<{ t: string; d: string }> };
-  services?: { items?: Array<{ t: string; d: string }> };
-  faq?: { items?: Array<{ q: string; a: string }> };
-};
-
-function resolveHeroImageUrl(
-  value: { url?: string | null } | number | null | undefined
-): string | null {
-  if (!value) return null;
-  if (typeof value === 'number') return null;
+function resolveMediaUrl(value: number | Media | null | undefined): string | null {
+  if (!value || typeof value === 'number') return null;
   return value.url ?? null;
 }

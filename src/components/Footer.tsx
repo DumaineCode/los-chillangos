@@ -1,5 +1,3 @@
-import { getTranslations } from 'next-intl/server';
-
 import { Link } from '../../i18n/navigation';
 import type { Locale } from '../../i18n/routing';
 import { getPayload } from '../lib/payload';
@@ -29,7 +27,6 @@ type Props = {
  */
 export async function Footer({ locale }: Props) {
   const payload = await getPayload();
-  const t = await getTranslations({ locale, namespace: 'footer' });
 
   const [footer, contact, social, navigation, branding] = await Promise.all([
     payload.findGlobal({ slug: 'footer', locale, fallbackLocale: 'en' }),
@@ -72,7 +69,7 @@ export async function Footer({ locale }: Props) {
             >
               {contact?.address}
               <br />
-              {t('address2')}
+              {contact?.address2}
               <br />
               {contact?.email}
             </p>
@@ -136,7 +133,7 @@ export async function Footer({ locale }: Props) {
               textTransform: 'uppercase',
             }}
           >
-            {t('geoLabel')}
+            {footer?.geoLabel}
           </span>
         </div>
       </div>

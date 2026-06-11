@@ -46,6 +46,13 @@ export const Footer: GlobalConfig = {
       localized: true,
     },
     {
+      name: 'geoLabel',
+      type: 'text',
+      admin: {
+        description: 'Coordinates shown bottom-right, e.g. "19.43°N · 99.13°W".',
+      },
+    },
+    {
       name: 'columns',
       type: 'array',
       labels: { singular: 'Column', plural: 'Columns' },

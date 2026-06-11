@@ -18,7 +18,7 @@
  * Run: `pnpm seed` (after `pnpm seed:admin`).
  */
 import 'dotenv/config';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import vm from 'vm';
@@ -106,8 +106,16 @@ interface RawTour {
 
 // ---- Load legacy data.js via vm sandbox ----
 
-function loadLegacyData(): { I18N: I18N; TOURS: RawTour[] } {
+function loadLegacyData(): { I18N: I18N; TOURS: RawTour[] } | null {
+  // `data.js` was the original (browser-style) content source. It has since
+  // been removed during legacy cleanup; the live content now lives in the DB
+  // (globals) and in `messages/*.json` (content globals). When it's absent we
+  // skip the legacy seed entirely and only (re)seed the content globals.
   const dataPath = resolve(here, '..', 'data.js');
+  if (!existsSync(dataPath)) {
+    console.log('[seed] data.js not found — skipping legacy tours/globals seed.');
+    return null;
+  }
   const source = readFileSync(dataPath, 'utf8');
 
   const sandbox: { window: { I18N?: I18N; TOURS?: RawTour[] } } = { window: {} };
@@ -118,6 +126,84 @@ function loadLegacyData(): { I18N: I18N; TOURS: RawTour[] } {
     throw new Error('[seed] data.js did not assign window.I18N and window.TOURS as expected.');
   }
   return { I18N: sandbox.window.I18N, TOURS: sandbox.window.TOURS };
+}
+
+// ---- Load next-intl message bundles (source for the content globals) ----
+
+interface HeroStat {
+  num: string;
+  label: string;
+}
+
+interface Messages {
+  hero: {
+    live: string;
+    estLabel: string;
+    neighborhoods: string;
+    scroll: string;
+    stats: {
+      routesNum: string;
+      routesLbl: string;
+      perTourNum: string;
+      perTourLbl: string;
+      groupNum: string;
+      groupLbl: string;
+      ratingNum: string;
+      ratingLbl: string;
+    };
+  };
+  marquee: string;
+  values: {
+    eyebrow: string;
+    title: string;
+    sub: string;
+    items: Array<{ t: string; d: string }>;
+  };
+  editorial: {
+    eyebrow: string;
+    title: string;
+    p1: string;
+    p2: string;
+    imageLabel: string;
+    meetCta: string;
+  };
+  services: {
+    eyebrow: string;
+    title: string;
+    sub: string;
+    inquireCta: string;
+    items: Array<{ t: string; d: string }>;
+  };
+  testimonial: {
+    eyebrow: string;
+    quote: string;
+    name: string;
+    loc: string;
+  };
+  faq: {
+    eyebrow: string;
+    title: string;
+    items: Array<{ q: string; a: string }>;
+  };
+  footer: {
+    address2: string;
+    geoLabel: string;
+  };
+}
+
+function loadMessages(locale: Locale): Messages {
+  const msgPath = resolve(here, '..', 'messages', `${locale}.json`);
+  return JSON.parse(readFileSync(msgPath, 'utf8')) as Messages;
+}
+
+function heroStatsFrom(m: Messages): HeroStat[] {
+  const s = m.hero.stats;
+  return [
+    { num: s.routesNum, label: s.routesLbl },
+    { num: s.perTourNum, label: s.perTourLbl },
+    { num: s.groupNum, label: s.groupLbl },
+    { num: s.ratingNum, label: s.ratingLbl },
+  ];
 }
 
 // ---- Map tagColor: data.js uses "default" for unset; map to undefined ----
@@ -424,17 +510,221 @@ async function seedGlobals(
   console.log('[seed] global "social-links" upserted (placeholders).');
 }
 
+// ---- Seed: content globals (sourced from messages/*.json) ----
+//
+// These globals were migrated out of the next-intl JSON so the owner can edit
+// every homepage section from /admin. They do NOT depend on the legacy
+// `data.js`, so they always seed (even after legacy cleanup). All writes are
+// partial upserts — fields not listed here (e.g. uploaded images) are kept.
+
+async function seedContentGlobals(
+  payload: Awaited<ReturnType<typeof getPayload>>,
+  msgEn: Messages,
+  msgEs: Messages
+): Promise<void> {
+  // --- Hero (new fields only; legacy text seeded in seedGlobals or already in DB) ---
+  // `stats` is an array with a localized `label` + non-localized `num`, so it
+  // needs the 2-pass id-preserving pattern.
+  const heroEn = await payload.updateGlobal({
+    slug: 'hero',
+    locale: 'en',
+    data: {
+      live: msgEn.hero.live,
+      estLabel: msgEn.hero.estLabel,
+      neighborhoods: msgEn.hero.neighborhoods,
+      scroll: msgEn.hero.scroll,
+      stats: heroStatsFrom(msgEn),
+    },
+  });
+  const heroEsStats = heroStatsFrom(msgEs);
+  await payload.updateGlobal({
+    slug: 'hero',
+    locale: 'es',
+    data: {
+      live: msgEs.hero.live,
+      estLabel: msgEs.hero.estLabel,
+      neighborhoods: msgEs.hero.neighborhoods,
+      scroll: msgEs.hero.scroll,
+      stats: (heroEn.stats ?? []).map((stat, i) => ({
+        id: stat.id,
+        num: stat.num,
+        label: heroEsStats[i]?.label,
+      })),
+    },
+  });
+  console.log('[seed] global "hero" content fields upserted (en + es).');
+
+  // --- Marquee ---
+  await payload.updateGlobal({ slug: 'marquee', locale: 'en', data: { text: msgEn.marquee } });
+  await payload.updateGlobal({ slug: 'marquee', locale: 'es', data: { text: msgEs.marquee } });
+  console.log('[seed] global "marquee" upserted (en + es).');
+
+  // --- Values ---
+  const valuesEn = await payload.updateGlobal({
+    slug: 'values',
+    locale: 'en',
+    data: {
+      eyebrow: msgEn.values.eyebrow,
+      title: msgEn.values.title,
+      sub: msgEn.values.sub,
+      items: msgEn.values.items.map((it) => ({ title: it.t, description: it.d })),
+    },
+  });
+  await payload.updateGlobal({
+    slug: 'values',
+    locale: 'es',
+    data: {
+      eyebrow: msgEs.values.eyebrow,
+      title: msgEs.values.title,
+      sub: msgEs.values.sub,
+      items: (valuesEn.items ?? []).map((it, i) => ({
+        id: it.id,
+        title: msgEs.values.items[i]?.t,
+        description: msgEs.values.items[i]?.d,
+      })),
+    },
+  });
+  console.log('[seed] global "values" upserted (en + es).');
+
+  // --- About (editorial) ---
+  await payload.updateGlobal({
+    slug: 'about',
+    locale: 'en',
+    data: {
+      eyebrow: msgEn.editorial.eyebrow,
+      title: msgEn.editorial.title,
+      p1: msgEn.editorial.p1,
+      p2: msgEn.editorial.p2,
+      meetCta: msgEn.editorial.meetCta,
+      imageLabel: msgEn.editorial.imageLabel,
+    },
+  });
+  await payload.updateGlobal({
+    slug: 'about',
+    locale: 'es',
+    data: {
+      eyebrow: msgEs.editorial.eyebrow,
+      title: msgEs.editorial.title,
+      p1: msgEs.editorial.p1,
+      p2: msgEs.editorial.p2,
+      meetCta: msgEs.editorial.meetCta,
+      imageLabel: msgEs.editorial.imageLabel,
+    },
+  });
+  console.log('[seed] global "about" upserted (en + es).');
+
+  // --- Testimonial ---
+  // `name` is non-localized; set it on en (applies to both). Others localized.
+  await payload.updateGlobal({
+    slug: 'testimonial',
+    locale: 'en',
+    data: {
+      eyebrow: msgEn.testimonial.eyebrow,
+      quote: msgEn.testimonial.quote,
+      name: msgEn.testimonial.name,
+      loc: msgEn.testimonial.loc,
+    },
+  });
+  await payload.updateGlobal({
+    slug: 'testimonial',
+    locale: 'es',
+    data: {
+      eyebrow: msgEs.testimonial.eyebrow,
+      quote: msgEs.testimonial.quote,
+      loc: msgEs.testimonial.loc,
+    },
+  });
+  console.log('[seed] global "testimonial" upserted (en + es).');
+
+  // --- Services ---
+  const servicesEn = await payload.updateGlobal({
+    slug: 'services',
+    locale: 'en',
+    data: {
+      eyebrow: msgEn.services.eyebrow,
+      title: msgEn.services.title,
+      sub: msgEn.services.sub,
+      inquireCta: msgEn.services.inquireCta,
+      items: msgEn.services.items.map((it) => ({ title: it.t, description: it.d })),
+    },
+  });
+  await payload.updateGlobal({
+    slug: 'services',
+    locale: 'es',
+    data: {
+      eyebrow: msgEs.services.eyebrow,
+      title: msgEs.services.title,
+      sub: msgEs.services.sub,
+      inquireCta: msgEs.services.inquireCta,
+      items: (servicesEn.items ?? []).map((it, i) => ({
+        id: it.id,
+        title: msgEs.services.items[i]?.t,
+        description: msgEs.services.items[i]?.d,
+      })),
+    },
+  });
+  console.log('[seed] global "services" upserted (en + es).');
+
+  // --- Faq ---
+  const faqEn = await payload.updateGlobal({
+    slug: 'faq',
+    locale: 'en',
+    data: {
+      eyebrow: msgEn.faq.eyebrow,
+      title: msgEn.faq.title,
+      items: msgEn.faq.items.map((it) => ({ question: it.q, answer: it.a })),
+    },
+  });
+  await payload.updateGlobal({
+    slug: 'faq',
+    locale: 'es',
+    data: {
+      eyebrow: msgEs.faq.eyebrow,
+      title: msgEs.faq.title,
+      items: (faqEn.items ?? []).map((it, i) => ({
+        id: it.id,
+        question: msgEs.faq.items[i]?.q,
+        answer: msgEs.faq.items[i]?.a,
+      })),
+    },
+  });
+  console.log('[seed] global "faq" upserted (en + es).');
+
+  // --- ContactInfo.address2 (partial upsert; non-localized) ---
+  await payload.updateGlobal({
+    slug: 'contact-info',
+    locale: 'en',
+    data: { address2: msgEn.footer.address2 },
+  });
+  console.log('[seed] global "contact-info" address2 upserted.');
+
+  // --- Footer.geoLabel (partial upsert; non-localized) ---
+  await payload.updateGlobal({
+    slug: 'footer',
+    locale: 'en',
+    data: { geoLabel: msgEn.footer.geoLabel },
+  });
+  console.log('[seed] global "footer" geoLabel upserted.');
+}
+
 // ---- Main ----
 
 async function main(): Promise<void> {
-  const { I18N, TOURS } = loadLegacyData();
+  const legacy = loadLegacyData();
+  const msgEn = loadMessages('en');
+  const msgEs = loadMessages('es');
   const payload = await getPayload({ config });
 
-  console.log('[seed] Seeding globals…');
-  await seedGlobals(payload, I18N);
+  if (legacy) {
+    console.log('[seed] Seeding legacy globals…');
+    await seedGlobals(payload, legacy.I18N);
 
-  console.log('[seed] Seeding tours…');
-  await seedTours(payload, TOURS, I18N);
+    console.log('[seed] Seeding tours…');
+    await seedTours(payload, legacy.TOURS, legacy.I18N);
+  }
+
+  console.log('[seed] Seeding content globals (homepage sections)…');
+  await seedContentGlobals(payload, msgEn, msgEs);
 
   console.log('[seed] Done.');
   process.exit(0);

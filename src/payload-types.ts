@@ -95,6 +95,12 @@ export interface Config {
     navigation: Navigation;
     'contact-info': ContactInfo;
     hero: Hero;
+    marquee: Marquee;
+    values: Value;
+    about: About;
+    testimonial: Testimonial;
+    services: Service;
+    faq: Faq;
     footer: Footer;
     'social-links': SocialLink;
     branding: Branding;
@@ -103,6 +109,12 @@ export interface Config {
     navigation: NavigationSelect<false> | NavigationSelect<true>;
     'contact-info': ContactInfoSelect<false> | ContactInfoSelect<true>;
     hero: HeroSelect<false> | HeroSelect<true>;
+    marquee: MarqueeSelect<false> | MarqueeSelect<true>;
+    values: ValuesSelect<false> | ValuesSelect<true>;
+    about: AboutSelect<false> | AboutSelect<true>;
+    testimonial: TestimonialSelect<false> | TestimonialSelect<true>;
+    services: ServicesSelect<false> | ServicesSelect<true>;
+    faq: FaqSelect<false> | FaqSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     'social-links': SocialLinksSelect<false> | SocialLinksSelect<true>;
     branding: BrandingSelect<false> | BrandingSelect<true>;
@@ -733,6 +745,10 @@ export interface ContactInfo {
    */
   address?: string | null;
   /**
+   * Second address line, e.g. "Ciudad de México, 06700".
+   */
+  address2?: string | null;
+  /**
    * Optional label like "Studio" / "Estudio".
    */
   addressLabel?: string | null;
@@ -754,6 +770,183 @@ export interface Hero {
   ctaPrimary?: string | null;
   ctaGhost?: string | null;
   heroImage?: (number | null) | Media;
+  /**
+   * Top status line, e.g. "Live · CDMX · 19.43°N 99.13°W".
+   */
+  live?: string | null;
+  /**
+   * Small label next to the neighborhoods, e.g. "Est. 2024".
+   */
+  estLabel?: string | null;
+  /**
+   * Neighborhoods line, e.g. "Roma · Condesa · Coyoacán · Centro".
+   */
+  neighborhoods?: string | null;
+  /**
+   * Scroll hint at the bottom of the hero, e.g. "Scroll".
+   */
+  scroll?: string | null;
+  /**
+   * The four stat blocks shown under the hero lede.
+   */
+  stats?:
+    | {
+        /**
+         * Big number, e.g. "12" or "3–4h".
+         */
+        num: string;
+        /**
+         * Caption under the number. Line breaks are kept.
+         */
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "marquee".
+ */
+export interface Marquee {
+  id: number;
+  /**
+   * Scrolling strip text, e.g. "Coyoacán · Roma Norte · Condesa · …". End with " ·" for a clean loop.
+   */
+  text?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "values".
+ */
+export interface Value {
+  id: number;
+  /**
+   * Small label, e.g. "Why us".
+   */
+  eyebrow?: string | null;
+  title?: string | null;
+  /**
+   * Subheading shown to the right of the title.
+   */
+  sub?: string | null;
+  items?:
+    | {
+        title: string;
+        description: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about".
+ */
+export interface About {
+  id: number;
+  /**
+   * Small label, e.g. "Our approach".
+   */
+  eyebrow?: string | null;
+  title?: string | null;
+  /**
+   * First paragraph.
+   */
+  p1?: string | null;
+  /**
+   * Second paragraph.
+   */
+  p2?: string | null;
+  /**
+   * Button label, e.g. "Meet the guides →".
+   */
+  meetCta?: string | null;
+  /**
+   * Photo for the section. If empty, a placeholder is shown.
+   */
+  image?: (number | null) | Media;
+  /**
+   * Caption shown over the placeholder when no image is uploaded.
+   */
+  imageLabel?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonial".
+ */
+export interface Testimonial {
+  id: number;
+  /**
+   * Small label, e.g. "Notes from guests".
+   */
+  eyebrow?: string | null;
+  quote?: string | null;
+  /**
+   * Guest name, e.g. "Hana K.".
+   */
+  name?: string | null;
+  /**
+   * Location / date line, e.g. "Brooklyn, NY · Mar 2026".
+   */
+  loc?: string | null;
+  /**
+   * Guest photo. If empty, a placeholder circle is shown.
+   */
+  avatar?: (number | null) | Media;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services".
+ */
+export interface Service {
+  id: number;
+  /**
+   * Small label, e.g. "Beyond the tour".
+   */
+  eyebrow?: string | null;
+  title?: string | null;
+  sub?: string | null;
+  /**
+   * Link label on each card, e.g. "Inquire →".
+   */
+  inquireCta?: string | null;
+  items?:
+    | {
+        title: string;
+        description: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faq".
+ */
+export interface Faq {
+  id: number;
+  /**
+   * Small label, e.g. "Practical".
+   */
+  eyebrow?: string | null;
+  title?: string | null;
+  items?:
+    | {
+        question: string;
+        answer: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -773,6 +966,10 @@ export interface Footer {
   teaseEm?: string | null;
   cta?: string | null;
   copyright?: string | null;
+  /**
+   * Coordinates shown bottom-right, e.g. "19.43°N · 99.13°W".
+   */
+  geoLabel?: string | null;
   columns?:
     | {
         title: string;
@@ -853,6 +1050,7 @@ export interface ContactInfoSelect<T extends boolean = true> {
   email?: T;
   phone?: T;
   address?: T;
+  address2?: T;
   addressLabel?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -872,6 +1070,114 @@ export interface HeroSelect<T extends boolean = true> {
   ctaPrimary?: T;
   ctaGhost?: T;
   heroImage?: T;
+  live?: T;
+  estLabel?: T;
+  neighborhoods?: T;
+  scroll?: T;
+  stats?:
+    | T
+    | {
+        num?: T;
+        label?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "marquee_select".
+ */
+export interface MarqueeSelect<T extends boolean = true> {
+  text?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "values_select".
+ */
+export interface ValuesSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  sub?: T;
+  items?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about_select".
+ */
+export interface AboutSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  p1?: T;
+  p2?: T;
+  meetCta?: T;
+  image?: T;
+  imageLabel?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonial_select".
+ */
+export interface TestimonialSelect<T extends boolean = true> {
+  eyebrow?: T;
+  quote?: T;
+  name?: T;
+  loc?: T;
+  avatar?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services_select".
+ */
+export interface ServicesSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  sub?: T;
+  inquireCta?: T;
+  items?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faq_select".
+ */
+export interface FaqSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  items?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -885,6 +1191,7 @@ export interface FooterSelect<T extends boolean = true> {
   teaseEm?: T;
   cta?: T;
   copyright?: T;
+  geoLabel?: T;
   columns?:
     | T
     | {
