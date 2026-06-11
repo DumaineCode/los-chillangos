@@ -286,37 +286,16 @@ body:has(.hero-cine) { padding-top: 0; }
 }
 
 /* === Hero — Cinematic === */
-/*
- * `.hero-cine` is the OUTER tall reveal TRACK. The Nav reads its
- * `getBoundingClientRect().bottom > 96` to keep `over-hero` active across the
- * whole reveal, so this element must span the full track height. The
- * full-screen media + copy live inside `.hero-cine-sticky`, which is pinned
- * with `position: sticky` while the user scrolls the track. The `--reveal`
- * custom property (0..1) is the scroll-progress signal: driven natively by
- * `animation-timeline: scroll()` where supported, or written by the
- * `useScrollReveal` JS fallback otherwise. Default 1 keeps content visible when
- * neither path runs (final static fallback).
- */
 .hero-cine {
-  --reveal: 1;
   position: relative;
+  min-height: 880px;
+  height: 100vh;
+  max-height: 1040px;
   width: 100%;
-  /* Tall track: ~2 viewports of scroll drive the reveal, then the page
-     continues into the sections below. `svh` avoids mobile URL-bar jump. */
-  min-height: 200svh;
+  overflow: hidden;
   background: #0D182A;
   color: #FFF3D6;
   margin-top: -1px;
-}
-/* Pinned full-screen layer: stays put while the track scrolls past it. */
-.hero-cine-sticky {
-  position: sticky;
-  top: 0;
-  height: 100svh;
-  /* dvh is a progressive enhancement over svh where supported. */
-  min-height: 100dvh;
-  width: 100%;
-  overflow: hidden;
 }
 .hero-cine-media {
   position: absolute;
@@ -589,125 +568,11 @@ body:has(.hero-cine) { padding-top: 0; }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* === Hero scroll-reveal ===
- *
- * Three layers, in increasing fragility:
- *   1. STATIC BASELINE (here): every reveal element is fully visible
- *      (opacity:1, no offset). This is the final fallback — if no JS and no
- *      scroll-timeline run, the hero still reads perfectly.
- *   2. JS FALLBACK: `useScrollReveal` writes `--reveal` (0..1); we map it to
- *      opacity/translate so content reveals as the track scrolls.
- *   3. NATIVE: inside `@supports (animation-timeline: scroll())`, the same
- *      elements animate against the document scroll timeline with zero JS.
- *
- * Elements are tied together by the shared `--reveal` var so the JS and native
- * paths produce the same staged motion. The eyebrow et al. NEVER unmount; only
- * opacity/transform change.
- */
-.hero-cine-top,
-.hero-cine-eyebrow,
-.hero-cine-headline,
-.hero-cine-lede,
-.hero-cine-stats,
-.hero-cine-ctas {
-  /* Per-element reveal start point (staggered) and how much it eases in. */
-  opacity: clamp(0, calc((var(--reveal) - var(--reveal-start, 0)) / 0.25), 1);
-  transform: translateY(
-    calc((1 - clamp(0, (var(--reveal) - var(--reveal-start, 0)) / 0.25, 1)) * 24px)
-  );
-  will-change: opacity, transform;
-}
-.hero-cine-top { --reveal-start: 0; }
-.hero-cine-eyebrow { --reveal-start: 0.08; }
-.hero-cine-headline { --reveal-start: 0.16; }
-.hero-cine-lede { --reveal-start: 0.42; }
-.hero-cine-stats { --reveal-start: 0.5; }
-.hero-cine-ctas { --reveal-start: 0.58; }
-
-/* NATIVE scroll-driven path: drive each element off the document scroll
- * timeline. Where this is supported, `useScrollReveal` returns early and never
- * touches `--reveal`, so these animations are the sole driver. */
-@supports (animation-timeline: scroll()) {
-  .hero-cine-top,
-  .hero-cine-eyebrow,
-  .hero-cine-headline,
-  .hero-cine-lede,
-  .hero-cine-stats,
-  .hero-cine-ctas {
-    opacity: 0;
-    transform: translateY(24px);
-    animation: heroReveal linear both;
-    animation-timeline: scroll(root block);
-  }
-  .hero-cine-top { animation-range: 0% 22%; }
-  .hero-cine-eyebrow { animation-range: 6% 28%; }
-  .hero-cine-headline { animation-range: 12% 36%; }
-  .hero-cine-lede { animation-range: 34% 56%; }
-  .hero-cine-stats { animation-range: 40% 62%; }
-  .hero-cine-ctas { animation-range: 46% 68%; }
-}
-@keyframes heroReveal {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* No scroll-timeline AND no JS run would still leave the static baseline
- * (opacity:1) above visible, so content is never permanently hidden. */
-@supports not (animation-timeline: scroll()) {
-  .hero-cine-headline {
-    /* Disable the legacy per-word rise (it relied on autoplay) so the headline
-       reads immediately in the fallback. */
-    overflow: visible;
-  }
-  .hero-cine-headline .word > span {
-    animation: none;
-    transform: none;
-    opacity: 1;
-  }
-}
-
-/* Reduced motion: kill all motion, show everything statically, poster only. */
-@media (prefers-reduced-motion: reduce) {
-  .hero-cine-img,
-  .hero-cine-video {
-    animation: none;
-  }
-  .hero-cine-video {
-    display: none;
-  }
-  .hero-cine-scroll-line {
-    animation: none;
-  }
-  .hero-cine-top .dot {
-    animation: none;
-  }
-  .hero-cine-headline .word > span {
-    animation: none;
-    transform: none;
-    opacity: 1;
-  }
-  .hero-cine-top,
-  .hero-cine-eyebrow,
-  .hero-cine-headline,
-  .hero-cine-lede,
-  .hero-cine-stats,
-  .hero-cine-ctas {
-    opacity: 1;
-    transform: none;
-    animation: none;
-  }
-}
-
 @media (max-width: 900px) {
   .hero-cine {
-    /* Keep the pinned model but shorten the track so phones don't scroll a long
-       dead zone; svh dodges the URL-bar clip. */
-    min-height: 180svh;
-  }
-  /* Poster-only on small screens: never autoplay/download the video. The
-     poster <Image> sits beneath and becomes the visible/LCP media. */
-  .hero-cine-video {
-    display: none;
+    height: auto;
+    min-height: 600px;
+    max-height: none;
   }
   .hero-cine-bot {
     grid-template-columns: 1fr;
