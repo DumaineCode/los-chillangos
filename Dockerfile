@@ -46,12 +46,32 @@ ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 # Payload generates an admin import map that must exist before `next build`.
 RUN pnpm generate:importmap
 
-# `next build` collects page data for every route, which imports the Stripe
-# client module — that throws at import time if STRIPE_SECRET_KEY is missing.
-# We mount it as a BuildKit secret (NOT an ARG) so the value never lands in an
-# image layer. The secret id must match the "Build-time Secrets" key in Dokploy.
+# `next build` needs build-time secrets for two reasons:
+#   - it imports the Stripe client module, which throws at import time if
+#     STRIPE_SECRET_KEY is missing;
+#   - generateStaticParams in /[locale]/tours/[slug] queries Payload, which
+#     initialises against Postgres and requires PAYLOAD_SECRET + DATABASE_URL.
+# All are mounted as BuildKit secrets (NOT ARGs) so they never land in an image
+# layer. Each secret id MUST match the "Build-time Secrets" key in Dokploy.
+# NOTE: Postgres must be reachable from the builder during the build.
 RUN --mount=type=secret,id=STRIPE_SECRET_KEY \
+    --mount=type=secret,id=PAYLOAD_SECRET \
+    --mount=type=secret,id=DATABASE_URL \
+    --mount=type=secret,id=MEDIA_STORAGE \
+    --mount=type=secret,id=R2_ACCOUNT_ID \
+    --mount=type=secret,id=R2_BUCKET \
+    --mount=type=secret,id=R2_ACCESS_KEY_ID \
+    --mount=type=secret,id=R2_SECRET_ACCESS_KEY \
+    --mount=type=secret,id=R2_PUBLIC_URL \
     STRIPE_SECRET_KEY="$(cat /run/secrets/STRIPE_SECRET_KEY 2>/dev/null || true)" \
+    PAYLOAD_SECRET="$(cat /run/secrets/PAYLOAD_SECRET 2>/dev/null || true)" \
+    DATABASE_URL="$(cat /run/secrets/DATABASE_URL 2>/dev/null || true)" \
+    MEDIA_STORAGE="$(cat /run/secrets/MEDIA_STORAGE 2>/dev/null || true)" \
+    R2_ACCOUNT_ID="$(cat /run/secrets/R2_ACCOUNT_ID 2>/dev/null || true)" \
+    R2_BUCKET="$(cat /run/secrets/R2_BUCKET 2>/dev/null || true)" \
+    R2_ACCESS_KEY_ID="$(cat /run/secrets/R2_ACCESS_KEY_ID 2>/dev/null || true)" \
+    R2_SECRET_ACCESS_KEY="$(cat /run/secrets/R2_SECRET_ACCESS_KEY 2>/dev/null || true)" \
+    R2_PUBLIC_URL="$(cat /run/secrets/R2_PUBLIC_URL 2>/dev/null || true)" \
     pnpm build
 
 # ---------------------------------------------------------------------------
