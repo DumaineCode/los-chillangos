@@ -815,11 +815,11 @@ export interface Hero {
   lede?: string | null;
   ctaPrimary?: string | null;
   ctaGhost?: string | null;
-  heroImage?: (number | null) | Media;
   /**
    * Choose the hero background medium.
    */
   mediaType?: ('image' | 'video') | null;
+  heroImage?: (number | null) | Media;
   /**
    * Background video (muted, looping). Mobile/reduced-motion show the poster only.
    */
@@ -1127,8 +1127,8 @@ export interface HeroSelect<T extends boolean = true> {
   lede?: T;
   ctaPrimary?: T;
   ctaGhost?: T;
-  heroImage?: T;
   mediaType?: T;
+  heroImage?: T;
   heroVideo?: T;
   posterImage?: T;
   live?: T;

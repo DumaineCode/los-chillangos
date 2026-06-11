@@ -60,11 +60,6 @@ export const Hero: GlobalConfig = {
       localized: true,
     },
     {
-      name: 'heroImage',
-      type: 'upload',
-      relationTo: 'media',
-    },
-    {
       // Structural (NOT localized): chooses the hero background medium.
       // Additive & backward-compatible — pre-existing records default to
       // 'image' and keep rendering `heroImage`.
@@ -77,6 +72,14 @@ export const Hero: GlobalConfig = {
       ],
       admin: {
         description: 'Choose the hero background medium.',
+      },
+    },
+    {
+      name: 'heroImage',
+      type: 'upload',
+      relationTo: 'media',
+      admin: {
+        condition: (data) => data?.mediaType !== 'video',
       },
     },
     {
