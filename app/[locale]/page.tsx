@@ -8,7 +8,7 @@ import { CatalogFilter } from '../../src/components/CatalogFilter';
 import { FAQList } from '../../src/components/FAQ';
 import { TourCard } from '../../src/components/TourCard';
 import { getPayload } from '../../src/lib/payload';
-import type { Media } from '../../src/payload-types';
+import type { Media, MediaVideo } from '../../src/payload-types';
 
 // CMS-driven content. We intentionally OMIT generateStaticParams so Next does
 // NOT prerender these pages at build time (the database isn't reachable from
@@ -121,6 +121,8 @@ export default async function HomePage({ params }: Props) {
   }));
 
   const heroImageUrl = resolveMediaUrl(hero?.heroImage);
+  const heroVideoUrl = resolveMediaUrl(hero?.heroVideo);
+  const showHeroVideo = hero?.mediaType === 'video' && heroVideoUrl !== null;
   const heroEyebrow = hero?.eyebrow ?? '';
   const heroLede = hero?.lede ?? '';
   const heroCtaPrimary = hero?.ctaPrimary ?? '';
@@ -134,7 +136,18 @@ export default async function HomePage({ params }: Props) {
       {/* Cinematic Hero */}
       <section className="hero-cine">
         <div className="hero-cine-media">
-          {heroImageUrl ? (
+          {showHeroVideo ? (
+            <video
+              className="hero-cine-video"
+              src={heroVideoUrl ?? undefined}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              style={{ objectFit: 'cover' }}
+            />
+          ) : heroImageUrl ? (
             <Image
               className="hero-cine-img"
               src={heroImageUrl}
@@ -374,7 +387,7 @@ export default async function HomePage({ params }: Props) {
   );
 }
 
-function resolveMediaUrl(value: number | Media | null | undefined): string | null {
+function resolveMediaUrl(value: number | Media | MediaVideo | null | undefined): string | null {
   if (!value || typeof value === 'number') return null;
   return value.url ?? null;
 }
