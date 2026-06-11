@@ -14,6 +14,53 @@
  * to work unchanged.
  */
 
+/* === Intro Page Loader === */
+/*
+ * Full-screen brand intro. The colour mark fills bottom-to-top by scaling a
+ * clipPath rect from its bottom edge. Overlay uses the theme background so it
+ * works in light and dark. See src/components/PageLoader.tsx.
+ */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  opacity: 1;
+  transition: opacity 600ms ease;
+}
+.page-loader.is-fading {
+  opacity: 0;
+}
+.page-loader-mark {
+  width: min(38vw, 320px);
+  height: auto;
+  display: block;
+}
+/* Faint outline of the full mark, sitting under the colour fill. */
+.page-loader-ghost {
+  opacity: 0.08;
+}
+/* The clip rect rises from the bottom edge to reveal the colour mark. */
+.page-loader-fill {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  transform: scaleY(0);
+  animation: loaderFillUp 2200ms cubic-bezier(0.45, 0.05, 0.2, 1) forwards;
+}
+@keyframes loaderFillUp {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-loader-fill {
+    animation-duration: 350ms;
+    animation-timing-function: ease-out;
+  }
+}
+
 /* === Los Chillangos — CDMX Tours === */
 /* === Paleta oficial ===
    Rosa Mexicano  #FF2E7A

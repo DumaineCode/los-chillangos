@@ -7,6 +7,7 @@ import { routing, type Locale } from '../../i18n/routing';
 import { Footer } from '../../src/components/Footer';
 import { IntlProvider } from '../../src/components/IntlProvider';
 import { Nav } from '../../src/components/Nav';
+import { PageLoader } from '../../src/components/PageLoader';
 import { ThemeProvider } from '../../src/components/ThemeProvider';
 import { themeInitScript } from '../../src/lib/theme';
 import { getPayload } from '../../src/lib/payload';
@@ -118,6 +119,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
+        <PageLoader />
         <ThemeProvider>
           <IntlProvider messages={messages} locale={locale}>
             <Nav
