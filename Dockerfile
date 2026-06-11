@@ -9,7 +9,7 @@
 # Debian "slim" base (not Alpine) on purpose: sharp + Payload behave more
 # reliably against glibc than musl.
 
-ARG NODE_VERSION=20-bookworm-slim
+ARG NODE_VERSION=22-bookworm-slim
 
 # ---------------------------------------------------------------------------
 # Base — enable pnpm via corepack so the pinned packageManager version is used.
