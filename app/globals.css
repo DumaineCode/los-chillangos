@@ -152,13 +152,9 @@ body:has(.hero-cine) { padding-top: 0; }
   border-bottom-color: transparent;
   color: #FFF3D6;
 }
-/* Default state: only show the light (default) logo. The dark variant is
-   always rendered in the DOM so we can swap via CSS without a flash; we hide
-   it with !important to beat any inline display from next/image. */
-.logo-over-hero { display: none !important; }
-.logo-default { display: block !important; }
-.nav.over-hero .logo-default { display: none !important; }
-.nav.over-hero .logo-over-hero { display: block !important; }
+/* The logo is a single, constant image (managed via the Branding global). It
+   does not swap on scroll; only the surrounding nav chrome restyles over the
+   hero. */
 .nav.over-hero .nav-links a { color: rgba(255,243,214,0.78); text-shadow: 0 1px 8px rgba(13,24,42,0.4); }
 .nav.over-hero .nav-links a:hover { color: #FFF3D6; }
 .nav.over-hero .lang-toggle { border-color: rgba(255,243,214,0.4); }
@@ -213,6 +209,33 @@ body:has(.hero-cine) { padding-top: 0; }
 .lang-toggle button.active {
   background: var(--ink);
   color: var(--cream);
+}
+
+/* Theme toggle — same pill family as the lang toggle. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--ink-soft);
+  transition: color 120ms, border-color 120ms, background 120ms;
+}
+.theme-toggle:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.nav.over-hero .theme-toggle {
+  color: rgba(255, 243, 214, 0.8);
+  border-color: rgba(255, 243, 214, 0.4);
+}
+.nav.over-hero .theme-toggle:hover {
+  color: #fff3d6;
+  border-color: #fff3d6;
 }
 
 /* === Hero — Cinematic === */

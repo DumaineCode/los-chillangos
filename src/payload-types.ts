@@ -97,6 +97,7 @@ export interface Config {
     hero: Hero;
     footer: Footer;
     'social-links': SocialLink;
+    branding: Branding;
   };
   globalsSelect: {
     navigation: NavigationSelect<false> | NavigationSelect<true>;
@@ -104,6 +105,7 @@ export interface Config {
     hero: HeroSelect<false> | HeroSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     'social-links': SocialLinksSelect<false> | SocialLinksSelect<true>;
+    branding: BrandingSelect<false> | BrandingSelect<true>;
   };
   locale: 'en' | 'es';
   widgets: {
@@ -802,6 +804,31 @@ export interface SocialLink {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "branding".
+ */
+export interface Branding {
+  id: number;
+  /**
+   * Primary logo shown in the top navigation (over light surfaces).
+   */
+  logoLight?: (number | null) | Media;
+  /**
+   * Logo used over dark surfaces such as the footer. Falls back to the primary logo.
+   */
+  logoDark?: (number | null) | Media;
+  /**
+   * Accessible alt text for the logo. Defaults to "Los Chillangos".
+   */
+  logoAltText?: string | null;
+  /**
+   * Optional logo height in pixels for the nav (default 40).
+   */
+  logoHeight?: number | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "navigation_select".
  */
 export interface NavigationSelect<T extends boolean = true> {
@@ -884,6 +911,19 @@ export interface SocialLinksSelect<T extends boolean = true> {
   tiktok?: T;
   youtube?: T;
   facebook?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "branding_select".
+ */
+export interface BrandingSelect<T extends boolean = true> {
+  logoLight?: T;
+  logoDark?: T;
+  logoAltText?: T;
+  logoHeight?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

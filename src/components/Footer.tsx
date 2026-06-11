@@ -3,7 +3,13 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '../../i18n/navigation';
 import type { Locale } from '../../i18n/routing';
 import { getPayload } from '../lib/payload';
+import type { Media } from '../payload-types';
 import { Logo } from './Logo';
+
+function resolveMediaUrl(value: number | Media | null | undefined): string | null {
+  if (!value || typeof value === 'number') return null;
+  return value.url ?? null;
+}
 
 type Props = {
   locale: Locale;
@@ -25,15 +31,20 @@ export async function Footer({ locale }: Props) {
   const payload = await getPayload();
   const t = await getTranslations({ locale, namespace: 'footer' });
 
-  const [footer, contact, social, navigation] = await Promise.all([
+  const [footer, contact, social, navigation, branding] = await Promise.all([
     payload.findGlobal({ slug: 'footer', locale, fallbackLocale: 'en' }),
     payload.findGlobal({ slug: 'contact-info', locale, fallbackLocale: 'en' }),
     payload.findGlobal({ slug: 'social-links', locale, fallbackLocale: 'en' }),
     payload.findGlobal({ slug: 'navigation', locale, fallbackLocale: 'en' }),
+    payload.findGlobal({ slug: 'branding', locale, fallbackLocale: 'en' }).catch(() => null),
   ]);
 
   const columns = footer?.columns ?? [];
   const ctaLabel = footer?.cta ?? navigation?.bookCtaLabel ?? 'Book a tour';
+  // Footer sits on a dark surface: prefer the dark logo, fall back to the
+  // primary (light) one, then to the bundled PNG inside <Logo>.
+  const footerLogoSrc = resolveMediaUrl(branding?.logoDark) ?? resolveMediaUrl(branding?.logoLight);
+  const footerLogoAlt = branding?.logoAltText ?? 'Los Chillangos';
 
   return (
     <footer className="footer">
@@ -49,7 +60,7 @@ export async function Footer({ locale }: Props) {
         <div className="footer-grid">
           <div>
             <div className="logo" style={{ marginBottom: 16 }}>
-              <Logo variant="dark" height={56} />
+              <Logo src={footerLogoSrc} alt={footerLogoAlt} variant="dark" height={56} />
             </div>
             <p
               style={{

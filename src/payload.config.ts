@@ -16,6 +16,7 @@ import { ContactInfo } from './globals/ContactInfo';
 import { Hero } from './globals/Hero';
 import { Footer } from './globals/Footer';
 import { SocialLinks } from './globals/SocialLinks';
+import { Branding } from './globals/Branding';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -106,7 +107,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Tours, Bookings],
-  globals: [Navigation, ContactInfo, Hero, Footer, SocialLinks],
+  globals: [Navigation, ContactInfo, Hero, Footer, SocialLinks, Branding],
   localization: {
     locales: ['en', 'es'],
     defaultLocale: 'en',

@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { Link } from '../../i18n/navigation';
 import { LocaleSwitcher } from './LocaleSwitcher';
 import { Logo } from './Logo';
+import { ThemeToggle } from './ThemeToggle';
 
 type NavLink = {
   label: string;
@@ -13,7 +14,14 @@ type NavLink = {
 
 type Props = {
   links: NavLink[];
-  bookCtaLabel: string;
+  /**
+   * Logo image resolved from the `Branding` global. When undefined the Logo
+   * component falls back to the bundled brand PNG. The same image is used
+   * regardless of scroll position — there is no over-hero logo swap.
+   */
+  logoSrc?: string | null;
+  logoAlt?: string;
+  logoHeight?: number;
   /**
    * When true (the home page), the nav switches into "over hero" mode on
    * initial render and toggles back once the user scrolls past the cinematic
@@ -27,11 +35,17 @@ type Props = {
  * Top navigation.
  *
  * Marked `'use client'` because we need a scroll listener to mirror the
- * legacy `over-hero` chrome change. Nav data (labels + CTA copy) is fetched
- * server-side and passed in as props by the locale layout — that keeps the
- * Payload Local API call on the server and the bundle minimal.
+ * legacy `over-hero` chrome change. Nav data (labels) is fetched server-side
+ * and passed in as props by the locale layout — that keeps the Payload Local
+ * API call on the server and the bundle minimal.
  */
-export function Nav({ links, bookCtaLabel, overHero = false }: Props) {
+export function Nav({
+  links,
+  logoSrc,
+  logoAlt,
+  logoHeight = 40,
+  overHero = false,
+}: Props) {
   useEffect(() => {
     if (!overHero) return;
 
@@ -66,8 +80,7 @@ export function Nav({ links, bookCtaLabel, overHero = false }: Props) {
     <nav className="nav">
       <div className="container nav-inner">
         <Link href="/" className="logo" aria-label="Los Chillangos — home">
-          <Logo variant="light" height={40} className="logo-default" />
-          <Logo variant="dark" height={40} className="logo-over-hero" />
+          <Logo src={logoSrc} alt={logoAlt} height={logoHeight} />
         </Link>
         <div className="nav-links">
           {links.map((link, i) => (
@@ -77,10 +90,8 @@ export function Nav({ links, bookCtaLabel, overHero = false }: Props) {
           ))}
         </div>
         <div className="nav-right">
+          <ThemeToggle />
           <LocaleSwitcher />
-          <Link href="/book" className="btn btn-primary btn-sm">
-            {bookCtaLabel}
-          </Link>
         </div>
       </div>
     </nav>

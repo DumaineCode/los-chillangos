@@ -7,8 +7,23 @@ import { routing, type Locale } from '../../i18n/routing';
 import { Footer } from '../../src/components/Footer';
 import { IntlProvider } from '../../src/components/IntlProvider';
 import { Nav } from '../../src/components/Nav';
+import { ThemeProvider } from '../../src/components/ThemeProvider';
+import { themeInitScript } from '../../src/lib/theme';
 import { getPayload } from '../../src/lib/payload';
+import type { Media } from '../../src/payload-types';
 import '../globals.css';
+
+/**
+ * Resolve a Payload upload field to a public URL.
+ *
+ * A global upload field types as `number | Media | null`: at `depth: 0` it's a
+ * numeric id (unpopulated), otherwise the populated `Media` object. We only
+ * have a URL in the populated case.
+ */
+function resolveMediaUrl(value: number | Media | null | undefined): string | null {
+  if (!value || typeof value === 'number') return null;
+  return value.url ?? null;
+}
 
 /**
  * Locale-scoped root layout (owns html, body, fonts, globals.css).
@@ -67,31 +82,55 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   const messages = await getMessages();
 
-  // Fetch Navigation global server-side and pass to the (client) Nav.
+  // Fetch Navigation + Branding globals server-side and pass to the (client) Nav.
   const payload = await getPayload();
-  const navigation = await payload.findGlobal({
-    slug: 'navigation',
-    locale: locale as Locale,
-    fallbackLocale: 'en',
-  });
+  const [navigation, branding] = await Promise.all([
+    payload.findGlobal({
+      slug: 'navigation',
+      locale: locale as Locale,
+      fallbackLocale: 'en',
+    }),
+    payload
+      .findGlobal({ slug: 'branding', locale: locale as Locale, fallbackLocale: 'en' })
+      .catch(() => null),
+  ]);
 
   const navLinks = (navigation?.links ?? []).map((l) => ({
     label: l.label,
     href: l.href,
   }));
-  const bookCtaLabel = navigation?.bookCtaLabel ?? messages.nav?.book ?? 'Book a tour';
+
+  const logoSrc = resolveMediaUrl(branding?.logoLight);
+  const logoAlt = branding?.logoAltText ?? 'Los Chillangos';
+  const logoHeight =
+    typeof branding?.logoHeight === 'number' && branding.logoHeight > 0
+      ? branding.logoHeight
+      : 40;
 
   return (
     <html
       lang={locale}
+      suppressHydrationWarning
       className={`${instrumentSerif.variable} ${dmSans.variable} ${jetbrainsMono.variable} ${anton.variable}`}
     >
+      <head>
+        {/* Sets data-theme before first paint to avoid a flash of the wrong theme. */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>
-        <IntlProvider messages={messages} locale={locale}>
-          <Nav links={navLinks} bookCtaLabel={bookCtaLabel} overHero />
-          <main id="main">{children}</main>
-          <Footer locale={locale as Locale} />
-        </IntlProvider>
+        <ThemeProvider>
+          <IntlProvider messages={messages} locale={locale}>
+            <Nav
+              links={navLinks}
+              logoSrc={logoSrc}
+              logoAlt={logoAlt}
+              logoHeight={logoHeight}
+              overHero
+            />
+            <main id="main">{children}</main>
+            <Footer locale={locale as Locale} />
+          </IntlProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
