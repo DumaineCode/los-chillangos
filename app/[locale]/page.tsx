@@ -61,8 +61,8 @@ export default async function HomePage({ params }: Props) {
   const tCatalog = await getTranslations({ locale, namespace: 'catalog' });
 
   const payload = await getPayload();
-  const [hero, marquee, values, about, testimonial, services, faq, toursResult] = await Promise.all(
-    [
+  const [hero, marquee, values, about, testimonial, services, team, faq, toursResult] =
+    await Promise.all([
       payload
         .findGlobal({ slug: 'hero', locale: locale as Locale, fallbackLocale: 'en' })
         .catch(() => null),
@@ -82,6 +82,9 @@ export default async function HomePage({ params }: Props) {
         .findGlobal({ slug: 'services', locale: locale as Locale, fallbackLocale: 'en' })
         .catch(() => null),
       payload
+        .findGlobal({ slug: 'team', locale: locale as Locale, fallbackLocale: 'en' })
+        .catch(() => null),
+      payload
         .findGlobal({ slug: 'faq', locale: locale as Locale, fallbackLocale: 'en' })
         .catch(() => null),
       payload.find({
@@ -92,8 +95,7 @@ export default async function HomePage({ params }: Props) {
         limit: 12,
         depth: 1,
       }),
-    ]
-  );
+    ]);
 
   const tours = toursResult.docs;
 
@@ -130,6 +132,12 @@ export default async function HomePage({ params }: Props) {
 
   const aboutImageUrl = resolveMediaUrl(about?.image);
   const testimonialAvatarUrl = resolveMediaUrl(testimonial?.avatar);
+
+  const teamMembers = (team?.items ?? []).map((m) => ({
+    name: m.name,
+    role: m.role,
+    photoUrl: resolveMediaUrl(m.photo),
+  }));
 
   return (
     <div>
@@ -383,6 +391,47 @@ export default async function HomePage({ params }: Props) {
           <FAQList items={faqItems} />
         </div>
       </section>
+
+      {/* Team */}
+      {teamMembers.length > 0 && (
+        <section className="section" id="team" style={{ paddingTop: 0 }}>
+          <div className="container">
+            <div className="section-head">
+              <div>
+                <div className="eyebrow" style={{ marginBottom: 16 }}>
+                  {team?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 06
+                </div>
+                <h2 className="section-title">{team?.title}</h2>
+              </div>
+              {team?.sub ? <p className="section-sub">{team.sub}</p> : null}
+            </div>
+            <div className="team">
+              {teamMembers.map((m, i) => (
+                <div className="team-member" key={i}>
+                  {m.photoUrl ? (
+                    <div
+                      className="team-photo"
+                      style={{ position: 'relative', overflow: 'hidden' }}
+                    >
+                      <Image
+                        src={m.photoUrl}
+                        alt={m.name || 'Team member'}
+                        fill
+                        sizes="160px"
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="team-photo placeholder" data-label=""></div>
+                  )}
+                  <div className="team-name">{m.name}</div>
+                  <div className="team-role">{m.role}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

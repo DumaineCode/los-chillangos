@@ -102,6 +102,7 @@ export interface Config {
     about: About;
     testimonial: Testimonial;
     services: Service;
+    team: Team;
     faq: Faq;
     footer: Footer;
     'social-links': SocialLink;
@@ -117,6 +118,7 @@ export interface Config {
     about: AboutSelect<false> | AboutSelect<true>;
     testimonial: TestimonialSelect<false> | TestimonialSelect<true>;
     services: ServicesSelect<false> | ServicesSelect<true>;
+    team: TeamSelect<false> | TeamSelect<true>;
     faq: FaqSelect<false> | FaqSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     'social-links': SocialLinksSelect<false> | SocialLinksSelect<true>;
@@ -1087,6 +1089,47 @@ export interface Service {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team".
+ */
+export interface Team {
+  id: number;
+  /**
+   * Small label, e.g. "The people".
+   */
+  eyebrow?: string | null;
+  /**
+   * Section heading, e.g. "Our team".
+   */
+  title?: string | null;
+  /**
+   * Optional short intro under the heading.
+   */
+  sub?: string | null;
+  /**
+   * Add team members. Three look best in a row.
+   */
+  items?:
+    | {
+        /**
+         * Person name, e.g. "Diego R.".
+         */
+        name: string;
+        /**
+         * Role / title, e.g. "Lead guide".
+         */
+        role: string;
+        /**
+         * Profile photo. If empty, a placeholder circle is shown.
+         */
+        photo?: (number | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "faq".
  */
 export interface Faq {
@@ -1338,6 +1381,26 @@ export interface ServicesSelect<T extends boolean = true> {
     | {
         title?: T;
         description?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team_select".
+ */
+export interface TeamSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  sub?: T;
+  items?:
+    | T
+    | {
+        name?: T;
+        role?: T;
+        photo?: T;
         id?: T;
       };
   updatedAt?: T;

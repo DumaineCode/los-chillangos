@@ -20,6 +20,7 @@ import { Values } from './globals/Values';
 import { About } from './globals/About';
 import { Testimonial } from './globals/Testimonial';
 import { Services } from './globals/Services';
+import { Team } from './globals/Team';
 import { Faq } from './globals/Faq';
 import { Footer } from './globals/Footer';
 import { SocialLinks } from './globals/SocialLinks';
@@ -133,6 +134,7 @@ export default buildConfig({
     About,
     Testimonial,
     Services,
+    Team,
     Faq,
     Footer,
     SocialLinks,
