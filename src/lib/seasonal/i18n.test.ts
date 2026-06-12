@@ -53,3 +53,21 @@ describe('seasonal i18n coverage', () => {
     expect(Object.keys(en).sort()).toEqual(Object.keys(es).sort());
   });
 });
+
+function commonOf(messages: Record<string, unknown>): Record<string, string> {
+  const ns = messages['common'];
+  expect(ns, 'common namespace must exist').toBeDefined();
+  return ns as Record<string, string>;
+}
+
+describe('seasonal badge i18n (common namespace)', () => {
+  it('defines common.seasonalBadge in English', () => {
+    const en = commonOf(enMessages as Record<string, unknown>);
+    expect(en.seasonalBadge).toBe('Seasonal');
+  });
+
+  it('defines common.seasonalBadge in Spanish', () => {
+    const es = commonOf(esMessages as Record<string, unknown>);
+    expect(es.seasonalBadge).toBe('Temporada');
+  });
+});

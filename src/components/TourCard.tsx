@@ -3,7 +3,8 @@ import { getTranslations } from 'next-intl/server';
 
 import { Link } from '../../i18n/navigation';
 import type { Locale } from '../../i18n/routing';
-import type { Media, Tour } from '../payload-types';
+import { selectCardThumbnailUrl } from '../lib/seasonal/cardThumbnail';
+import type { Tour } from '../payload-types';
 
 type Props = {
   tour: Tour;
@@ -13,33 +14,43 @@ type Props = {
 /**
  * Tour summary card used on the home grid (Server Component).
  *
- * Falls back gracefully when `heroImage` is just a numeric reference or
- * missing — the seed creates tours without a hero, and the client uploads
- * later in `/admin`. While the photo is missing we render the legacy
- * `placeholder` block so the layout never collapses.
+ * Thumbnail resolution is delegated to `selectCardThumbnailUrl` (pure, tested):
+ * heroImage → seasonal hero image → seasonal poster → null. When nothing
+ * resolves we render the legacy `placeholder` block so the layout never
+ * collapses — the seed creates tours without a hero and the client uploads
+ * later in `/admin`.
+ *
+ * Badge: a seasonal tour (`isSeasonal === true`) always shows the terra
+ * "Seasonal/Temporada" badge, taking visual priority over any manual `tag`
+ * (urgency wins). Non-seasonal tours keep showing their manual `tag` as before.
  */
 export async function TourCard({ tour, locale }: Props) {
   const t = await getTranslations({ locale, namespace: 'common' });
 
-  const media = resolveMedia(tour.heroImage);
+  const thumbnailUrl = selectCardThumbnailUrl(tour);
+  const isSeasonal = tour.isSeasonal === true;
   const tagColorClass = tour.tagColor === 'terra' ? 'terra' : '';
 
   return (
     <Link href={`/tours/${tour.slug}`} className="tour-card">
       <div
-        className={`tour-card-img ${media ? '' : 'placeholder'} ${tour.tagColor ?? ''}`}
+        className={`tour-card-img ${thumbnailUrl ? '' : 'placeholder'} ${tour.tagColor ?? ''}`}
         data-label={tour.photoDescription ?? ''}
       >
-        {media?.url ? (
+        {thumbnailUrl ? (
           <Image
-            src={media.url}
-            alt={media.alt ?? tour.title}
+            src={thumbnailUrl}
+            alt={tour.title}
             fill
             sizes="(max-width: 900px) 50vw, 33vw"
             style={{ objectFit: 'cover' }}
           />
         ) : null}
-        {tour.tag ? <span className={`tour-card-tag ${tagColorClass}`}>{tour.tag}</span> : null}
+        {isSeasonal ? (
+          <span className="tour-card-tag seasonal">{t('seasonalBadge')}</span>
+        ) : tour.tag ? (
+          <span className={`tour-card-tag ${tagColorClass}`}>{tour.tag}</span>
+        ) : null}
       </div>
       <div className="tour-card-meta">
         <span>{tour.duration}</span>
@@ -56,10 +67,4 @@ export async function TourCard({ tour, locale }: Props) {
       </div>
     </Link>
   );
-}
-
-function resolveMedia(value: Tour['heroImage']): Media | null {
-  if (!value) return null;
-  if (typeof value === 'number') return null;
-  return value;
 }
