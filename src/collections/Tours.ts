@@ -60,6 +60,151 @@ export const Tours: CollectionConfig = {
       },
     },
     {
+      // Structural (NOT localized): flips a standard tour into a seasonal,
+      // once-a-year special-event tour. Additive & backward-compatible —
+      // pre-existing tours default to `false` and keep the standard layout.
+      name: 'isSeasonal',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description:
+          'Turn this tour into a seasonal special-event tour (cinematic hero, storytelling, gallery). Reveals seasonal-only fields below.',
+      },
+    },
+    {
+      // Seasonal-only fields, revealed via admin.condition mirroring Hero.ts.
+      // The whole group is non-rendered in the form unless `isSeasonal` is true.
+      name: 'seasonal',
+      type: 'group',
+      admin: {
+        condition: (data) => Boolean(data?.isSeasonal),
+        description: 'Seasonal event content. Only used when "Is seasonal" is checked.',
+      },
+      fields: [
+        {
+          // Display-only event date. Does NOT gate booking availability —
+          // booking still flows through timeSlots/capacity like any tour.
+          name: 'eventDate',
+          type: 'date',
+          admin: {
+            description: 'Display-only date of the event. Does not affect booking availability.',
+          },
+        },
+        {
+          name: 'seasonWindow',
+          type: 'group',
+          admin: {
+            description: 'Display-only season window (e.g. the days the event runs).',
+          },
+          fields: [
+            { name: 'start', type: 'date' },
+            { name: 'end', type: 'date' },
+          ],
+        },
+        {
+          // Cinematic full-bleed hero. Mirrors Hero.ts media pattern so it can
+          // be resolved by the same media helpers (Media + MediaVideo).
+          name: 'seasonalHero',
+          type: 'group',
+          fields: [
+            {
+              name: 'mediaType',
+              type: 'select',
+              defaultValue: 'image',
+              options: [
+                { label: 'Image', value: 'image' },
+                { label: 'Video', value: 'video' },
+              ],
+              admin: {
+                description: 'Choose the seasonal hero background medium.',
+              },
+            },
+            {
+              name: 'image',
+              type: 'upload',
+              relationTo: 'media',
+              admin: {
+                condition: (_, sibling) => sibling?.mediaType !== 'video',
+              },
+            },
+            {
+              name: 'video',
+              type: 'upload',
+              relationTo: 'mediaVideo',
+              admin: {
+                condition: (_, sibling) => sibling?.mediaType === 'video',
+                description:
+                  'Background video (muted, looping). Mobile/reduced-motion show the poster only.',
+              },
+            },
+            {
+              name: 'poster',
+              type: 'upload',
+              relationTo: 'media',
+              admin: {
+                condition: (_, sibling) => sibling?.mediaType === 'video',
+                description: 'Poster: first paint + mobile/reduced-motion still.',
+              },
+            },
+          ],
+        },
+        {
+          name: 'gallery',
+          type: 'array',
+          labels: { singular: 'Gallery image', plural: 'Gallery images' },
+          fields: [
+            {
+              name: 'image',
+              type: 'upload',
+              relationTo: 'media',
+              required: true,
+            },
+          ],
+        },
+        {
+          name: 'storytelling',
+          type: 'array',
+          labels: { singular: 'Story block', plural: 'Story blocks' },
+          admin: {
+            description: 'Structured storytelling blocks (heading + body + optional image).',
+          },
+          fields: [
+            {
+              name: 'heading',
+              type: 'text',
+              localized: true,
+            },
+            {
+              name: 'body',
+              type: 'textarea',
+              localized: true,
+            },
+            {
+              name: 'image',
+              type: 'upload',
+              relationTo: 'media',
+            },
+          ],
+        },
+        {
+          name: 'eventLocation',
+          type: 'text',
+          localized: true,
+          admin: {
+            description: 'Event location label, e.g. "Tlaxcala".',
+          },
+        },
+        {
+          name: 'tagline',
+          type: 'text',
+          localized: true,
+          admin: {
+            description: 'Short cinematic tagline shown over the hero.',
+          },
+        },
+      ],
+    },
+    {
       name: 'title',
       type: 'text',
       required: true,

@@ -106,6 +106,7 @@ export interface Config {
     footer: Footer;
     'social-links': SocialLink;
     branding: Branding;
+    seasonalFeature: SeasonalFeature;
   };
   globalsSelect: {
     navigation: NavigationSelect<false> | NavigationSelect<true>;
@@ -120,6 +121,7 @@ export interface Config {
     footer: FooterSelect<false> | FooterSelect<true>;
     'social-links': SocialLinksSelect<false> | SocialLinksSelect<true>;
     branding: BrandingSelect<false> | BrandingSelect<true>;
+    seasonalFeature: SeasonalFeatureSelect<false> | SeasonalFeatureSelect<true>;
   };
   locale: 'en' | 'es';
   widgets: {
@@ -255,6 +257,66 @@ export interface Tour {
    * URL-safe identifier (kebab-case). Same slug serves both locales.
    */
   slug: string;
+  /**
+   * Turn this tour into a seasonal special-event tour (cinematic hero, storytelling, gallery). Reveals seasonal-only fields below.
+   */
+  isSeasonal?: boolean | null;
+  /**
+   * Seasonal event content. Only used when "Is seasonal" is checked.
+   */
+  seasonal?: {
+    /**
+     * Display-only date of the event. Does not affect booking availability.
+     */
+    eventDate?: string | null;
+    /**
+     * Display-only season window (e.g. the days the event runs).
+     */
+    seasonWindow?: {
+      start?: string | null;
+      end?: string | null;
+    };
+    seasonalHero?: {
+      /**
+       * Choose the seasonal hero background medium.
+       */
+      mediaType?: ('image' | 'video') | null;
+      image?: (number | null) | Media;
+      /**
+       * Background video (muted, looping). Mobile/reduced-motion show the poster only.
+       */
+      video?: (number | null) | MediaVideo;
+      /**
+       * Poster: first paint + mobile/reduced-motion still.
+       */
+      poster?: (number | null) | Media;
+    };
+    gallery?:
+      | {
+          image: number | Media;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Structured storytelling blocks (heading + body + optional image).
+     */
+    storytelling?:
+      | {
+          heading?: string | null;
+          body?: string | null;
+          image?: (number | null) | Media;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Event location label, e.g. "Tlaxcala".
+     */
+    eventLocation?: string | null;
+    /**
+     * Short cinematic tagline shown over the hero.
+     */
+    tagline?: string | null;
+  };
   title: string;
   category: 'ebike' | 'walking' | 'daytrip' | 'food';
   /**
@@ -626,6 +688,42 @@ export interface MediaVideoSelect<T extends boolean = true> {
  */
 export interface ToursSelect<T extends boolean = true> {
   slug?: T;
+  isSeasonal?: T;
+  seasonal?:
+    | T
+    | {
+        eventDate?: T;
+        seasonWindow?:
+          | T
+          | {
+              start?: T;
+              end?: T;
+            };
+        seasonalHero?:
+          | T
+          | {
+              mediaType?: T;
+              image?: T;
+              video?: T;
+              poster?: T;
+            };
+        gallery?:
+          | T
+          | {
+              image?: T;
+              id?: T;
+            };
+        storytelling?:
+          | T
+          | {
+              heading?: T;
+              body?: T;
+              image?: T;
+              id?: T;
+            };
+        eventLocation?: T;
+        tagline?: T;
+      };
   title?: T;
   category?: T;
   duration?: T;
@@ -1084,6 +1182,27 @@ export interface Branding {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seasonalFeature".
+ */
+export interface SeasonalFeature {
+  id: number;
+  /**
+   * Show the seasonal highlight on the landing page.
+   */
+  enabled?: boolean | null;
+  /**
+   * Small label above the highlight, e.g. "This season".
+   */
+  eyebrow?: string | null;
+  /**
+   * The seasonal tour to highlight. Must be published and marked seasonal.
+   */
+  featuredSeasonalTour?: (number | null) | Tour;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "navigation_select".
  */
 export interface NavigationSelect<T extends boolean = true> {
@@ -1292,6 +1411,18 @@ export interface BrandingSelect<T extends boolean = true> {
   logoDark?: T;
   logoAltText?: T;
   logoHeight?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seasonalFeature_select".
+ */
+export interface SeasonalFeatureSelect<T extends boolean = true> {
+  enabled?: T;
+  eyebrow?: T;
+  featuredSeasonalTour?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

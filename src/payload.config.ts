@@ -24,6 +24,7 @@ import { Faq } from './globals/Faq';
 import { Footer } from './globals/Footer';
 import { SocialLinks } from './globals/SocialLinks';
 import { Branding } from './globals/Branding';
+import { SeasonalFeature } from './globals/SeasonalFeature';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -136,6 +137,7 @@ export default buildConfig({
     Footer,
     SocialLinks,
     Branding,
+    SeasonalFeature,
   ],
   localization: {
     locales: ['en', 'es'],
