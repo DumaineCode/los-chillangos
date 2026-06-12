@@ -179,6 +179,18 @@
     },
     "fallbackEmpty": "Content coming soon."
   },
+  "seasonal": {
+    "eyebrow": "Seasonal",
+    "featuredLabel": "This season",
+    "dateLabel": "Event date",
+    "locationLabel": "Location",
+    "storyEyebrow": "The story",
+    "galleryEyebrow": "The gallery",
+    "viewEvent": "View the event",
+    "back": "Home",
+    "bookCta": "Book a tour",
+    "comingSoon": "More details coming soon."
+  },
   "notFound": {
     "title": "Page not found.",
     "lede": "The path you followed doesn't exist anymore — or never did. Pick a tour or head home.",

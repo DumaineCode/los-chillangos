@@ -179,6 +179,18 @@
     },
     "fallbackEmpty": "Contenido próximamente."
   },
+  "seasonal": {
+    "eyebrow": "De temporada",
+    "featuredLabel": "Esta temporada",
+    "dateLabel": "Fecha del evento",
+    "locationLabel": "Ubicación",
+    "storyEyebrow": "La historia",
+    "galleryEyebrow": "La galería",
+    "viewEvent": "Ver el evento",
+    "back": "Inicio",
+    "bookCta": "Reservar un tour",
+    "comingSoon": "Más detalles próximamente."
+  },
   "notFound": {
     "title": "Página no encontrada.",
     "lede": "El camino que seguiste ya no existe — o nunca existió. Elige un tour o vuelve al inicio.",
