@@ -96,8 +96,13 @@ describe('SeasonalTourLayout', () => {
       },
     } as Partial<Tour>);
     renderLayout(tour);
-    // Hero still renders; no story/gallery sections required.
+    // Hero still renders its tagline + location...
     expect(screen.getByText('Quiet season')).toBeInTheDocument();
-    expect(screen.queryByRole('img', { hidden: true })).not.toThrow;
+    expect(screen.getByText('Centro')).toBeInTheDocument();
+    // ...but the story and gallery sections are omitted entirely.
+    expect(screen.queryByText(enMessages.seasonal.storyEyebrow)).not.toBeInTheDocument();
+    expect(screen.queryByText(enMessages.seasonal.galleryEyebrow)).not.toBeInTheDocument();
+    // The booking sidebar still works regardless of optional content.
+    expect(screen.getByRole('link', { name: /book/i })).toBeInTheDocument();
   });
 });

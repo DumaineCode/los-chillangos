@@ -5,7 +5,9 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Link } from '../../../../i18n/navigation';
 import { type Locale } from '../../../../i18n/routing';
+import { SeasonalTourLayout } from '../../../../src/components/seasonal/SeasonalTourLayout';
 import { getPayload } from '../../../../src/lib/payload';
+import { shouldRenderSeasonal } from '../../../../src/lib/seasonal/shouldRenderSeasonal';
 import type { Media, Tour } from '../../../../src/payload-types';
 
 // CMS-driven detail page: rendered on demand and cached with ISR. The build no
@@ -46,6 +48,12 @@ export default async function TourDetailPage({ params }: Props) {
 
   const tour = await fetchPublishedTour(slug, locale as Locale);
   if (!tour) notFound();
+
+  // Seasonal tours render a dedicated cinematic template; everything else keeps
+  // the standard layout below.
+  if (shouldRenderSeasonal(tour)) {
+    return <SeasonalTourLayout tour={tour} locale={locale as Locale} />;
+  }
 
   const t = await getTranslations({ locale, namespace: 'detail' });
   const tCommon = await getTranslations({ locale, namespace: 'common' });
@@ -229,7 +237,8 @@ async function fetchPublishedTour(slug: string, locale: Locale): Promise<Tour | 
       and: [{ slug: { equals: slug } }, { _status: { equals: 'published' } }],
     },
     limit: 1,
-    depth: 1,
+    // depth:2 so seasonal hero/gallery/storytelling media URLs hydrate.
+    depth: 2,
   });
   return docs[0] ?? null;
 }

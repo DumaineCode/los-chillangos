@@ -6,8 +6,10 @@ import { Link } from '../../i18n/navigation';
 import { type Locale } from '../../i18n/routing';
 import { CatalogFilter } from '../../src/components/CatalogFilter';
 import { FAQList } from '../../src/components/FAQ';
+import { HighlightSeasonal } from '../../src/components/seasonal/HighlightSeasonal';
 import { TourCard } from '../../src/components/TourCard';
 import { getPayload } from '../../src/lib/payload';
+import { getActiveSeasonalTour } from '../../src/lib/seasonal/getActiveSeasonalTour';
 import type { Media, MediaVideo } from '../../src/payload-types';
 
 // CMS-driven content. We intentionally OMIT generateStaticParams so Next does
@@ -61,8 +63,19 @@ export default async function HomePage({ params }: Props) {
   const tCatalog = await getTranslations({ locale, namespace: 'catalog' });
 
   const payload = await getPayload();
-  const [hero, marquee, values, about, testimonial, services, team, faq, toursResult] =
-    await Promise.all([
+  const [
+    hero,
+    marquee,
+    values,
+    about,
+    testimonial,
+    services,
+    team,
+    faq,
+    toursResult,
+    seasonalFeature,
+    seasonalTour,
+  ] = await Promise.all([
       payload
         .findGlobal({ slug: 'hero', locale: locale as Locale, fallbackLocale: 'en' })
         .catch(() => null),
@@ -95,6 +108,10 @@ export default async function HomePage({ params }: Props) {
         limit: 12,
         depth: 1,
       }),
+      payload
+        .findGlobal({ slug: 'seasonalFeature', locale: locale as Locale, fallbackLocale: 'en' })
+        .catch(() => null),
+      getActiveSeasonalTour(payload, locale as Locale).catch(() => null),
     ]);
 
   const tours = toursResult.docs;
@@ -104,6 +121,7 @@ export default async function HomePage({ params }: Props) {
   const faqItems = (faq?.items ?? []).map((f) => ({ q: f.question, a: f.answer }));
   const heroStats = hero?.stats ?? [];
   const marqueeText = marquee?.text ?? '';
+  const seasonalEyebrow = seasonalFeature?.eyebrow ?? '';
 
   const filters: { key: 'all' | 'ebike' | 'walking' | 'daytrip' | 'new'; label: string }[] = [
     { key: 'all', label: tCatalog('filters.all') },
@@ -268,6 +286,10 @@ export default async function HomePage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {/* Seasonal highlight — renders only when an active seasonal tour is set.
+          When unset, HighlightSeasonal returns null (zero layout shift). */}
+      <HighlightSeasonal tour={seasonalTour} eyebrow={seasonalEyebrow} locale={locale as Locale} />
 
       {/* Catalog */}
       <section className="section" id="tours" style={{ paddingTop: 0 }}>
