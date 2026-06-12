@@ -1815,8 +1815,14 @@ body:has(.hero-cine) { padding-top: 0; }
   max-height: 1040px;
   width: 100%;
   overflow: hidden;
-  background: var(--bg-deep);
-  color: var(--bg-warm);
+  /* Cinematic hero sits over full-bleed media: lock the surface + text colors
+     to fixed cinematic values so the overlay and copy look IDENTICAL in light
+     and dark mode (the theme tokens --bg-deep/--bg-warm invert under
+     [data-theme="dark"], which previously washed the overlay white). */
+  --seasonal-ink: #0d182a; /* fixed deep navy for overlay/background */
+  --seasonal-paper: #fff3d6; /* fixed cream for text over media */
+  background: var(--seasonal-ink);
+  color: var(--seasonal-paper);
   margin-top: -1px;
 }
 .seasonal-hero-media {
@@ -1831,9 +1837,9 @@ body:has(.hero-cine) { padding-top: 0; }
   inset: 0;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--bg-deep) 60%, transparent) 0%,
-    color-mix(in srgb, var(--bg-deep) 20%, transparent) 45%,
-    color-mix(in srgb, var(--bg-deep) 92%, transparent) 100%
+    color-mix(in srgb, var(--seasonal-ink) 60%, transparent) 0%,
+    color-mix(in srgb, var(--seasonal-ink) 20%, transparent) 45%,
+    color-mix(in srgb, var(--seasonal-ink) 92%, transparent) 100%
   );
   z-index: 2;
   pointer-events: none;
@@ -1871,7 +1877,7 @@ body:has(.hero-cine) { padding-top: 0; }
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.18em;
-  color: var(--bg-warm);
+  color: var(--seasonal-paper);
   opacity: 0.8;
 }
 .seasonal-hero-headline {
@@ -1887,7 +1893,7 @@ body:has(.hero-cine) { padding-top: 0; }
   font-style: italic;
   font-size: clamp(18px, 2.4vw, 28px);
   max-width: 40ch;
-  color: var(--bg-warm);
+  color: var(--seasonal-paper);
 }
 .seasonal-hero-location {
   display: flex;
