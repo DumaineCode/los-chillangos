@@ -84,7 +84,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   // Fetch Navigation + Branding globals server-side and pass to the (client) Nav.
   const payload = await getPayload();
-  const [navigation, branding] = await Promise.all([
+  const [navigation, branding, contact, social] = await Promise.all([
     payload.findGlobal({
       slug: 'navigation',
       locale: locale as Locale,
@@ -92,6 +92,12 @@ export default async function LocaleLayout({ children, params }: Props) {
     }),
     payload
       .findGlobal({ slug: 'branding', locale: locale as Locale, fallbackLocale: 'en' })
+      .catch(() => null),
+    payload
+      .findGlobal({ slug: 'contact-info', locale: locale as Locale, fallbackLocale: 'en' })
+      .catch(() => null),
+    payload
+      .findGlobal({ slug: 'social-links', locale: locale as Locale, fallbackLocale: 'en' })
       .catch(() => null),
   ]);
 
@@ -126,6 +132,8 @@ export default async function LocaleLayout({ children, params }: Props) {
               logoSrc={logoSrc}
               logoAlt={logoAlt}
               logoHeight={logoHeight}
+              email={contact?.email ?? null}
+              instagram={social?.instagram ?? null}
               overHero
             />
             <main id="main">{children}</main>

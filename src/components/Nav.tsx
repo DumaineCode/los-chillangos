@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import type { CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Link } from '../../i18n/navigation';
 import { LocaleSwitcher } from './LocaleSwitcher';
@@ -29,6 +30,10 @@ type Props = {
    * background.
    */
   overHero?: boolean;
+  /** Optional contact shown in the full-screen mobile menu footer. */
+  email?: string | null;
+  /** Optional Instagram URL/handle shown in the mobile menu footer. */
+  instagram?: string | null;
 };
 
 /**
@@ -45,7 +50,36 @@ export function Nav({
   logoAlt,
   logoHeight = 40,
   overHero = false,
+  email,
+  instagram,
 }: Props) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Close the mobile menu on Escape and lock body scroll while it's open.
+  // Also close it if the viewport grows past the mobile breakpoint, otherwise
+  // the overlay + burger hide via CSS but `menuOpen` stays true, leaving the
+  // body scroll-locked with no visible way to close it.
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    const desktop = window.matchMedia('(min-width: 901px)');
+    const onDesktop = () => {
+      if (desktop.matches) setMenuOpen(false);
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    desktop.addEventListener('change', onDesktop);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKey);
+      desktop.removeEventListener('change', onDesktop);
+    };
+  }, [menuOpen]);
+
   useEffect(() => {
     if (!overHero) return;
 
@@ -77,9 +111,15 @@ export function Nav({
   }, [overHero]);
 
   return (
-    <nav className="nav">
+    <>
+    <nav className={menuOpen ? 'nav nav-menu-open' : 'nav'}>
       <div className="container nav-inner">
-        <Link href="/" className="logo" aria-label="Los Chillangos — home">
+        <Link
+          href="/"
+          className="logo"
+          aria-label="Los Chillangos — home"
+          onClick={() => setMenuOpen(false)}
+        >
           <Logo src={logoSrc} alt={logoAlt} height={logoHeight} />
         </Link>
         <div className="nav-links">
@@ -92,9 +132,69 @@ export function Nav({
         <div className="nav-right">
           <ThemeToggle />
           <LocaleSwitcher />
+          <button
+            type="button"
+            className="nav-burger"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span className="nav-burger-bar" />
+            <span className="nav-burger-bar" />
+            <span className="nav-burger-bar" />
+          </button>
         </div>
       </div>
     </nav>
+
+      <div
+        id="mobile-menu"
+        className="nav-overlay"
+        hidden={!menuOpen}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
+      >
+        <div className="container nav-overlay-inner">
+          <nav className="nav-overlay-links">
+            {links.map((link, i) => (
+              <Link
+                key={`mobile-${link.href}-${i}`}
+                href={normalizeHref(link.href)}
+                onClick={() => setMenuOpen(false)}
+                style={{ '--i': i } as CSSProperties}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          {(email || instagram) && (
+            <div className="nav-overlay-footer">
+              {email && (
+                <a href={`mailto:${email}`} className="nav-overlay-contact">
+                  {email}
+                </a>
+              )}
+              {instagram && (
+                <a
+                  href={
+                    instagram.startsWith('http')
+                      ? instagram
+                      : `https://instagram.com/${instagram.replace(/^@/, '')}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nav-overlay-social"
+                >
+                  Instagram
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
 
