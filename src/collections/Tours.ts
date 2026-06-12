@@ -1,6 +1,10 @@
 import type { CollectionConfig } from 'payload';
 
 import { revalidateToursAfterChange, revalidateToursAfterDelete } from '../hooks/revalidateTours';
+import {
+  isStandardFieldVisible,
+  validateHeroImage,
+} from '../lib/seasonal/fieldVisibility';
 
 /**
  * Tours collection — the heart of the site catalog.
@@ -278,25 +282,40 @@ export const Tours: CollectionConfig = {
       },
     },
     {
+      // STANDARD-ONLY: the seasonal hero/gallery replace this hint. Hidden for
+      // seasonal tours (see isStandardFieldVisible), shown for every other tour.
       name: 'photoDescription',
       type: 'text',
       localized: true,
       admin: {
+        condition: isStandardFieldVisible,
         description:
           'What the hero photo should depict (e.g. "Coyoacán plaza · golden hour"). Hint for the client choosing an image to upload.',
       },
     },
     {
+      // STANDARD-ONLY: standard detail/card hero. Seasonal tours render
+      // `seasonal.seasonalHero` instead, so this is hidden and made optional
+      // for them — a hidden `required` field would otherwise block publishing a
+      // valid seasonal tour. `validate` enforces presence only for non-seasonal.
       name: 'heroImage',
       type: 'upload',
       relationTo: 'media',
-      // Required for PUBLISH, not for draft. Drafts skip required-field validation.
-      required: true,
+      admin: {
+        condition: isStandardFieldVisible,
+      },
+      // Required for PUBLISH (not draft) only when the tour is NOT seasonal.
+      // Drafts skip required-field validation regardless.
+      validate: validateHeroImage,
     },
     {
+      // STANDARD-ONLY: duplicates `seasonal.gallery`. Hidden for seasonal tours.
       name: 'gallery',
       type: 'array',
       labels: { singular: 'Gallery image', plural: 'Gallery images' },
+      admin: {
+        condition: isStandardFieldVisible,
+      },
       fields: [
         {
           name: 'image',
@@ -307,34 +326,42 @@ export const Tours: CollectionConfig = {
       ],
     },
     {
+      // STANDARD-ONLY: replaced by `seasonal.storytelling`. Hidden for seasonal.
       name: 'aboutP1',
       type: 'textarea',
       localized: true,
       admin: {
+        condition: isStandardFieldVisible,
         description: 'Detail page — first paragraph.',
       },
     },
     {
+      // STANDARD-ONLY: replaced by `seasonal.storytelling`. Hidden for seasonal.
       name: 'aboutP2',
       type: 'textarea',
       localized: true,
       admin: {
+        condition: isStandardFieldVisible,
         description: 'Detail page — second paragraph.',
       },
     },
     {
+      // STANDARD-ONLY: replaced by `seasonal.tagline`/`storytelling`. Hidden for seasonal.
       name: 'headlineA',
       type: 'text',
       localized: true,
       admin: {
+        condition: isStandardFieldVisible,
         description: 'Detail page headline part A (e.g. "The classic CDMX,").',
       },
     },
     {
+      // STANDARD-ONLY: replaced by `seasonal.tagline`/`storytelling`. Hidden for seasonal.
       name: 'headlineB',
       type: 'text',
       localized: true,
       admin: {
+        condition: isStandardFieldVisible,
         description: 'Detail page headline part B (e.g. " on a bike.").',
       },
     },

@@ -349,7 +349,7 @@ export interface Tour {
    * What the hero photo should depict (e.g. "Coyoacán plaza · golden hour"). Hint for the client choosing an image to upload.
    */
   photoDescription?: string | null;
-  heroImage: number | Media;
+  heroImage?: (number | null) | Media;
   gallery?:
     | {
         image: number | Media;
