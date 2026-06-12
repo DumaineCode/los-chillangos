@@ -84,6 +84,41 @@ describe('stepDateSchema (factory)', () => {
   });
 });
 
+describe('stepDateSchema (seasonal window)', () => {
+  // Seasonal tour: bookable only inside seasonWindow [start..end], NOT on
+  // recurring weekdays. Window bounds serialize as midnight UTC (Payload date).
+  const SEASONAL = {
+    isSeasonal: true,
+    availableDays: ['5'], // Fridays — must be ignored for seasonal tours
+    seasonal: {
+      seasonWindow: { start: '2026-08-14T06:00:00.000Z', end: '2026-08-14T06:00:00.000Z' },
+    },
+  } as const;
+  // NOW pinned before the event so past-date logic never interferes.
+  const SEASONAL_NOW = new Date('2026-08-01T14:00:00Z');
+
+  it('accepts the in-window seasonal date even though it is not a recurring open weekday', () => {
+    const schema = stepDateSchema({ ...SEASONAL, now: SEASONAL_NOW });
+    // 2026-08-14 is a Friday CDMX, but the point is the WINDOW admits it.
+    const date = makeDate('2026-08-14T18:00:00Z');
+    const result = schema.safeParse({ date, time: '18:00' });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects a Friday OUTSIDE the seasonal window with errors.dayClosed', () => {
+    const schema = stepDateSchema({ ...SEASONAL, now: SEASONAL_NOW });
+    // 2026-08-21 is a Friday CDMX (would pass the old weekday model) but is
+    // outside the single-date Aug-14 window → closed.
+    const date = makeDate('2026-08-21T18:00:00Z');
+    const result = schema.safeParse({ date, time: '18:00' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const messages = result.error.issues.map((i) => i.message);
+      expect(messages).toContain('errors.dayClosed');
+    }
+  });
+});
+
 describe('stepPeopleSchema (factory)', () => {
   it('accepts valid input within slot capacity', () => {
     const schema = stepPeopleSchema({ slotCapacity: 8 });

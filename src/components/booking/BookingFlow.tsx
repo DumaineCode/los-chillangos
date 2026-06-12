@@ -20,6 +20,13 @@ type BookingTour = {
   price: number;
   availableDays: ReadonlyArray<'0' | '1' | '2' | '3' | '4' | '5' | '6'>;
   timeSlots: ReadonlyArray<{ time: string; capacity: number }>;
+  // Seasonal date-gate fields. Seasonal tours are bookable only within
+  // `seasonal.seasonWindow`; standard tours leave these unset and gate by
+  // `availableDays`. Projected by app/[locale]/book/page.tsx.
+  isSeasonal?: boolean | null;
+  seasonal?: {
+    seasonWindow?: { start?: string | null; end?: string | null } | null;
+  } | null;
 };
 
 type Props = {
@@ -92,8 +99,10 @@ export function BookingFlow({ tour, locale }: Props) {
       id: tour.id,
       availableDays: [...tour.availableDays],
       timeSlots: tour.timeSlots.map((s) => ({ time: s.time, capacity: s.capacity })),
+      isSeasonal: tour.isSeasonal ?? null,
+      seasonal: tour.seasonal ?? null,
     }),
-    [tour.id, tour.availableDays, tour.timeSlots]
+    [tour.id, tour.availableDays, tour.timeSlots, tour.isSeasonal, tour.seasonal]
   );
 
   const breakdown = useMemo(
@@ -123,7 +132,11 @@ export function BookingFlow({ tour, locale }: Props) {
 
   function handleNext() {
     if (step === 1) {
-      const schema = stepDateSchema({ availableDays });
+      const schema = stepDateSchema({
+        availableDays,
+        isSeasonal: tour.isSeasonal ?? null,
+        seasonal: tour.seasonal ?? null,
+      });
       const result = schema.safeParse({ date, time });
       if (!result.success) {
         setDateError(result.error.issues[0]?.message ?? null);

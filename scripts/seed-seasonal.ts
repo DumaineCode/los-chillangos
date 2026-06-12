@@ -117,10 +117,13 @@ async function main(): Promise<void> {
         groupSize: 'Up to 14',
         level: 'Easy',
         meetingPoint: 'CDMX — pickup point TBD',
-        // The event is Aug 14; availableDays gates the booking calendar, so we
-        // set it to the weekday of 2026-08-14 (Friday = '5') to keep booking
-        // possible. This is event-driven, not a recurring weekly schedule.
-        availableDays: ['5'],
+        // SEASONAL TOURS ARE WINDOW-DRIVEN, NOT WEEKDAY-DRIVEN.
+        // For seasonal tours, bookable dates come from `seasonal.seasonWindow`
+        // (see `isDateBookableForTour` in src/lib/booking/availability.ts), so
+        // `availableDays` is IRRELEVANT here. We set it to [] to make that
+        // explicit: leaving ['5'] (Friday) historically caused the calendar to
+        // open EVERY Friday of the year for this single-night Aug-14 event.
+        availableDays: [],
         timeSlots: [{ time: '18:00', capacity: 14 }],
         includes: INCLUDES_EN,
         isSeasonal: true,

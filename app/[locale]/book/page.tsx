@@ -75,6 +75,13 @@ export default async function BookPage({ params, searchParams }: Props) {
         price: tour.price,
         availableDays: tour.availableDays ?? [],
         timeSlots: (tour.timeSlots ?? []).map((s) => ({ time: s.time, capacity: s.capacity })),
+        // Seasonal gating fields. WITHOUT these the calendar silently falls
+        // back to the weekday model and shows the wrong open days (the server
+        // still rejects out-of-window dates, but the UX would mislead).
+        isSeasonal: tour.isSeasonal ?? false,
+        seasonal: tour.seasonal?.seasonWindow
+          ? { seasonWindow: tour.seasonal.seasonWindow }
+          : null,
       }}
       contact={{
         whatsapp: contact?.whatsapp ?? '',

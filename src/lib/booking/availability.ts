@@ -93,6 +93,56 @@ export function isWeekdayAvailable(
 }
 
 /**
+ * Minimal structural shape needed to gate bookable dates. Deliberately loose
+ * so BOTH the trimmed UI tour (booking page projection) and the full Payload
+ * doc (server checkout route) satisfy it without casting.
+ */
+export type BookableDateTour = {
+  isSeasonal?: boolean | null;
+  availableDays?: ReadonlyArray<string | number | null> | null;
+  seasonal?: {
+    seasonWindow?: { start?: string | null; end?: string | null } | null;
+  } | null;
+};
+
+/**
+ * Single source of truth for "can the user book THIS calendar day on THIS
+ * tour?". Two regimes:
+ *
+ *   - Seasonal tours (`isSeasonal === true`): bookable only when `date` falls
+ *     within `seasonal.seasonWindow` [start..end], INCLUSIVE, compared as CDMX
+ *     calendar days. `availableDays` is intentionally IGNORED here — a seasonal
+ *     event is window-driven, not a recurring weekday schedule. If either bound
+ *     is missing the tour is treated as closed (mirrors empty `availableDays`).
+ *
+ *   - Standard tours: delegate to the recurring `isWeekdayAvailable` model.
+ *
+ * Timezone discipline: `seasonWindow.start/end` are Payload `date` fields that
+ * serialize as midnight UTC (e.g. `2026-08-14T00:00:00.000Z` reads as Aug 13 in
+ * CDMX). We funnel the candidate AND both bounds through `getYMDInTourTZ` and
+ * compare via `compareYMD`, so the Aug-14 boundary never shifts a day. Comparing
+ * raw `Date` timestamps would be wrong.
+ */
+export function isDateBookableForTour(date: Date, tour: BookableDateTour): boolean {
+  if (tour.isSeasonal === true) {
+    const window = tour.seasonal?.seasonWindow;
+    const start = window?.start;
+    const end = window?.end;
+    if (!start || !end) return false; // closed: incomplete window
+
+    const candidate = getYMDInTourTZ(date);
+    const startYMD = getYMDInTourTZ(new Date(start));
+    const endYMD = getYMDInTourTZ(new Date(end));
+    return compareYMD(candidate, startYMD) >= 0 && compareYMD(candidate, endYMD) <= 0;
+  }
+
+  const availableDays = (tour.availableDays ?? []).filter(
+    (d): d is string | number => d !== null
+  );
+  return isWeekdayAvailable(date, availableDays);
+}
+
+/**
  * Returns the tour's time slots, defensively cleaned up:
  *   - `time` trimmed
  *   - `capacity` coerced to integer

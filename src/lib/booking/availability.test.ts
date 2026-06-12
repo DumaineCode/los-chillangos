@@ -10,6 +10,7 @@ import {
   getTimeSlotsForTour,
   getTodayInTourTZ,
   isDateBeforeTodayInTourTZ,
+  isDateBookableForTour,
   isSameDayCutoffPassed,
   isWeekdayAvailable,
 } from './availability';
@@ -132,6 +133,108 @@ describe('isWeekdayAvailable', () => {
     const date = new Date('2026-06-15T05:00:00Z');
     expect(isWeekdayAvailable(date, ['0'])).toBe(true); // Sunday in CDMX
     expect(isWeekdayAvailable(date, ['1'])).toBe(false); // not Monday in CDMX
+  });
+});
+
+describe('isDateBookableForTour', () => {
+  // Seasonal window stored the way Payload serializes a `date` field: an ISO
+  // datetime at midnight UTC. 2026-08-14T00:00:00Z is still 2026-08-13 in CDMX
+  // (UTC-6), so the gate MUST compare CALENDAR DAYS in CDMX, never raw
+  // timestamps. We model the window as a single CDMX calendar day (Aug 14)
+  // and a multi-day range to cover both shapes.
+  const SINGLE_DATE = {
+    isSeasonal: true,
+    availableDays: ['5'], // irrelevant for seasonal tours — must be ignored
+    seasonal: {
+      seasonWindow: { start: '2026-08-14T06:00:00.000Z', end: '2026-08-14T06:00:00.000Z' },
+    },
+  };
+  const RANGE = {
+    isSeasonal: true,
+    availableDays: ['5'],
+    seasonal: {
+      seasonWindow: { start: '2026-08-14T06:00:00.000Z', end: '2026-08-16T06:00:00.000Z' },
+    },
+  };
+
+  it('returns true for a date inside the window (CDMX afternoon on the start day)', () => {
+    // 2026-08-14T18:00:00Z = 2026-08-14T12:00:00 CDMX → inside [14..16]
+    const inside = new Date('2026-08-14T18:00:00Z');
+    expect(isDateBookableForTour(inside, RANGE)).toBe(true);
+  });
+
+  it('returns true exactly on the start day and exactly on the end day (inclusive)', () => {
+    // start day Aug 14 (CDMX noon), end day Aug 16 (CDMX noon)
+    expect(isDateBookableForTour(new Date('2026-08-14T18:00:00Z'), RANGE)).toBe(true);
+    expect(isDateBookableForTour(new Date('2026-08-16T18:00:00Z'), RANGE)).toBe(true);
+  });
+
+  it('returns false for a date before the start day', () => {
+    // Aug 13 CDMX is before the Aug-14 start
+    const before = new Date('2026-08-13T18:00:00Z');
+    expect(isDateBookableForTour(before, RANGE)).toBe(false);
+  });
+
+  it('returns false for a date after the end day', () => {
+    // Aug 17 CDMX is after the Aug-16 end
+    const after = new Date('2026-08-17T18:00:00Z');
+    expect(isDateBookableForTour(after, RANGE)).toBe(false);
+  });
+
+  it('single-date window (start === end): only that calendar day is bookable', () => {
+    // Aug 14 CDMX → bookable; Aug 13 and Aug 15 → not.
+    expect(isDateBookableForTour(new Date('2026-08-14T18:00:00Z'), SINGLE_DATE)).toBe(true);
+    expect(isDateBookableForTour(new Date('2026-08-13T18:00:00Z'), SINGLE_DATE)).toBe(false);
+    expect(isDateBookableForTour(new Date('2026-08-15T18:00:00Z'), SINGLE_DATE)).toBe(false);
+  });
+
+  it('TZ regression: a date that is Aug 14 in CDMX but Aug 15 in UTC resolves to Aug 14', () => {
+    // 2026-08-15T04:00:00Z = 2026-08-14T22:00:00 CDMX. A naive raw-timestamp
+    // compare against an Aug-14-midnight-UTC end bound would push this out of
+    // the single-date window; the CDMX calendar-day compare keeps it inside.
+    const lateNightCDMX = new Date('2026-08-15T04:00:00Z');
+    expect(isDateBookableForTour(lateNightCDMX, SINGLE_DATE)).toBe(true);
+  });
+
+  it('TZ regression: a date that is Aug 13 in CDMX but Aug 14 in UTC stays out', () => {
+    // 2026-08-14T03:00:00Z = 2026-08-13T21:00:00 CDMX. Raw-UTC compare would
+    // read this as "Aug 14" and wrongly admit it; CDMX compare rejects it.
+    const earlyUTC = new Date('2026-08-14T03:00:00Z');
+    expect(isDateBookableForTour(earlyUTC, SINGLE_DATE)).toBe(false);
+  });
+
+  it('returns false (closed) when the seasonal window is missing a bound', () => {
+    const noStart = {
+      isSeasonal: true,
+      availableDays: ['5'],
+      seasonal: { seasonWindow: { start: null, end: '2026-08-16T06:00:00.000Z' } },
+    };
+    const noEnd = {
+      isSeasonal: true,
+      availableDays: ['5'],
+      seasonal: { seasonWindow: { start: '2026-08-14T06:00:00.000Z', end: null } },
+    };
+    const noWindow = { isSeasonal: true, availableDays: ['5'], seasonal: {} };
+    const inside = new Date('2026-08-14T18:00:00Z');
+    expect(isDateBookableForTour(inside, noStart)).toBe(false);
+    expect(isDateBookableForTour(inside, noEnd)).toBe(false);
+    expect(isDateBookableForTour(inside, noWindow)).toBe(false);
+  });
+
+  it('non-seasonal tour delegates to the weekday model (availableDays)', () => {
+    const standard = { isSeasonal: false, availableDays: ['5'] }; // Fridays only
+    const friday = new Date('2026-08-14T18:00:00Z'); // Friday CDMX
+    const saturday = new Date('2026-08-15T18:00:00Z'); // Saturday CDMX
+    expect(isDateBookableForTour(friday, standard)).toBe(true);
+    expect(isDateBookableForTour(saturday, standard)).toBe(false);
+  });
+
+  it('treats a tour with isSeasonal unset/null as standard (weekday) logic', () => {
+    const standard = { availableDays: ['3'] }; // Wednesdays only, no isSeasonal flag
+    const wed = new Date('2026-06-17T18:00:00Z'); // Wednesday CDMX
+    const thu = new Date('2026-06-18T18:00:00Z'); // Thursday CDMX
+    expect(isDateBookableForTour(wed, standard)).toBe(true);
+    expect(isDateBookableForTour(thu, standard)).toBe(false);
   });
 });
 

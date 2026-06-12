@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 
 import {
+  type BookableDateTour,
   HOLD_TTL_MINUTES,
   STRIPE_SESSION_TTL_MINUTES,
   getTimeSlotsForTour,
   isDateBeforeTodayInTourTZ,
+  isDateBookableForTour,
   isSameDayCutoffPassed,
-  isWeekdayAvailable,
 } from '../../../../src/lib/booking/availability';
 import { countSeatsTaken } from '../../../../src/lib/booking/capacity';
 import { checkoutPayloadSchema } from '../../../../src/lib/booking/checkoutPayload';
@@ -78,9 +79,10 @@ export async function POST(request: Request): Promise<Response> {
     return jsonNoStore({ error: 'past-date' }, 422);
   }
 
-  const availableDays = (tour as { availableDays?: ReadonlyArray<string | number> | null })
-    .availableDays;
-  if (!isWeekdayAvailable(dateAnchor, availableDays ?? [])) {
+  // Seasonal tours gate by `seasonal.seasonWindow`; standard tours by
+  // `availableDays`. `isDateBookableForTour` unifies both. The full tour doc
+  // (depth:0 findByID) already carries isSeasonal + seasonal, so no extra read.
+  if (!isDateBookableForTour(dateAnchor, tour as BookableDateTour)) {
     return jsonNoStore({ error: 'day-closed' }, 422);
   }
 

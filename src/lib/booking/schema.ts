@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-import { isDateBeforeTodayInTourTZ, isWeekdayAvailable } from './availability';
+import {
+  type BookableDateTour,
+  isDateBeforeTodayInTourTZ,
+  isDateBookableForTour,
+} from './availability';
 
 /**
  * Booking flow Zod schemas (Sub-etapa B).
@@ -32,17 +36,18 @@ import { isDateBeforeTodayInTourTZ, isWeekdayAvailable } from './availability';
  * tick would flicker. The server route in Sub-etapa C is the authoritative
  * gate for `< 2h to departure`.
  */
-export function stepDateSchema(ctx: {
-  availableDays: ReadonlyArray<string | number>;
-  now?: Date;
-}) {
+export function stepDateSchema(
+  ctx: BookableDateTour & {
+    now?: Date;
+  }
+) {
   return z
     .object({
       date: z.date({ message: 'errors.dateRequired' }),
       time: z.string().min(1, 'errors.timeRequired'),
     })
     .superRefine((value, zctx) => {
-      if (!isWeekdayAvailable(value.date, ctx.availableDays)) {
+      if (!isDateBookableForTour(value.date, ctx)) {
         zctx.addIssue({
           code: 'custom',
           path: ['date'],

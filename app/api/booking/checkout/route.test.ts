@@ -155,6 +155,53 @@ describe('POST /api/booking/checkout', () => {
     expect(body.error).toBe('day-closed');
   });
 
+  it('returns 422 day-closed for a seasonal tour when the date is OUTSIDE the season window', async () => {
+    // Seasonal single-date event Aug 14 2026. 2030-06-12 is far outside the
+    // window even though the seeded availableDays (['5']) would admit Fridays.
+    mockPayload.findByID.mockResolvedValueOnce(
+      makeTour({
+        isSeasonal: true,
+        availableDays: ['1', '2', '3', '4', '5'],
+        seasonal: {
+          seasonWindow: { start: '2026-08-14T06:00:00.000Z', end: '2026-08-14T06:00:00.000Z' },
+        },
+      })
+    );
+    const res = await POST(makeRequest(makeBody({ date: '2030-06-12', time: '09:00' })));
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe('day-closed');
+  });
+
+  it('passes the date check for a seasonal tour when the date is INSIDE the season window', async () => {
+    // Set "now" before the event so past-date never fires; book the Aug-14
+    // event day at 18:00 (the seeded seasonal slot), many hours from now.
+    vi.setSystemTime(new Date('2026-08-01T13:00:00Z'));
+    mockPayload.findByID.mockResolvedValueOnce(
+      makeTour({
+        isSeasonal: true,
+        availableDays: ['1', '2', '3', '4', '5'],
+        timeSlots: [{ time: '18:00', capacity: 14 }],
+        seasonal: {
+          seasonWindow: { start: '2026-08-14T06:00:00.000Z', end: '2026-08-14T06:00:00.000Z' },
+        },
+      })
+    );
+    mockPayload.find.mockResolvedValueOnce({ docs: [] }); // no seats taken
+    mockPayload.create.mockResolvedValueOnce({ id: 55, reference: 'LC-SEASON01' });
+    mockCreateSession.mockResolvedValueOnce({
+      id: 'cs_test_seasonal',
+      url: 'https://checkout.stripe.com/c/pay/cs_test_seasonal',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    const res = await POST(makeRequest(makeBody({ date: '2026-08-14', time: '18:00' })));
+    // The date passed the day-closed gate; the flow reached Stripe and returned 200.
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { checkoutUrl: string };
+    expect(body.checkoutUrl).toBe('https://checkout.stripe.com/c/pay/cs_test_seasonal');
+  });
+
   it('returns 422 unknown-slot when the time is not in tour timeSlots', async () => {
     mockPayload.findByID.mockResolvedValueOnce(makeTour());
     const res = await POST(makeRequest(makeBody({ time: '23:00' })));

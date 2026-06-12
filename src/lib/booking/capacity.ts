@@ -5,8 +5,8 @@ import {
   computeSlotAvailability,
   getCDMXDayRange,
   getTimeSlotsForTour,
+  isDateBookableForTour,
   isSameDayCutoffPassed,
-  isWeekdayAvailable,
 } from './availability';
 
 /**
@@ -105,8 +105,10 @@ export async function getDayAvailability({
   date: Date;
   now?: Date;
 }): Promise<SlotAvailability[]> {
-  const availableDays = tour.availableDays ?? [];
-  if (!isWeekdayAvailable(date, availableDays)) return [];
+  // Closed-day short-circuit. Seasonal tours gate by `seasonal.seasonWindow`,
+  // standard tours by `availableDays` — `isDateBookableForTour` unifies both.
+  // The full `Tour` doc carries isSeasonal + seasonal, so no extra read.
+  if (!isDateBookableForTour(date, tour)) return [];
 
   const slots = getTimeSlotsForTour(tour);
   if (slots.length === 0) return [];

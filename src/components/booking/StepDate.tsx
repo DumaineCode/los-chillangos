@@ -6,17 +6,27 @@ import { useTranslations } from 'next-intl';
 import {
   getTimeSlotsForTour,
   isDateBeforeTodayInTourTZ,
-  isWeekdayAvailable,
+  isDateBookableForTour,
 } from '../../lib/booking/availability';
 import type { Tour } from '../../payload-types';
 import { MiniCalendar } from './MiniCalendar';
 
 /**
  * Tour shape needed by Step 1. We pass the whole tour (already loaded by the
- * booking page) so the date picker can derive everything: weekday gating,
- * the time-slot chips, and the live availability fetch by tour id.
+ * booking page) so the date picker can derive everything: date gating
+ * (weekday for standard tours, season window for seasonal ones), the
+ * time-slot chips, and the live availability fetch by tour id.
+ *
+ * `isSeasonal` + `seasonal.seasonWindow` MUST be projected by the booking page
+ * — without them the calendar silently falls back to the weekday model and
+ * opens the wrong days (the server still rejects, but the UX would mislead).
  */
-export type StepDateTour = Pick<Tour, 'id' | 'availableDays' | 'timeSlots'>;
+export type StepDateTour = Pick<Tour, 'id' | 'availableDays' | 'timeSlots'> & {
+  isSeasonal?: boolean | null;
+  seasonal?: {
+    seasonWindow?: { start?: string | null; end?: string | null } | null;
+  } | null;
+};
 
 type Props = {
   tour: StepDateTour;
@@ -55,12 +65,15 @@ export function StepDate({
 
   const availableDays = useMemo(() => tour.availableDays ?? [], [tour.availableDays]);
   const baseSlots = useMemo(() => getTimeSlotsForTour(tour), [tour]);
-  const isTourPaused = availableDays.length === 0;
+  // A seasonal tour is driven by its season window, NOT availableDays — so an
+  // empty availableDays list does not mean "paused" for seasonal tours.
+  const isTourPaused = !tour.isSeasonal && availableDays.length === 0;
 
-  // Predicate that gates calendar cells: closed weekdays + past dates.
+  // Predicate that gates calendar cells. Seasonal tours gate by the season
+  // window, standard tours by recurring weekday; both also exclude past dates.
   const isDateAvailable = useCallback(
-    (d: Date) => isWeekdayAvailable(d, availableDays) && !isDateBeforeTodayInTourTZ(d),
-    [availableDays]
+    (d: Date) => isDateBookableForTour(d, tour) && !isDateBeforeTodayInTourTZ(d),
+    [tour]
   );
 
   // Live availability per slot for the selected date. Defaults to the static

@@ -184,6 +184,50 @@ describe('getDayAvailability', () => {
     expect(payload.find).toHaveBeenCalledTimes(2);
   });
 
+  it('seasonal tour: returns [] for a date OUTSIDE the season window without querying', async () => {
+    // Seasonal single-date event Aug 14 2026. 2026-06-15 is a Monday CDMX —
+    // the seeded availableDays (['1','3','5']) would admit it under the old
+    // weekday model, but the window must short-circuit it to closed.
+    const payload = makePayload({});
+    const tour = makeTour({
+      isSeasonal: true,
+      availableDays: ['1', '3', '5'],
+      seasonal: {
+        seasonWindow: { start: '2026-08-14T06:00:00.000Z', end: '2026-08-14T06:00:00.000Z' },
+      },
+    });
+    const date = new Date('2026-06-15T14:00:00Z'); // Monday CDMX, outside window
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const slots = await getDayAvailability({ payload: payload as any, tour, date, now: NOW });
+    expect(slots).toEqual([]);
+    expect(payload.find).not.toHaveBeenCalled();
+  });
+
+  it('seasonal tour: returns per-slot rows for a date INSIDE the season window', async () => {
+    const payload = makePayload({
+      find: async () => ({ docs: [{ totalPersons: 2 }] }),
+    });
+    const tour = makeTour({
+      isSeasonal: true,
+      availableDays: ['1', '3', '5'],
+      timeSlots: [{ time: '18:00', capacity: 14 }],
+      seasonal: {
+        seasonWindow: { start: '2026-08-14T06:00:00.000Z', end: '2026-08-14T06:00:00.000Z' },
+      },
+    });
+    // 2026-08-14 is a Friday CDMX, inside the single-date window.
+    const date = new Date('2026-08-14T18:00:00Z');
+    const seasonalNow = new Date('2026-08-01T14:00:00Z');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const slots = await getDayAvailability({ payload: payload as any, tour, date, now: seasonalNow });
+    expect(slots).toEqual([
+      { time: '18:00', capacity: 14, seatsTaken: 2, remaining: 12, cutoffPassed: false },
+    ]);
+    expect(payload.find).toHaveBeenCalledTimes(1);
+  });
+
   it('returns [] when the tour has no time slots', async () => {
     const payload = makePayload({});
     const tour = makeTour({ timeSlots: [] });
