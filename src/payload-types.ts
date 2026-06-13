@@ -108,6 +108,7 @@ export interface Config {
     'social-links': SocialLink;
     branding: Branding;
     seasonalFeature: SeasonalFeature;
+    'email-content': EmailContent;
   };
   globalsSelect: {
     navigation: NavigationSelect<false> | NavigationSelect<true>;
@@ -124,6 +125,7 @@ export interface Config {
     'social-links': SocialLinksSelect<false> | SocialLinksSelect<true>;
     branding: BrandingSelect<false> | BrandingSelect<true>;
     seasonalFeature: SeasonalFeatureSelect<false> | SeasonalFeatureSelect<true>;
+    'email-content': EmailContentSelect<false> | EmailContentSelect<true>;
   };
   locale: 'en' | 'es';
   widgets: {
@@ -320,14 +322,6 @@ export interface Tour {
    * Detail page — second paragraph.
    */
   aboutP2?: string | null;
-  /**
-   * Detail page headline part A (e.g. "The classic CDMX,").
-   */
-  headlineA?: string | null;
-  /**
-   * Detail page headline part B (e.g. " on a bike.").
-   */
-  headlineB?: string | null;
   itinerary?:
     | {
         /**
@@ -712,8 +706,6 @@ export interface ToursSelect<T extends boolean = true> {
       };
   aboutP1?: T;
   aboutP2?: T;
-  headlineA?: T;
-  headlineB?: T;
   itinerary?:
     | T
     | {
@@ -1245,6 +1237,59 @@ export interface SeasonalFeature {
   createdAt?: string | null;
 }
 /**
+ * Wording for the booking confirmation email sent to guests after payment. Leave a field empty to use the built-in default. Dynamic details (tour, date, time, guests, total, reference) are added automatically.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-content".
+ */
+export interface EmailContent {
+  id: number;
+  /**
+   * Optional logo for the email header. If empty, the brand name is shown.
+   */
+  logo?: (number | null) | Media;
+  confirmation?: {
+    /**
+     * Email subject. Tokens: {tour}, {reference}.
+     */
+    subject?: string | null;
+    /**
+     * Inbox preview snippet shown next to the subject (~90 chars).
+     */
+    previewText?: string | null;
+    /**
+     * Greeting line. Token: {name}.
+     */
+    greeting?: string | null;
+    /**
+     * Opening paragraph under the greeting.
+     */
+    intro?: string | null;
+    /**
+     * Things to know before the tour. One item per line — shown as bullets.
+     */
+    goodToKnow?: string | null;
+    /**
+     * Optional meeting-point note. Leave empty to hide the section.
+     */
+    meetingPoint?: string | null;
+    /**
+     * Optional closing line before the signature.
+     */
+    closing?: string | null;
+    /**
+     * Sign-off line.
+     */
+    signature?: string | null;
+    /**
+     * Small print in the footer (e.g. cancellation policy).
+     */
+    footnote?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "navigation_select".
  */
@@ -1486,6 +1531,29 @@ export interface SeasonalFeatureSelect<T extends boolean = true> {
   enabled?: T;
   eyebrow?: T;
   featuredSeasonalTour?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-content_select".
+ */
+export interface EmailContentSelect<T extends boolean = true> {
+  logo?: T;
+  confirmation?:
+    | T
+    | {
+        subject?: T;
+        previewText?: T;
+        greeting?: T;
+        intro?: T;
+        goodToKnow?: T;
+        meetingPoint?: T;
+        closing?: T;
+        signature?: T;
+        footnote?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

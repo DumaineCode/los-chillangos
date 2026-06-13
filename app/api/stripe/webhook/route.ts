@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 
 import { HOLD_TTL_MINUTES } from '../../../../src/lib/booking/availability';
+import { sendBookingEmails } from '../../../../src/lib/email/send';
 import { getPayload } from '../../../../src/lib/payload';
 import { stripe } from '../../../../src/lib/stripe/client';
 import { getWebhookSecret } from '../../../../src/lib/stripe/env';
@@ -192,6 +193,18 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session): Promise<vo
       holdExpiresAt: null,
     },
   });
+
+  // Send the guest confirmation + owner notification. This runs ONLY on the
+  // real pending → paid transition (the short-circuits above guarantee it
+  // fires once per booking). It's awaited so the serverless function doesn't
+  // freeze mid-send, but wrapped so a Resend failure never returns 500 — a
+  // retry would hit the `paid` short-circuit above and drop the email anyway.
+  // `sendBookingEmails` is itself non-throwing; this is defense-in-depth.
+  try {
+    await sendBookingEmails(bookingId);
+  } catch (err) {
+    console.error('[stripe-webhook] booking email send failed', { bookingId, err });
+  }
 }
 
 async function onCheckoutExpired(session: Stripe.Checkout.Session): Promise<void> {

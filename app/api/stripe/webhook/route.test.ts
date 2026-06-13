@@ -37,6 +37,10 @@ vi.mock('../../../../src/lib/payload', () => ({
   getPayload: vi.fn(async () => mockPayload),
 }));
 
+vi.mock('../../../../src/lib/email/send', () => ({
+  sendBookingEmails: vi.fn(async () => undefined),
+}));
+
 const mockPayload: {
   find: ReturnType<typeof vi.fn>;
   update: ReturnType<typeof vi.fn>;
@@ -46,10 +50,12 @@ const mockPayload: {
 };
 
 const { stripe } = await import('../../../../src/lib/stripe/client');
+const { sendBookingEmails } = await import('../../../../src/lib/email/send');
 const { POST } = await import('./route');
 
 const mockConstructEvent = vi.mocked(stripe.webhooks.constructEvent);
 const mockCreateRefund = vi.mocked(stripe.refunds.create);
+const mockSendEmails = vi.mocked(sendBookingEmails);
 
 function makeReq(body: string, sig: string | null = 't=1,v1=fake'): Request {
   const headers = new Headers();
@@ -69,6 +75,8 @@ beforeEach(() => {
   mockCreateRefund.mockReset();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockCreateRefund.mockResolvedValue({ id: 're_test_dummy' } as any);
+  mockSendEmails.mockReset();
+  mockSendEmails.mockResolvedValue(undefined);
 });
 
 describe('POST /api/stripe/webhook', () => {
@@ -118,6 +126,9 @@ describe('POST /api/stripe/webhook', () => {
     expect(call.data.holdExpiresAt).toBeNull();
     // paidAt is serialized as ISO string (Payload's date field expects strings)
     expect(call.data.paidAt).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+    // Confirmation + owner emails fire exactly on the pending → paid transition.
+    expect(mockSendEmails).toHaveBeenCalledTimes(1);
+    expect(mockSendEmails).toHaveBeenCalledWith(42);
   });
 
   it('checkout.session.completed → idempotent: already paid → no second write', async () => {
@@ -140,6 +151,8 @@ describe('POST /api/stripe/webhook', () => {
     const res = await POST(makeReq('{}'));
     expect(res.status).toBe(200);
     expect(mockPayload.update).not.toHaveBeenCalled();
+    // No re-send on idempotent redelivery of an already-paid booking.
+    expect(mockSendEmails).not.toHaveBeenCalled();
   });
 
   it('checkout.session.completed → booking expired (hold lapsed) → auto-refunds and marks refunded', async () => {
@@ -196,6 +209,8 @@ describe('POST /api/stripe/webhook', () => {
     expect(updateCall.data.status).toBe('refunded');
     expect(updateCall.data.stripePaymentIntentId).toBe('pi_test_late');
     expect(String(updateCall.data.notes)).toMatch(/Auto-refunded/);
+    // Auto-refunded late payment must NOT trigger a confirmation email.
+    expect(mockSendEmails).not.toHaveBeenCalled();
   });
 
   it('checkout.session.completed → booking cancelled (Stripe-create failure path) → auto-refunds', async () => {
