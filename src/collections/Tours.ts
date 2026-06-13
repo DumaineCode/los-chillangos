@@ -287,26 +287,6 @@ export const Tours: CollectionConfig = {
                 description: 'Detail page — second paragraph.',
               },
             },
-            {
-              // STANDARD-ONLY: replaced by `seasonal.tagline`/`storytelling`. Hidden for seasonal.
-              name: 'headlineA',
-              type: 'text',
-              localized: true,
-              admin: {
-                condition: isStandardFieldVisible,
-                description: 'Detail page headline part A (e.g. "The classic CDMX,").',
-              },
-            },
-            {
-              // STANDARD-ONLY: replaced by `seasonal.tagline`/`storytelling`. Hidden for seasonal.
-              name: 'headlineB',
-              type: 'text',
-              localized: true,
-              admin: {
-                condition: isStandardFieldVisible,
-                description: 'Detail page headline part B (e.g. " on a bike.").',
-              },
-            },
           ],
         },
         {

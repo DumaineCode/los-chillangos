@@ -18,7 +18,7 @@ type SeasonalFlag = { isSeasonal?: boolean | null } | null | undefined;
  * Whether a STANDARD-ONLY field should be visible in the admin form.
  *
  * Standard-only fields (heroImage, photoDescription, standard gallery,
- * aboutP1/P2, headlineA/B) are replaced by the seasonal group, so they hide
+ * aboutP1/P2) are replaced by the seasonal group, so they hide
  * for seasonal tours and stay visible for every standard/legacy tour — exactly
  * matching today's behavior when `isSeasonal` is false/unset.
  */

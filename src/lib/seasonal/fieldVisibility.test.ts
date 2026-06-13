@@ -13,8 +13,8 @@ import {
  * the Payload admin (which cannot be rendered in vitest).
  *
  * Acceptance criteria (owner complaint — seasonal tour admin UX):
- *   - Standard-only fields (heroImage, photoDescription, gallery, aboutP1/P2,
- *     headlineA/B) must HIDE when the tour is seasonal and SHOW otherwise.
+  *   - Standard-only fields (heroImage, photoDescription, gallery, aboutP1/P2)
+ *     must HIDE when the tour is seasonal and SHOW otherwise.
  *   - heroImage is required ONLY for standard tours; a seasonal tour publishes
  *     without it (it uses `seasonal.seasonalHero` instead).
  *   - Non-seasonal behavior is unchanged: heroImage stays required.

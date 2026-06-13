@@ -69,8 +69,6 @@ interface I18nDetail {
   langVal: string;
   levelVal: string;
   meetVal: string;
-  headlineA: string;
-  headlineB: string;
   aboutP1: string;
   aboutP2: string;
   meetText: string;
@@ -272,8 +270,6 @@ async function seedTours(
         // start blank and the client fills them in /admin.
         aboutP1: isFlagship ? detailEN.aboutP1 : undefined,
         aboutP2: isFlagship ? detailEN.aboutP2 : undefined,
-        headlineA: isFlagship ? detailEN.headlineA : undefined,
-        headlineB: isFlagship ? detailEN.headlineB : undefined,
         meetingPoint: isFlagship ? detailEN.meetVal : undefined,
         meetingPointText: isFlagship ? detailEN.meetText : undefined,
         groupSize: isFlagship ? detailEN.groupVal : undefined,
@@ -305,8 +301,6 @@ async function seedTours(
         photoDescription: tour.photo, // same hint string in both locales
         aboutP1: isFlagship ? detailES.aboutP1 : undefined,
         aboutP2: isFlagship ? detailES.aboutP2 : undefined,
-        headlineA: isFlagship ? detailES.headlineA : undefined,
-        headlineB: isFlagship ? detailES.headlineB : undefined,
         meetingPoint: isFlagship ? detailES.meetVal : undefined,
         meetingPointText: isFlagship ? detailES.meetText : undefined,
         groupSize: isFlagship ? detailES.groupVal : undefined,
