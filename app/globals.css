@@ -1358,6 +1358,18 @@ body:has(.hero-cine) { padding-top: 0; }
   }
 }
 
+/* Leaflet meeting-point map: accent-colored teardrop pin (divIcon). */
+.tour-map-pin span {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--terra);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transform: rotate(-45deg);
+}
+
 .detail-body {
   display: grid;
   grid-template-columns: 1.4fr 1fr;

@@ -356,6 +356,26 @@ export const Tours: CollectionConfig = {
               },
             },
             {
+              // Map pin for the meeting point. NOT localized — the coordinates
+              // are the same in every language. A custom admin component
+              // (MeetingLocationField) lets the client type an address in plain
+              // language, autocompletes it via OpenStreetMap (Photon), and
+              // stores the resolved address + lat/lng. The public tour page
+              // renders an interactive Leaflet map from these coordinates.
+              name: 'meetingLocation',
+              type: 'group',
+              admin: {
+                components: {
+                  Field: '/components/admin/MeetingLocationField',
+                },
+              },
+              fields: [
+                { name: 'address', type: 'text' },
+                { name: 'lat', type: 'number' },
+                { name: 'lng', type: 'number' },
+              ],
+            },
+            {
               name: 'availableDays',
               type: 'select',
               hasMany: true,

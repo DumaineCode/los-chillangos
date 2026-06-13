@@ -7,6 +7,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '../../../../i18n/navigation';
 import { type Locale } from '../../../../i18n/routing';
 import { RefreshRouteOnSave } from '../../../../src/components/RefreshRouteOnSave';
+import { TourMap } from '../../../../src/components/TourMap';
 import { SeasonalTourLayout } from '../../../../src/components/seasonal/SeasonalTourLayout';
 import { getPayload } from '../../../../src/lib/payload';
 import { shouldRenderSeasonal } from '../../../../src/lib/seasonal/shouldRenderSeasonal';
@@ -76,6 +77,18 @@ export default async function TourDetailPage({ params }: Props) {
     .filter((m): m is Media => Boolean(m?.url))
     .slice(0, 5);
   const categoryLabel = t(`categoryLabel.${tour.category}`);
+
+  // meetingLocation is a non-localized group {address, lat, lng} added to the
+  // Tours collection. Read it via a narrow local cast so this file does not
+  // depend on a regenerated payload-types (which is currently entangled with
+  // unrelated parallel work). Render the map only when real coords exist.
+  const meetingLocation = (
+    tour as { meetingLocation?: { address?: string | null; lat?: number | null; lng?: number | null } | null }
+  ).meetingLocation;
+  const mapCoords =
+    typeof meetingLocation?.lat === 'number' && typeof meetingLocation?.lng === 'number'
+      ? { lat: meetingLocation.lat, lng: meetingLocation.lng }
+      : null;
 
   return (
     <div>
@@ -167,7 +180,7 @@ export default async function TourDetailPage({ params }: Props) {
                 </div>
               </section>
             ) : null}
-            {(tour.meetingPoint || tour.meetingPointText) && (
+            {(tour.meetingPoint || tour.meetingPointText || mapCoords) && (
               <section>
                 <h3>{t('sectionMeet')}</h3>
                 {tour.meetingPoint ? (
@@ -176,11 +189,19 @@ export default async function TourDetailPage({ params }: Props) {
                   </p>
                 ) : null}
                 {tour.meetingPointText ? <p>{tour.meetingPointText}</p> : null}
-                <div
-                  className="placeholder"
-                  data-label={t('mapPlaceholder')}
-                  style={{ aspectRatio: '21/9', borderRadius: 4, marginTop: 16 }}
-                ></div>
+                {mapCoords ? (
+                  <TourMap
+                    lat={mapCoords.lat}
+                    lng={mapCoords.lng}
+                    label={meetingLocation?.address ?? tour.meetingPoint}
+                  />
+                ) : (
+                  <div
+                    className="placeholder"
+                    data-label={t('mapPlaceholder')}
+                    style={{ aspectRatio: '21/9', borderRadius: 4, marginTop: 16 }}
+                  ></div>
+                )}
               </section>
             )}
           </div>
