@@ -9,9 +9,9 @@
 export default function AdminLogo() {
   return (
     <img
-      src="/brand/logo-3.png"
+      src="/brand/logo-wordmark-trimmed.png"
       alt="Los Chillangos"
-      style={{ height: 80, width: 'auto' }}
+      style={{ height: 90, width: 'auto' }}
     />
   );
 }

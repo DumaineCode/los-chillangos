@@ -29,7 +29,7 @@ export async function TourCard({ tour, locale }: Props) {
 
   const thumbnailUrl = selectCardThumbnailUrl(tour);
   const isSeasonal = tour.isSeasonal === true;
-  const tagColorClass = tour.tagColor === 'terra' ? 'terra' : '';
+  const tagColorClass = tour.tagColor ?? '';
 
   return (
     <Link href={`/tours/${tour.slug}`} className="tour-card">

@@ -8,9 +8,9 @@
 export default function AdminIcon() {
   return (
     <img
-      src="/brand/logo-badge.png"
+      src="/brand/logo-wordmark-trimmed.png"
       alt="Los Chillangos"
-      style={{ height: 28, width: 'auto' }}
+      style={{ height: 32, width: 'auto' }}
     />
   );
 }

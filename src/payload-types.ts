@@ -288,9 +288,9 @@ export interface Tour {
    */
   tag?: string | null;
   /**
-   * Badge color. Optional.
+   * Badge color. Optional. Matches the brand palette.
    */
-  tagColor?: ('terra' | 'cloud' | 'navy' | 'forest') | null;
+  tagColor?: ('terra' | 'maya' | 'profundo' | 'crema') | null;
   /**
    * E.g. "EN · ES". Same string in both locales — non-localized.
    */
@@ -347,6 +347,11 @@ export interface Tour {
    * Longer description of how to find the meeting point.
    */
   meetingPointText?: string | null;
+  meetingLocation?: {
+    address?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+  };
   /**
    * Days of the week this tour runs. Leave empty if the tour is paused. The site uses these to gate the booking calendar.
    */
@@ -722,6 +727,13 @@ export interface ToursSelect<T extends boolean = true> {
       };
   meetingPoint?: T;
   meetingPointText?: T;
+  meetingLocation?:
+    | T
+    | {
+        address?: T;
+        lat?: T;
+        lng?: T;
+      };
   availableDays?: T;
   timeSlots?:
     | T

@@ -926,7 +926,10 @@ body:has(.hero-cine) { padding-top: 0; }
   color: var(--ink);
   z-index: 2;
 }
-.tour-card-tag.terra { background: var(--terra); color: var(--cream); }
+.tour-card-tag.terra { background: var(--terra); color: #FFFFFF; }
+.tour-card-tag.maya { background: var(--moss); color: #FFFFFF; }
+.tour-card-tag.profundo { background: #0D182A; color: #FFFFFF; }
+.tour-card-tag.crema { background: var(--cream); color: var(--ink); }
 /* Seasonal badge — auto-applied to seasonal tours, takes priority over the
    manual tag. Pops harder than a normal tag: terra fill, fixed cream text
    (light in BOTH themes, never the surface token which flips to near-black in

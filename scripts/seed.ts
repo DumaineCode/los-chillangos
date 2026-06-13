@@ -206,10 +206,10 @@ function heroStatsFrom(m: Messages): HeroStat[] {
 
 // ---- Map tagColor: data.js uses "default" for unset; map to undefined ----
 
-const VALID_TAG_COLORS = new Set(['terra', 'cloud', 'navy', 'forest']);
+const VALID_TAG_COLORS = new Set(['terra', 'maya', 'profundo', 'crema']);
 
-function normalizeTagColor(raw: string): 'terra' | 'cloud' | 'navy' | 'forest' | undefined {
-  return VALID_TAG_COLORS.has(raw) ? (raw as 'terra' | 'cloud' | 'navy' | 'forest') : undefined;
+function normalizeTagColor(raw: string): 'terra' | 'maya' | 'profundo' | 'crema' | undefined {
+  return VALID_TAG_COLORS.has(raw) ? (raw as 'terra' | 'maya' | 'profundo' | 'crema') : undefined;
 }
 
 function normalizeDistance(raw: string): string | undefined {

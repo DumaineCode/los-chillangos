@@ -177,13 +177,13 @@ export const Tours: CollectionConfig = {
               name: 'tagColor',
               type: 'select',
               options: [
-                { label: 'Terra', value: 'terra' },
-                { label: 'Cloud', value: 'cloud' },
-                { label: 'Navy', value: 'navy' },
-                { label: 'Forest', value: 'forest' },
+                { label: 'Terra (Rosa Mexicano)', value: 'terra' },
+                { label: 'Maya (Azul Maya)', value: 'maya' },
+                { label: 'Profundo (Azul Profundo)', value: 'profundo' },
+                { label: 'Crema (default)', value: 'crema' },
               ],
               admin: {
-                description: 'Badge color. Optional.',
+                description: 'Badge color. Optional. Matches the brand palette.',
               },
             },
             {
