@@ -1330,6 +1330,34 @@ body:has(.hero-cine) { padding-top: 0; }
 }
 .gallery-img { border-radius: 4px; height: 100%; }
 
+/* Adaptive gallery layout (desktop): the grid reshapes to the real photo
+   count (1-5) so missing photos never leave empty/mocked cells. count=5 keeps
+   the default hero + 2x2 layout above. Mobile uses the 2-col flow below. */
+@media (min-width: 901px) {
+  .gallery-grid[data-count='1'] {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+  .gallery-grid[data-count='2'] {
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: 1fr;
+  }
+  .gallery-grid[data-count='2'] > :first-child {
+    grid-row: auto;
+  }
+  .gallery-grid[data-count='3'] {
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+  .gallery-grid[data-count='4'] {
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: repeat(3, 1fr);
+  }
+  .gallery-grid[data-count='4'] > :first-child {
+    grid-row: 1 / 4;
+  }
+}
+
 .detail-body {
   display: grid;
   grid-template-columns: 1.4fr 1fr;

@@ -69,6 +69,12 @@ export default async function TourDetailPage({ params }: Props) {
 
   const heroMedia = resolveMedia(tour.heroImage);
   const galleryMedia: (Media | null)[] = (tour.gallery ?? []).map((g) => resolveMedia(g.image));
+  // Adaptive gallery: only tiles backed by a real image render, so the grid
+  // reshapes to the actual photo count instead of leaving mocked placeholders.
+  // Hero leads, then gallery photos; capped at 5 (the grid's max layout).
+  const galleryTiles: Media[] = [heroMedia, ...galleryMedia]
+    .filter((m): m is Media => Boolean(m?.url))
+    .slice(0, 5);
   const categoryLabel = t(`categoryLabel.${tour.category}`);
 
   return (
@@ -113,32 +119,13 @@ export default async function TourDetailPage({ params }: Props) {
             </div>
           ) : null}
         </div>
-        <div className="gallery-grid">
-          <GalleryTile media={heroMedia} label={t('galleryPlaceholder.main')} alt={tour.title} />
-          <GalleryTile
-            media={galleryMedia[0] ?? null}
-            label={t('galleryPlaceholder.detail1')}
-            alt={tour.title}
-            toneClass={tour.tagColor === 'terra' ? 'terra' : ''}
-          />
-          <GalleryTile
-            media={galleryMedia[1] ?? null}
-            label={t('galleryPlaceholder.detail2')}
-            alt={tour.title}
-            toneClass="dark"
-          />
-          <GalleryTile
-            media={galleryMedia[2] ?? null}
-            label={t('galleryPlaceholder.detail3')}
-            alt={tour.title}
-            toneClass="moss"
-          />
-          <GalleryTile
-            media={galleryMedia[3] ?? null}
-            label={t('galleryPlaceholder.detail4')}
-            alt={tour.title}
-          />
-        </div>
+        {galleryTiles.length > 0 ? (
+          <div className="gallery-grid" data-count={galleryTiles.length}>
+            {galleryTiles.map((media, i) => (
+              <GalleryTile key={media.id ?? i} media={media} alt={tour.title} />
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <section className="container">
@@ -285,29 +272,17 @@ function resolveMedia(value: number | Media | null | undefined): Media | null {
   return value;
 }
 
-function GalleryTile({
-  media,
-  label,
-  alt,
-  toneClass = '',
-}: {
-  media: Media | null;
-  label: string;
-  alt: string;
-  toneClass?: string;
-}) {
-  if (media?.url) {
-    return (
-      <div className={`gallery-img ${toneClass}`} style={{ position: 'relative' }}>
-        <Image
-          src={media.url}
-          alt={media.alt ?? alt}
-          fill
-          sizes="(max-width: 900px) 50vw, 33vw"
-          style={{ objectFit: 'cover' }}
-        />
-      </div>
-    );
-  }
-  return <div className={`gallery-img placeholder ${toneClass}`} data-label={label}></div>;
+function GalleryTile({ media, alt }: { media: Media; alt: string }) {
+  if (!media.url) return null;
+  return (
+    <div className="gallery-img" style={{ position: 'relative' }}>
+      <Image
+        src={media.url}
+        alt={media.alt ?? alt}
+        fill
+        sizes="(max-width: 900px) 50vw, 33vw"
+        style={{ objectFit: 'cover' }}
+      />
+    </div>
+  );
 }
