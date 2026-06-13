@@ -263,6 +263,116 @@ export interface Tour {
    * Turn this tour into a seasonal special-event tour (cinematic hero, storytelling, gallery). Reveals seasonal-only fields below.
    */
   isSeasonal?: boolean | null;
+  title: string;
+  category: 'ebike' | 'walking' | 'daytrip' | 'food';
+  /**
+   * E.g. "3.5h", "4h", "8h".
+   */
+  duration: string;
+  /**
+   * E.g. "14 km". Optional — only e-bike tours typically have it.
+   */
+  distance?: string | null;
+  /**
+   * USD price per person.
+   */
+  price: number;
+  /**
+   * One-liner used on cards (max 200 chars).
+   */
+  shortDescription: string;
+  /**
+   * Optional badge like "Most booked" / "Más reservado".
+   */
+  tag?: string | null;
+  /**
+   * Badge color. Optional.
+   */
+  tagColor?: ('terra' | 'cloud' | 'navy' | 'forest') | null;
+  /**
+   * E.g. "EN · ES". Same string in both locales — non-localized.
+   */
+  languages?: string | null;
+  /**
+   * Difficulty label, e.g. "Easy" / "Fácil".
+   */
+  level?: string | null;
+  /**
+   * E.g. "Up to 8" / "Hasta 8".
+   */
+  groupSize?: string | null;
+  /**
+   * What the hero photo should depict (e.g. "Coyoacán plaza · golden hour"). Hint for the client choosing an image to upload.
+   */
+  photoDescription?: string | null;
+  heroImage?: (number | null) | Media;
+  gallery?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Detail page — first paragraph.
+   */
+  aboutP1?: string | null;
+  /**
+   * Detail page — second paragraph.
+   */
+  aboutP2?: string | null;
+  /**
+   * Detail page headline part A (e.g. "The classic CDMX,").
+   */
+  headlineA?: string | null;
+  /**
+   * Detail page headline part B (e.g. " on a bike.").
+   */
+  headlineB?: string | null;
+  itinerary?:
+    | {
+        /**
+         * E.g. "14:00". Same in both locales.
+         */
+        time: string;
+        heading: string;
+        description: string;
+        id?: string | null;
+      }[]
+    | null;
+  includes?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Short label, e.g. "Café Avellaneda, Coyoacán".
+   */
+  meetingPoint?: string | null;
+  /**
+   * Longer description of how to find the meeting point.
+   */
+  meetingPointText?: string | null;
+  /**
+   * Days of the week this tour runs. Leave empty if the tour is paused. The site uses these to gate the booking calendar.
+   */
+  availableDays?: ('0' | '1' | '2' | '3' | '4' | '5' | '6')[] | null;
+  /**
+   * Departure times the tour runs and how many seats each one has. The booking flow reads this per-tour — no global default applies anymore.
+   */
+  timeSlots?:
+    | {
+        /**
+         * 24h format HH:MM (e.g. "09:00", "14:30").
+         */
+        time: string;
+        /**
+         * Maximum persons (adults + teens) bookable in this departure slot.
+         */
+        capacity: number;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Seasonal event content. Only used when "Is seasonal" is checked.
    */
@@ -319,116 +429,6 @@ export interface Tour {
      */
     tagline?: string | null;
   };
-  title: string;
-  category: 'ebike' | 'walking' | 'daytrip' | 'food';
-  /**
-   * E.g. "3.5h", "4h", "8h".
-   */
-  duration: string;
-  /**
-   * E.g. "14 km". Optional — only e-bike tours typically have it.
-   */
-  distance?: string | null;
-  /**
-   * USD price per person.
-   */
-  price: number;
-  /**
-   * Optional badge like "Most booked" / "Más reservado".
-   */
-  tag?: string | null;
-  /**
-   * Badge color. Optional.
-   */
-  tagColor?: ('terra' | 'cloud' | 'navy' | 'forest') | null;
-  /**
-   * One-liner used on cards (max 200 chars).
-   */
-  shortDescription: string;
-  /**
-   * What the hero photo should depict (e.g. "Coyoacán plaza · golden hour"). Hint for the client choosing an image to upload.
-   */
-  photoDescription?: string | null;
-  heroImage?: (number | null) | Media;
-  gallery?:
-    | {
-        image: number | Media;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Detail page — first paragraph.
-   */
-  aboutP1?: string | null;
-  /**
-   * Detail page — second paragraph.
-   */
-  aboutP2?: string | null;
-  /**
-   * Detail page headline part A (e.g. "The classic CDMX,").
-   */
-  headlineA?: string | null;
-  /**
-   * Detail page headline part B (e.g. " on a bike.").
-   */
-  headlineB?: string | null;
-  /**
-   * Short label, e.g. "Café Avellaneda, Coyoacán".
-   */
-  meetingPoint?: string | null;
-  /**
-   * Longer description of how to find the meeting point.
-   */
-  meetingPointText?: string | null;
-  /**
-   * E.g. "Up to 8" / "Hasta 8".
-   */
-  groupSize?: string | null;
-  /**
-   * Days of the week this tour runs. Leave empty if the tour is paused. The site uses these to gate the booking calendar.
-   */
-  availableDays?: ('0' | '1' | '2' | '3' | '4' | '5' | '6')[] | null;
-  /**
-   * Departure times the tour runs and how many seats each one has. The booking flow reads this per-tour — no global default applies anymore.
-   */
-  timeSlots?:
-    | {
-        /**
-         * 24h format HH:MM (e.g. "09:00", "14:30").
-         */
-        time: string;
-        /**
-         * Maximum persons (adults + teens) bookable in this departure slot.
-         */
-        capacity: number;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * E.g. "EN · ES". Same string in both locales — non-localized.
-   */
-  languages?: string | null;
-  /**
-   * Difficulty label, e.g. "Easy" / "Fácil".
-   */
-  level?: string | null;
-  itinerary?:
-    | {
-        /**
-         * E.g. "14:00". Same in both locales.
-         */
-        time: string;
-        heading: string;
-        description: string;
-        id?: string | null;
-      }[]
-    | null;
-  includes?:
-    | {
-        text: string;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -691,6 +691,53 @@ export interface MediaVideoSelect<T extends boolean = true> {
 export interface ToursSelect<T extends boolean = true> {
   slug?: T;
   isSeasonal?: T;
+  title?: T;
+  category?: T;
+  duration?: T;
+  distance?: T;
+  price?: T;
+  shortDescription?: T;
+  tag?: T;
+  tagColor?: T;
+  languages?: T;
+  level?: T;
+  groupSize?: T;
+  photoDescription?: T;
+  heroImage?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
+  aboutP1?: T;
+  aboutP2?: T;
+  headlineA?: T;
+  headlineB?: T;
+  itinerary?:
+    | T
+    | {
+        time?: T;
+        heading?: T;
+        description?: T;
+        id?: T;
+      };
+  includes?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  meetingPoint?: T;
+  meetingPointText?: T;
+  availableDays?: T;
+  timeSlots?:
+    | T
+    | {
+        time?: T;
+        capacity?: T;
+        id?: T;
+      };
   seasonal?:
     | T
     | {
@@ -725,53 +772,6 @@ export interface ToursSelect<T extends boolean = true> {
             };
         eventLocation?: T;
         tagline?: T;
-      };
-  title?: T;
-  category?: T;
-  duration?: T;
-  distance?: T;
-  price?: T;
-  tag?: T;
-  tagColor?: T;
-  shortDescription?: T;
-  photoDescription?: T;
-  heroImage?: T;
-  gallery?:
-    | T
-    | {
-        image?: T;
-        id?: T;
-      };
-  aboutP1?: T;
-  aboutP2?: T;
-  headlineA?: T;
-  headlineB?: T;
-  meetingPoint?: T;
-  meetingPointText?: T;
-  groupSize?: T;
-  availableDays?: T;
-  timeSlots?:
-    | T
-    | {
-        time?: T;
-        capacity?: T;
-        id?: T;
-      };
-  languages?: T;
-  level?: T;
-  itinerary?:
-    | T
-    | {
-        time?: T;
-        heading?: T;
-        description?: T;
-        id?: T;
-      };
-  includes?:
-    | T
-    | {
-        text?: T;
-        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;
