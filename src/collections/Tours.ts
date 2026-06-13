@@ -30,6 +30,28 @@ export const Tours: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'category', 'price', 'updatedAt'],
+    // Live Preview: split-screen editor where the client sees the real tour
+    // page re-render as they type, before publishing. The iframe loads
+    // `/next/preview`, which validates the user + enables Next draft mode and
+    // redirects to the localized tour route, so unpublished edits are visible.
+    livePreview: {
+      url: ({ data, locale }) => {
+        const slug = typeof data?.slug === 'string' ? data.slug : '';
+        const localeCode = locale?.code ?? 'en';
+        const path = `/${localeCode}/tours/${slug}`;
+        const params = new URLSearchParams({
+          path,
+          locale: localeCode,
+          previewSecret: process.env.PAYLOAD_SECRET ?? '',
+        });
+        return `/next/preview?${params.toString()}`;
+      },
+      breakpoints: [
+        { label: 'Mobile', name: 'mobile', width: 390, height: 844 },
+        { label: 'Tablet', name: 'tablet', width: 768, height: 1024 },
+        { label: 'Desktop', name: 'desktop', width: 1440, height: 900 },
+      ],
+    },
   },
   versions: {
     drafts: true,

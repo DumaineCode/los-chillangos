@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
+import { draftMode } from 'next/headers';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Link } from '../../../../i18n/navigation';
 import { type Locale } from '../../../../i18n/routing';
+import { RefreshRouteOnSave } from '../../../../src/components/RefreshRouteOnSave';
 import { SeasonalTourLayout } from '../../../../src/components/seasonal/SeasonalTourLayout';
 import { getPayload } from '../../../../src/lib/payload';
 import { shouldRenderSeasonal } from '../../../../src/lib/seasonal/shouldRenderSeasonal';
@@ -46,13 +48,19 @@ export default async function TourDetailPage({ params }: Props) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const tour = await fetchPublishedTour(slug, locale as Locale);
+  const { isEnabled: isDraft } = await draftMode();
+  const tour = await fetchTourForRender(slug, locale as Locale);
   if (!tour) notFound();
 
   // Seasonal tours render a dedicated cinematic template; everything else keeps
   // the standard layout below.
   if (shouldRenderSeasonal(tour)) {
-    return <SeasonalTourLayout tour={tour} locale={locale as Locale} />;
+    return (
+      <>
+        {isDraft ? <RefreshRouteOnSave /> : null}
+        <SeasonalTourLayout tour={tour} locale={locale as Locale} />
+      </>
+    );
   }
 
   const t = await getTranslations({ locale, namespace: 'detail' });
@@ -65,6 +73,7 @@ export default async function TourDetailPage({ params }: Props) {
 
   return (
     <div>
+      {isDraft ? <RefreshRouteOnSave /> : null}
       <section className="container detail-hero">
         <div className="breadcrumb">
           <Link href="/">{t('back')}</Link>
@@ -238,6 +247,33 @@ async function fetchPublishedTour(slug: string, locale: Locale): Promise<Tour | 
     },
     limit: 1,
     // depth:2 so seasonal hero/gallery/storytelling media URLs hydrate.
+    depth: 2,
+  });
+  return docs[0] ?? null;
+}
+
+/**
+ * Fetch the tour for rendering, honoring Live Preview.
+ *
+ * When Next draft mode is enabled (only after passing through `/next/preview`,
+ * which requires an authenticated admin), we fetch the latest DRAFT so the
+ * client sees unpublished edits re-render live. In every public request draft
+ * mode is off and this falls back to the published-only query — identical
+ * behavior to before.
+ */
+async function fetchTourForRender(slug: string, locale: Locale): Promise<Tour | null> {
+  const { isEnabled: isDraft } = await draftMode();
+  if (!isDraft) return fetchPublishedTour(slug, locale);
+
+  const payload = await getPayload();
+  const { docs } = await payload.find({
+    collection: 'tours',
+    locale,
+    fallbackLocale: 'en',
+    draft: true,
+    overrideAccess: true,
+    where: { slug: { equals: slug } },
+    limit: 1,
     depth: 2,
   });
   return docs[0] ?? null;
