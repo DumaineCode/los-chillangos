@@ -13,12 +13,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  * and Live Preview reflects the change as soon as it's selected.
  */
 
-type MeetingLocationValue = {
-  address?: string | null;
-  lat?: number | null;
-  lng?: number | null;
-};
-
 type PhotonFeature = {
   geometry: { coordinates: [number, number] }; // [lng, lat]
   properties: {
@@ -50,9 +44,16 @@ function formatLabel(props: PhotonFeature['properties']): string {
 }
 
 export const MeetingLocationField: React.FC<{ path: string }> = ({ path }) => {
-  const { value, setValue } = useField<MeetingLocationValue>({ path });
+  // A custom Field on a `group` must write each SUBFIELD by its own path —
+  // setting the group path as a single object does not persist to the DB
+  // columns Payload flattens the group into (meeting_location_lat, ...).
+  const { value: address, setValue: setAddress } = useField<string | null>({
+    path: `${path}.address`,
+  });
+  const { value: lat, setValue: setLat } = useField<number | null>({ path: `${path}.lat` });
+  const { value: lng, setValue: setLng } = useField<number | null>({ path: `${path}.lng` });
 
-  const [query, setQuery] = useState(value?.address ?? '');
+  const [query, setQuery] = useState(address ?? '');
   const [results, setResults] = useState<PhotonFeature[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -62,8 +63,8 @@ export const MeetingLocationField: React.FC<{ path: string }> = ({ path }) => {
   // Keep the visible query in sync if the stored value changes externally
   // (e.g. switching documents or locale).
   useEffect(() => {
-    setQuery(value?.address ?? '');
-  }, [value?.address]);
+    setQuery(address ?? '');
+  }, [address]);
 
   const search = useCallback(async (q: string) => {
     if (q.trim().length < 3) {
@@ -95,28 +96,32 @@ export const MeetingLocationField: React.FC<{ path: string }> = ({ path }) => {
 
   // Debounce the search as the user types.
   useEffect(() => {
-    if (query === (value?.address ?? '')) return;
+    if (query === (address ?? '')) return;
     const id = setTimeout(() => void search(query), 350);
     return () => clearTimeout(id);
-  }, [query, search, value?.address]);
+  }, [query, search, address]);
 
   const choose = (feature: PhotonFeature) => {
-    const [lng, lat] = feature.geometry.coordinates;
-    const address = formatLabel(feature.properties);
-    setValue({ address, lat, lng });
-    setQuery(address);
+    const [nextLng, nextLat] = feature.geometry.coordinates;
+    const nextAddress = formatLabel(feature.properties);
+    setAddress(nextAddress);
+    setLat(nextLat);
+    setLng(nextLng);
+    setQuery(nextAddress);
     setResults([]);
     setOpen(false);
   };
 
   const clear = () => {
-    setValue({ address: null, lat: null, lng: null });
+    setAddress(null);
+    setLat(null);
+    setLng(null);
     setQuery('');
     setResults([]);
     setOpen(false);
   };
 
-  const hasCoords = typeof value?.lat === 'number' && typeof value?.lng === 'number';
+  const hasCoords = typeof lat === 'number' && typeof lng === 'number';
 
   return (
     <div className="field-type" style={{ position: 'relative' }}>
@@ -211,7 +216,7 @@ export const MeetingLocationField: React.FC<{ path: string }> = ({ path }) => {
           }}
         >
           <span>
-            📍 {value?.address} ({value?.lat?.toFixed(5)}, {value?.lng?.toFixed(5)})
+            📍 {address} ({lat?.toFixed(5)}, {lng?.toFixed(5)})
           </span>
           <button
             type="button"
