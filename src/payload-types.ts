@@ -94,8 +94,13 @@ export interface Config {
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'es') | ('en' | 'es')[];
   globals: {
+    landing: Landing;
     navigation: Navigation;
     'contact-info': ContactInfo;
+    footer: Footer;
+    'social-links': SocialLink;
+    branding: Branding;
+    'email-content': EmailContent;
     hero: Hero;
     marquee: Marquee;
     values: Value;
@@ -104,15 +109,16 @@ export interface Config {
     services: Service;
     team: Team;
     faq: Faq;
-    footer: Footer;
-    'social-links': SocialLink;
-    branding: Branding;
     seasonalFeature: SeasonalFeature;
-    'email-content': EmailContent;
   };
   globalsSelect: {
+    landing: LandingSelect<false> | LandingSelect<true>;
     navigation: NavigationSelect<false> | NavigationSelect<true>;
     'contact-info': ContactInfoSelect<false> | ContactInfoSelect<true>;
+    footer: FooterSelect<false> | FooterSelect<true>;
+    'social-links': SocialLinksSelect<false> | SocialLinksSelect<true>;
+    branding: BrandingSelect<false> | BrandingSelect<true>;
+    'email-content': EmailContentSelect<false> | EmailContentSelect<true>;
     hero: HeroSelect<false> | HeroSelect<true>;
     marquee: MarqueeSelect<false> | MarqueeSelect<true>;
     values: ValuesSelect<false> | ValuesSelect<true>;
@@ -121,11 +127,7 @@ export interface Config {
     services: ServicesSelect<false> | ServicesSelect<true>;
     team: TeamSelect<false> | TeamSelect<true>;
     faq: FaqSelect<false> | FaqSelect<true>;
-    footer: FooterSelect<false> | FooterSelect<true>;
-    'social-links': SocialLinksSelect<false> | SocialLinksSelect<true>;
-    branding: BrandingSelect<false> | BrandingSelect<true>;
     seasonalFeature: SeasonalFeatureSelect<false> | SeasonalFeatureSelect<true>;
-    'email-content': EmailContentSelect<false> | EmailContentSelect<true>;
   };
   locale: 'en' | 'es';
   widgets: {
@@ -857,6 +859,221 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "landing".
+ */
+export interface Landing {
+  id: number;
+  hero?: {
+    eyebrow?: string | null;
+    h1a?: string | null;
+    h1b?: string | null;
+    h1c?: string | null;
+    h1d?: string | null;
+    lede?: string | null;
+    ctaPrimary?: string | null;
+    ctaGhost?: string | null;
+    /**
+     * Choose the hero background medium.
+     */
+    mediaType?: ('image' | 'video') | null;
+    heroImage?: (number | null) | Media;
+    /**
+     * Background video (muted, looping). Mobile/reduced-motion show the poster only.
+     */
+    heroVideo?: (number | null) | MediaVideo;
+    /**
+     * Poster: first paint (LCP) + mobile/reduced-motion still. Strongly recommended.
+     */
+    posterImage?: (number | null) | Media;
+    /**
+     * Top status line, e.g. "Live · CDMX · 19.43°N 99.13°W".
+     */
+    live?: string | null;
+    /**
+     * Small label next to the neighborhoods, e.g. "Est. 2024".
+     */
+    estLabel?: string | null;
+    /**
+     * Neighborhoods line, e.g. "Roma · Condesa · Coyoacán · Centro".
+     */
+    neighborhoods?: string | null;
+    /**
+     * Scroll hint at the bottom of the hero, e.g. "Scroll".
+     */
+    scroll?: string | null;
+    /**
+     * The four stat blocks shown under the hero lede.
+     */
+    stats?:
+      | {
+          /**
+           * Big number, e.g. "12" or "3–4h".
+           */
+          num: string;
+          /**
+           * Caption under the number. Line breaks are kept.
+           */
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  marquee?: {
+    /**
+     * Scrolling strip text, e.g. "Coyoacán · Roma Norte · Condesa · …". End with " ·" for a clean loop.
+     */
+    text?: string | null;
+  };
+  values?: {
+    /**
+     * Small label, e.g. "Why us".
+     */
+    eyebrow?: string | null;
+    title?: string | null;
+    /**
+     * Subheading shown to the right of the title.
+     */
+    sub?: string | null;
+    items?:
+      | {
+          title: string;
+          description: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  about?: {
+    /**
+     * Small label, e.g. "Our approach".
+     */
+    eyebrow?: string | null;
+    title?: string | null;
+    /**
+     * First paragraph.
+     */
+    p1?: string | null;
+    /**
+     * Second paragraph.
+     */
+    p2?: string | null;
+    /**
+     * Button label, e.g. "Meet the guides →".
+     */
+    meetCta?: string | null;
+    /**
+     * Photo for the section. If empty, a placeholder is shown.
+     */
+    image?: (number | null) | Media;
+    /**
+     * Caption shown over the placeholder when no image is uploaded.
+     */
+    imageLabel?: string | null;
+  };
+  testimonial?: {
+    /**
+     * Small label, e.g. "Notes from guests".
+     */
+    eyebrow?: string | null;
+    quote?: string | null;
+    /**
+     * Guest name, e.g. "Hana K.".
+     */
+    name?: string | null;
+    /**
+     * Location / date line, e.g. "Brooklyn, NY · Mar 2026".
+     */
+    loc?: string | null;
+    /**
+     * Guest photo. If empty, a placeholder circle is shown.
+     */
+    avatar?: (number | null) | Media;
+  };
+  services?: {
+    /**
+     * Small label, e.g. "Beyond the tour".
+     */
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    /**
+     * Link label on each card, e.g. "Inquire →".
+     */
+    inquireCta?: string | null;
+    items?:
+      | {
+          title: string;
+          description: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  faq?: {
+    /**
+     * Small label, e.g. "Practical".
+     */
+    eyebrow?: string | null;
+    title?: string | null;
+    items?:
+      | {
+          question: string;
+          answer: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  team?: {
+    /**
+     * Small label, e.g. "The people".
+     */
+    eyebrow?: string | null;
+    /**
+     * Section heading, e.g. "Our team".
+     */
+    title?: string | null;
+    /**
+     * Optional short intro under the heading.
+     */
+    sub?: string | null;
+    /**
+     * Add team members. Three look best in a row.
+     */
+    items?:
+      | {
+          /**
+           * Person name, e.g. "Diego R.".
+           */
+          name: string;
+          /**
+           * Role / title, e.g. "Lead guide".
+           */
+          role: string;
+          /**
+           * Profile photo. If empty, a placeholder circle is shown.
+           */
+          photo?: (number | null) | Media;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  seasonal?: {
+    /**
+     * Show the seasonal highlight on the landing page.
+     */
+    enabled?: boolean | null;
+    /**
+     * Small label above the highlight, e.g. "This season".
+     */
+    eyebrow?: string | null;
+    /**
+     * The seasonal tour to highlight. Must be published and marked seasonal.
+     */
+    featuredSeasonalTour?: (number | null) | Tour;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "navigation".
  */
 export interface Navigation {
@@ -902,6 +1119,133 @@ export interface ContactInfo {
    * Optional label like "Studio" / "Estudio".
    */
   addressLabel?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer".
+ */
+export interface Footer {
+  id: number;
+  /**
+   * Main tease line, e.g. "Come ride with us.".
+   */
+  tease?: string | null;
+  /**
+   * Emphasized (italic) tease, e.g. "CDMX is waiting.".
+   */
+  teaseEm?: string | null;
+  cta?: string | null;
+  copyright?: string | null;
+  /**
+   * Coordinates shown bottom-right, e.g. "19.43°N · 99.13°W".
+   */
+  geoLabel?: string | null;
+  columns?:
+    | {
+        title: string;
+        links?:
+          | {
+              label: string;
+              href: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-links".
+ */
+export interface SocialLink {
+  id: number;
+  instagram?: string | null;
+  tiktok?: string | null;
+  youtube?: string | null;
+  facebook?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "branding".
+ */
+export interface Branding {
+  id: number;
+  /**
+   * Primary logo shown in the top navigation (over light surfaces).
+   */
+  logoLight?: (number | null) | Media;
+  /**
+   * Logo used over dark surfaces such as the footer. Falls back to the primary logo.
+   */
+  logoDark?: (number | null) | Media;
+  /**
+   * Accessible alt text for the logo. Defaults to "Los Chillangos".
+   */
+  logoAltText?: string | null;
+  /**
+   * Optional logo height in pixels for the nav (default 40).
+   */
+  logoHeight?: number | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Wording for the booking confirmation email sent to guests after payment. Leave a field empty to use the built-in default. Dynamic details (tour, date, time, guests, total, reference) are added automatically.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-content".
+ */
+export interface EmailContent {
+  id: number;
+  /**
+   * Optional logo for the email header. If empty, the brand name is shown.
+   */
+  logo?: (number | null) | Media;
+  confirmation?: {
+    /**
+     * Email subject. Tokens: {tour}, {reference}.
+     */
+    subject?: string | null;
+    /**
+     * Inbox preview snippet shown next to the subject (~90 chars).
+     */
+    previewText?: string | null;
+    /**
+     * Greeting line. Token: {name}.
+     */
+    greeting?: string | null;
+    /**
+     * Opening paragraph under the greeting.
+     */
+    intro?: string | null;
+    /**
+     * Things to know before the tour. One item per line — shown as bullets.
+     */
+    goodToKnow?: string | null;
+    /**
+     * Optional meeting-point note. Leave empty to hide the section.
+     */
+    meetingPoint?: string | null;
+    /**
+     * Optional closing line before the signature.
+     */
+    closing?: string | null;
+    /**
+     * Sign-off line.
+     */
+    signature?: string | null;
+    /**
+     * Small print in the footer (e.g. cancellation policy).
+     */
+    footnote?: string | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1155,80 +1499,6 @@ export interface Faq {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "footer".
- */
-export interface Footer {
-  id: number;
-  /**
-   * Main tease line, e.g. "Come ride with us.".
-   */
-  tease?: string | null;
-  /**
-   * Emphasized (italic) tease, e.g. "CDMX is waiting.".
-   */
-  teaseEm?: string | null;
-  cta?: string | null;
-  copyright?: string | null;
-  /**
-   * Coordinates shown bottom-right, e.g. "19.43°N · 99.13°W".
-   */
-  geoLabel?: string | null;
-  columns?:
-    | {
-        title: string;
-        links?:
-          | {
-              label: string;
-              href: string;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "social-links".
- */
-export interface SocialLink {
-  id: number;
-  instagram?: string | null;
-  tiktok?: string | null;
-  youtube?: string | null;
-  facebook?: string | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "branding".
- */
-export interface Branding {
-  id: number;
-  /**
-   * Primary logo shown in the top navigation (over light surfaces).
-   */
-  logoLight?: (number | null) | Media;
-  /**
-   * Logo used over dark surfaces such as the footer. Falls back to the primary logo.
-   */
-  logoDark?: (number | null) | Media;
-  /**
-   * Accessible alt text for the logo. Defaults to "Los Chillangos".
-   */
-  logoAltText?: string | null;
-  /**
-   * Optional logo height in pixels for the nav (default 40).
-   */
-  logoHeight?: number | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "seasonalFeature".
  */
 export interface SeasonalFeature {
@@ -1249,57 +1519,129 @@ export interface SeasonalFeature {
   createdAt?: string | null;
 }
 /**
- * Wording for the booking confirmation email sent to guests after payment. Leave a field empty to use the built-in default. Dynamic details (tour, date, time, guests, total, reference) are added automatically.
- *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "email-content".
+ * via the `definition` "landing_select".
  */
-export interface EmailContent {
-  id: number;
-  /**
-   * Optional logo for the email header. If empty, the brand name is shown.
-   */
-  logo?: (number | null) | Media;
-  confirmation?: {
-    /**
-     * Email subject. Tokens: {tour}, {reference}.
-     */
-    subject?: string | null;
-    /**
-     * Inbox preview snippet shown next to the subject (~90 chars).
-     */
-    previewText?: string | null;
-    /**
-     * Greeting line. Token: {name}.
-     */
-    greeting?: string | null;
-    /**
-     * Opening paragraph under the greeting.
-     */
-    intro?: string | null;
-    /**
-     * Things to know before the tour. One item per line — shown as bullets.
-     */
-    goodToKnow?: string | null;
-    /**
-     * Optional meeting-point note. Leave empty to hide the section.
-     */
-    meetingPoint?: string | null;
-    /**
-     * Optional closing line before the signature.
-     */
-    closing?: string | null;
-    /**
-     * Sign-off line.
-     */
-    signature?: string | null;
-    /**
-     * Small print in the footer (e.g. cancellation policy).
-     */
-    footnote?: string | null;
-  };
-  updatedAt?: string | null;
-  createdAt?: string | null;
+export interface LandingSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        eyebrow?: T;
+        h1a?: T;
+        h1b?: T;
+        h1c?: T;
+        h1d?: T;
+        lede?: T;
+        ctaPrimary?: T;
+        ctaGhost?: T;
+        mediaType?: T;
+        heroImage?: T;
+        heroVideo?: T;
+        posterImage?: T;
+        live?: T;
+        estLabel?: T;
+        neighborhoods?: T;
+        scroll?: T;
+        stats?:
+          | T
+          | {
+              num?: T;
+              label?: T;
+              id?: T;
+            };
+      };
+  marquee?:
+    | T
+    | {
+        text?: T;
+      };
+  values?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        items?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              id?: T;
+            };
+      };
+  about?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        p1?: T;
+        p2?: T;
+        meetCta?: T;
+        image?: T;
+        imageLabel?: T;
+      };
+  testimonial?:
+    | T
+    | {
+        eyebrow?: T;
+        quote?: T;
+        name?: T;
+        loc?: T;
+        avatar?: T;
+      };
+  services?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        inquireCta?: T;
+        items?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              id?: T;
+            };
+      };
+  faq?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        items?:
+          | T
+          | {
+              question?: T;
+              answer?: T;
+              id?: T;
+            };
+      };
+  team?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        items?:
+          | T
+          | {
+              name?: T;
+              role?: T;
+              photo?: T;
+              id?: T;
+            };
+      };
+  seasonal?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        featuredSeasonalTour?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1329,6 +1671,82 @@ export interface ContactInfoSelect<T extends boolean = true> {
   address?: T;
   address2?: T;
   addressLabel?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer_select".
+ */
+export interface FooterSelect<T extends boolean = true> {
+  tease?: T;
+  teaseEm?: T;
+  cta?: T;
+  copyright?: T;
+  geoLabel?: T;
+  columns?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "social-links_select".
+ */
+export interface SocialLinksSelect<T extends boolean = true> {
+  instagram?: T;
+  tiktok?: T;
+  youtube?: T;
+  facebook?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "branding_select".
+ */
+export interface BrandingSelect<T extends boolean = true> {
+  logoLight?: T;
+  logoDark?: T;
+  logoAltText?: T;
+  logoHeight?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-content_select".
+ */
+export interface EmailContentSelect<T extends boolean = true> {
+  logo?: T;
+  confirmation?:
+    | T
+    | {
+        subject?: T;
+        previewText?: T;
+        greeting?: T;
+        intro?: T;
+        goodToKnow?: T;
+        meetingPoint?: T;
+        closing?: T;
+        signature?: T;
+        footnote?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1484,88 +1902,12 @@ export interface FaqSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "footer_select".
- */
-export interface FooterSelect<T extends boolean = true> {
-  tease?: T;
-  teaseEm?: T;
-  cta?: T;
-  copyright?: T;
-  geoLabel?: T;
-  columns?:
-    | T
-    | {
-        title?: T;
-        links?:
-          | T
-          | {
-              label?: T;
-              href?: T;
-              id?: T;
-            };
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "social-links_select".
- */
-export interface SocialLinksSelect<T extends boolean = true> {
-  instagram?: T;
-  tiktok?: T;
-  youtube?: T;
-  facebook?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "branding_select".
- */
-export interface BrandingSelect<T extends boolean = true> {
-  logoLight?: T;
-  logoDark?: T;
-  logoAltText?: T;
-  logoHeight?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "seasonalFeature_select".
  */
 export interface SeasonalFeatureSelect<T extends boolean = true> {
   enabled?: T;
   eyebrow?: T;
   featuredSeasonalTour?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "email-content_select".
- */
-export interface EmailContentSelect<T extends boolean = true> {
-  logo?: T;
-  confirmation?:
-    | T
-    | {
-        subject?: T;
-        previewText?: T;
-        greeting?: T;
-        intro?: T;
-        goodToKnow?: T;
-        meetingPoint?: T;
-        closing?: T;
-        signature?: T;
-        footnote?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

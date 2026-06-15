@@ -10,6 +10,9 @@ import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
  */
 export const Faq: GlobalConfig = {
   slug: 'faq',
+  // Consolidated into the `landing` global; hidden from the nav but kept
+  // registered so its data survives as migration source + rollback.
+  admin: { hidden: true },
   access: {
     read: () => true,
     update: ({ req: { user } }) => Boolean(user),

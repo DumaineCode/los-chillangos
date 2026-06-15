@@ -9,7 +9,20 @@ import { revalidatePath, revalidateTag } from 'next/cache';
  * to fine-grained invalidation. The hook also blasts the `/[locale]` page
  * since most globals affect the layout chrome (nav, footer, hero).
  */
-export const revalidateGlobalAfterChange: GlobalAfterChangeHook = ({ global, doc, req }) => {
+export const revalidateGlobalAfterChange: GlobalAfterChangeHook = ({
+  global,
+  doc,
+  req,
+  context,
+}) => {
+  // Standalone scripts (migrations, seeds) run OUTSIDE a Next.js request, where
+  // next/cache's revalidateTag/revalidatePath throw `Invariant: static
+  // generation store missing`. Those callers opt out via
+  // `context: { skipRevalidate: true }` — ISR (`revalidate`) rebuilds the cache
+  // on the next request anyway, so skipping here is safe.
+  if (context?.skipRevalidate) {
+    return doc;
+  }
   try {
     if (global?.slug) {
       revalidateTag(`global:${global.slug}`);

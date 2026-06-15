@@ -13,6 +13,9 @@ import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
  */
 export const Team: GlobalConfig = {
   slug: 'team',
+  // Consolidated into the `landing` global; hidden from the nav but kept
+  // registered so its data survives as migration source + rollback.
+  admin: { hidden: true },
   access: {
     read: () => true,
     update: ({ req: { user } }) => Boolean(user),

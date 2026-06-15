@@ -15,6 +15,9 @@ import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
  */
 export const SeasonalFeature: GlobalConfig = {
   slug: 'seasonalFeature',
+  // Consolidated into the `landing` global (seasonal tab); hidden from the nav
+  // but kept registered so its data survives as migration source + rollback.
+  admin: { hidden: true },
   access: {
     read: () => true,
     update: ({ req: { user } }) => Boolean(user),

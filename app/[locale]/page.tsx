@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { draftMode } from 'next/headers';
 import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
@@ -6,6 +7,7 @@ import { Link } from '../../i18n/navigation';
 import { type Locale } from '../../i18n/routing';
 import { CatalogFilter } from '../../src/components/CatalogFilter';
 import { FAQList } from '../../src/components/FAQ';
+import { RefreshRouteOnSave } from '../../src/components/RefreshRouteOnSave';
 import { HighlightSeasonal } from '../../src/components/seasonal/HighlightSeasonal';
 import { TourCard } from '../../src/components/TourCard';
 import { getPayload } from '../../src/lib/payload';
@@ -26,14 +28,15 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const payload = await getPayload();
-  const hero = await payload
+  const landing = await payload
     .findGlobal({
-      slug: 'hero',
+      slug: 'landing',
       locale: locale as Locale,
       fallbackLocale: 'en',
     })
     .catch(() => null);
 
+  const hero = landing?.hero;
   const title = [hero?.h1a, hero?.h1b, hero?.h1c, hero?.h1d].filter(Boolean).join(' ').trim();
   const description = hero?.lede ?? undefined;
 
@@ -63,56 +66,39 @@ export default async function HomePage({ params }: Props) {
   const tCatalog = await getTranslations({ locale, namespace: 'catalog' });
 
   const payload = await getPayload();
-  const [
-    hero,
-    marquee,
-    values,
-    about,
-    testimonial,
-    services,
-    team,
-    faq,
-    toursResult,
-    seasonalFeature,
-    seasonalTour,
-  ] = await Promise.all([
-      payload
-        .findGlobal({ slug: 'hero', locale: locale as Locale, fallbackLocale: 'en' })
-        .catch(() => null),
-      payload
-        .findGlobal({ slug: 'marquee', locale: locale as Locale, fallbackLocale: 'en' })
-        .catch(() => null),
-      payload
-        .findGlobal({ slug: 'values', locale: locale as Locale, fallbackLocale: 'en' })
-        .catch(() => null),
-      payload
-        .findGlobal({ slug: 'about', locale: locale as Locale, fallbackLocale: 'en' })
-        .catch(() => null),
-      payload
-        .findGlobal({ slug: 'testimonial', locale: locale as Locale, fallbackLocale: 'en' })
-        .catch(() => null),
-      payload
-        .findGlobal({ slug: 'services', locale: locale as Locale, fallbackLocale: 'en' })
-        .catch(() => null),
-      payload
-        .findGlobal({ slug: 'team', locale: locale as Locale, fallbackLocale: 'en' })
-        .catch(() => null),
-      payload
-        .findGlobal({ slug: 'faq', locale: locale as Locale, fallbackLocale: 'en' })
-        .catch(() => null),
-      payload.find({
-        collection: 'tours',
-        locale: locale as Locale,
-        fallbackLocale: 'en',
-        where: { _status: { equals: 'published' } },
-        limit: 12,
-        depth: 1,
-      }),
-      payload
-        .findGlobal({ slug: 'seasonalFeature', locale: locale as Locale, fallbackLocale: 'en' })
-        .catch(() => null),
-      getActiveSeasonalTour(payload, locale as Locale).catch(() => null),
-    ]);
+
+  // Live Preview: the /next/preview route enables Next draft mode before
+  // redirecting here, so a truthy draft flag means we're inside the admin's
+  // preview iframe and should mount the refresh bridge. Globals have no drafts,
+  // so the preview reflects the last SAVED state (refresh-on-save).
+  const { isEnabled: isDraft } = await draftMode();
+
+  const [landing, toursResult, seasonalTour] = await Promise.all([
+    payload
+      .findGlobal({ slug: 'landing', locale: locale as Locale, fallbackLocale: 'en' })
+      .catch(() => null),
+    payload.find({
+      collection: 'tours',
+      locale: locale as Locale,
+      fallbackLocale: 'en',
+      where: { _status: { equals: 'published' } },
+      limit: 12,
+      depth: 1,
+    }),
+    getActiveSeasonalTour(payload, locale as Locale).catch(() => null),
+  ]);
+
+  // Each homepage section is now a sub-object (named tab) of the single
+  // `landing` global. Aliasing them back to the original variable names keeps
+  // the JSX below byte-for-byte unchanged.
+  const hero = landing?.hero;
+  const marquee = landing?.marquee;
+  const values = landing?.values;
+  const about = landing?.about;
+  const testimonial = landing?.testimonial;
+  const services = landing?.services;
+  const team = landing?.team;
+  const faq = landing?.faq;
 
   const tours = toursResult.docs;
 
@@ -121,7 +107,7 @@ export default async function HomePage({ params }: Props) {
   const faqItems = (faq?.items ?? []).map((f) => ({ q: f.question, a: f.answer }));
   const heroStats = hero?.stats ?? [];
   const marqueeText = marquee?.text ?? '';
-  const seasonalEyebrow = seasonalFeature?.eyebrow ?? '';
+  const seasonalEyebrow = landing?.seasonal?.eyebrow ?? '';
 
   const filters: { key: 'all' | 'ebike' | 'walking' | 'daytrip' | 'new'; label: string }[] = [
     { key: 'all', label: tCatalog('filters.all') },
@@ -159,6 +145,9 @@ export default async function HomePage({ params }: Props) {
 
   return (
     <div>
+      {/* Live Preview bridge — mounted only inside the admin preview iframe. */}
+      {isDraft ? <RefreshRouteOnSave /> : null}
+
       {/* Cinematic Hero */}
       <section className="hero-cine">
         <div className="hero-cine-media">

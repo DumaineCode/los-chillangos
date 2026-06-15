@@ -23,6 +23,7 @@
     "seed": "tsx scripts/seed.ts",
     "seed:seasonal": "tsx scripts/seed-seasonal.ts",
     "seed:all": "pnpm seed:admin && pnpm seed",
+    "migrate:landing": "tsx scripts/migrate-landing.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

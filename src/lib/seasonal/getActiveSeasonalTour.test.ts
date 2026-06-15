@@ -23,18 +23,18 @@ const featuredTour = {
 } as unknown as Tour;
 
 function makePayload(opts: {
-  global: unknown;
+  landing: unknown;
   docs?: Tour[];
 }) {
   const find = vi.fn(async () => ({ docs: opts.docs ?? [] }));
-  const findGlobal = vi.fn(async () => opts.global);
+  const findGlobal = vi.fn(async () => opts.landing);
   return { payload: { find, findGlobal }, find, findGlobal };
 }
 
 describe('getActiveSeasonalTour', () => {
   it('returns null and skips the find query when the feature is disabled', async () => {
     const { payload, find } = makePayload({
-      global: { enabled: false, featuredSeasonalTour: 42 },
+      landing: { seasonal: { enabled: false, featuredSeasonalTour: 42 } },
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,7 +46,7 @@ describe('getActiveSeasonalTour', () => {
 
   it('returns null and skips the find query when no tour is referenced', async () => {
     const { payload, find } = makePayload({
-      global: { enabled: true, featuredSeasonalTour: null },
+      landing: { seasonal: { enabled: true, featuredSeasonalTour: null } },
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -58,7 +58,7 @@ describe('getActiveSeasonalTour', () => {
 
   it('queries published + isSeasonal at depth 2 and returns the first doc', async () => {
     const { payload, find } = makePayload({
-      global: { enabled: true, featuredSeasonalTour: 42 },
+      landing: { seasonal: { enabled: true, featuredSeasonalTour: 42 } },
       docs: [featuredTour],
     });
 
@@ -87,7 +87,7 @@ describe('getActiveSeasonalTour', () => {
 
   it('returns null when the query yields no matching tour', async () => {
     const { payload } = makePayload({
-      global: { enabled: true, featuredSeasonalTour: 42 },
+      landing: { seasonal: { enabled: true, featuredSeasonalTour: 42 } },
       docs: [],
     });
 
