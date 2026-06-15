@@ -9,6 +9,8 @@ import {
   getCDMXDayRange,
   getTimeSlotsForTour,
   getTodayInTourTZ,
+  getTourDayISO,
+  getTourWeekDays,
   isDateBeforeTodayInTourTZ,
   isDateBookableForTour,
   isSameDayCutoffPassed,
@@ -321,5 +323,57 @@ describe('getCDMXDayRange', () => {
     const { startUTC, endUTC } = getCDMXDayRange(earlyUTC);
     expect(startUTC.toISOString()).toBe('2026-06-14T06:00:00.000Z');
     expect(endUTC.toISOString()).toBe('2026-06-15T06:00:00.000Z');
+  });
+});
+
+describe('getTourDayISO', () => {
+  it('formats the CDMX calendar day as YYYY-MM-DD', () => {
+    expect(getTourDayISO(new Date('2026-06-15T20:00:00Z'))).toBe('2026-06-15');
+  });
+
+  it('rolls back across the UTC boundary (still the previous day in CDMX)', () => {
+    // 2026-06-15T05:00:00Z = 2026-06-14T23:00:00 CDMX
+    expect(getTourDayISO(new Date('2026-06-15T05:00:00Z'))).toBe('2026-06-14');
+  });
+
+  it('zero-pads month and day', () => {
+    expect(getTourDayISO(new Date('2026-01-05T18:00:00Z'))).toBe('2026-01-05');
+  });
+});
+
+describe('getTourWeekDays', () => {
+  it('returns 7 consecutive CDMX days, Monday-first by default', () => {
+    // 2026-06-15 is a Monday in CDMX.
+    const anchor = new Date('2026-06-17T20:00:00Z'); // Wed 2026-06-17 CDMX
+    const days = getTourWeekDays(anchor);
+    expect(days).toHaveLength(7);
+    expect(days.map((d) => d.iso)).toEqual([
+      '2026-06-15',
+      '2026-06-16',
+      '2026-06-17',
+      '2026-06-18',
+      '2026-06-19',
+      '2026-06-20',
+      '2026-06-21',
+    ]);
+    // Monday=1 first, Sunday=0 last.
+    expect(days[0].weekday).toBe(1);
+    expect(days[6].weekday).toBe(0);
+    // Each `date` is exactly CDMX-midnight (06:00Z, fixed UTC-6).
+    expect(days[0].date.toISOString()).toBe('2026-06-15T06:00:00.000Z');
+  });
+
+  it('supports Sunday-first weeks', () => {
+    const anchor = new Date('2026-06-17T20:00:00Z'); // Wed
+    const days = getTourWeekDays(anchor, 0);
+    expect(days[0].iso).toBe('2026-06-14'); // Sunday
+    expect(days[0].weekday).toBe(0);
+    expect(days[6].iso).toBe('2026-06-20'); // Saturday
+  });
+
+  it('keeps an anchor that is the week start in the same week', () => {
+    const monday = new Date('2026-06-15T12:00:00Z');
+    const days = getTourWeekDays(monday);
+    expect(days[0].iso).toBe('2026-06-15');
   });
 });

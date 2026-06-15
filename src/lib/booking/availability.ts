@@ -203,6 +203,52 @@ export function getCDMXDayRange(date: Date): { startUTC: Date; endUTC: Date } {
   return { startUTC, endUTC };
 }
 
+/**
+ * One calendar day of the booking timezone (CDMX), carrying everything the
+ * agenda/week views need without re-deriving timezone math downstream:
+ *   - `date`: the UTC instant at CDMX-midnight of that day. Safe to pass to
+ *     `isDateBookableForTour`, `getCDMXDayRange`, `isSameDayCutoffPassed`.
+ *   - `iso`: the `YYYY-MM-DD` label of that CDMX day.
+ *   - `weekday`: 0 (Sunday) … 6 (Saturday), interpreted in CDMX.
+ */
+export type TourDay = { date: Date; iso: string; weekday: number };
+
+/**
+ * `YYYY-MM-DD` for the CDMX calendar day containing `date`. Same TZ discipline
+ * as `getCDMXDayRange`, but yields a stable string key — used to bucket bookings
+ * by day and to label/navigate the agenda week.
+ */
+export function getTourDayISO(date: Date): string {
+  const { year, month, day } = getYMDInTourTZ(date);
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/**
+ * The seven CDMX days of the week that contains `anchor`.
+ *
+ * `weekStartsOn`: 1 = Monday (default, business week), 0 = Sunday.
+ *
+ * Each returned `date` is the exact UTC instant of CDMX-midnight for that day.
+ * Because CDMX has a fixed offset year-round (no DST since 2022), stepping by
+ * 24h from the week's first midnight always lands on the next CDMX midnight, so
+ * the labels never drift across a day boundary.
+ */
+export function getTourWeekDays(anchor: Date, weekStartsOn: 0 | 1 = 1): TourDay[] {
+  const DAY_MS = 24 * 3_600_000;
+  const anchorMidnight = getCDMXDayRange(anchor).startUTC;
+  const anchorWeekday = getWeekdayInTourTZ(anchor);
+  // Days to step back from `anchor` to reach the chosen week start.
+  const offset = weekStartsOn === 1 ? (anchorWeekday + 6) % 7 : anchorWeekday;
+  const weekStart = new Date(anchorMidnight.getTime() - offset * DAY_MS);
+
+  const days: TourDay[] = [];
+  for (let i = 0; i < 7; i += 1) {
+    const date = new Date(weekStart.getTime() + i * DAY_MS);
+    days.push({ date, iso: getTourDayISO(date), weekday: getWeekdayInTourTZ(date) });
+  }
+  return days;
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // Internals
 // ─────────────────────────────────────────────────────────────────────────

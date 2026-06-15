@@ -83,6 +83,23 @@ const CalendarIcon = (
   </svg>
 );
 
+const ListIcon = (
+  <svg
+    aria-hidden="true"
+    fill="none"
+    height="22"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth="1.8"
+    viewBox="0 0 24 24"
+    width="22"
+  >
+    <path d="M8 6h12M8 12h12M8 18h12" />
+    <path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
+  </svg>
+);
+
 const CARDS: ShortcutCard[] = [
   {
     href: '/admin/globals/landing',
@@ -103,12 +120,21 @@ const CARDS: ShortcutCard[] = [
     },
   },
   {
-    href: '/admin/collections/bookings',
+    href: '/admin/agenda',
     icon: CalendarIcon,
-    title: { en: 'Bookings', es: 'Reservas' },
+    title: { en: 'Weekly agenda', es: 'Agenda de la semana' },
     body: {
-      en: "See your customers' bookings.",
-      es: 'Mira las reservas de tus clientes.',
+      en: 'See your departures at a glance and how full each one is.',
+      es: 'Mira tus salidas de un vistazo y qué tan llena está cada una.',
+    },
+  },
+  {
+    href: '/admin/collections/bookings',
+    icon: ListIcon,
+    title: { en: 'All bookings', es: 'Todas las reservas' },
+    body: {
+      en: 'The full list — search, open or edit a specific booking.',
+      es: 'La lista completa: busca, abre o edita una reserva puntual.',
     },
   },
 ];
