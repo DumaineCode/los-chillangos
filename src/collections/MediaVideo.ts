@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload';
 
+import { NAV_GROUPS } from '../admin/navGroups';
+
 /**
  * MediaVideo collection — video uploads for the homepage hero.
  *
@@ -14,8 +16,13 @@ import type { CollectionConfig } from 'payload';
  */
 export const MediaVideo: CollectionConfig = {
   slug: 'mediaVideo',
+  labels: {
+    singular: { en: 'Video', es: 'Video' },
+    plural: { en: 'Videos', es: 'Videos' },
+  },
   admin: {
     useAsTitle: 'filename',
+    group: NAV_GROUPS.media,
   },
   access: {
     // Public read so the hero <video> can fetch the asset via the storage
@@ -27,8 +34,12 @@ export const MediaVideo: CollectionConfig = {
       name: 'alt',
       type: 'text',
       required: true,
+      label: { en: 'Alt text', es: 'Texto alternativo' },
       admin: {
-        description: 'Accessibility: short description of the video content.',
+        description: {
+          en: 'Accessibility: short description of the video content.',
+          es: 'Accesibilidad: descripción corta de lo que muestra el video.',
+        },
       },
     },
   ],

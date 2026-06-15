@@ -1,6 +1,91 @@
 /*
  * Payload admin custom styles.
  *
- * Empty by default — the Payload UI ships its own admin theme via
- * `@payloadcms/next/css`. Add scoped overrides here later if needed.
+ * Layer 2 of the admin-UX work: a friendlier dashboard for a non-technical
+ * client. Everything is scoped under `.lc-*` so it never fights Payload's own
+ * theme, and it leans on Payload's theme CSS variables
+ * (--theme-elevation-*, --theme-text, --base, --style-radius-*) so BOTH light
+ * and dark mode work, plus one brand accent (terracota / "rosa mexicano").
  */
+
+.lc-welcome {
+  --lc-accent: #c2410c;
+  margin-bottom: calc(var(--base, 20px) * 1.5);
+
+  &__head {
+    margin-bottom: calc(var(--base, 20px) * 0.75);
+  }
+
+  &__title {
+    margin: 0 0 4px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--theme-text, #1a1a1a);
+  }
+
+  &__sub {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--theme-elevation-600, #666);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: calc(var(--base, 20px) * 0.75);
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: calc(var(--base, 20px) * 0.9);
+    border: 1px solid var(--theme-elevation-150, #e0e0e0);
+    border-radius: var(--style-radius-m, 8px);
+    background: var(--theme-elevation-0, #fff);
+    color: var(--theme-text, #1a1a1a);
+    text-decoration: none;
+    transition:
+      border-color 0.15s ease,
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--lc-accent);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      outline: none;
+      transform: translateY(-2px);
+    }
+  }
+
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: var(--lc-accent);
+    background: rgba(194, 65, 12, 0.12);
+  }
+
+  &__card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  &__card-body {
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--theme-elevation-600, #666);
+  }
+}
+
+/*
+ * Gentle, non-structural readability tweak: bump field help text a touch so a
+ * non-technical editor can actually read the guidance we added in Layer 1.
+ */
+.field-description {
+  font-size: 0.8rem;
+}

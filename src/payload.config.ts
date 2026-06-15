@@ -4,6 +4,8 @@ import { fileURLToPath } from 'url';
 import { postgresAdapter } from '@payloadcms/db-postgres';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import { s3Storage } from '@payloadcms/storage-s3';
+import { en } from '@payloadcms/translations/languages/en';
+import { es } from '@payloadcms/translations/languages/es';
 import { buildConfig, type Plugin } from 'payload';
 import sharp from 'sharp';
 
@@ -129,9 +131,15 @@ export default buildConfig({
       graphics: {
         Logo: '/components/admin/AdminLogo',
       },
+      // Welcome panel above the dashboard — orients a non-technical client with
+      // plain-language shortcuts (home page / tours / bookings). See Layer 2.
+      beforeDashboard: ['/components/admin/WelcomeDashboard'],
     },
   },
-  collections: [Users, Media, MediaVideo, Tours, Bookings],
+  // Order drives the admin sidebar group order (collections are iterated before
+  // globals; each nav group appears at its first entity). This sequence yields:
+  // Sitio web → Operación → Configuración → Biblioteca de medios. See navGroups.ts.
+  collections: [Tours, Bookings, Users, Media, MediaVideo],
   globals: [
     // Landing first — the consolidated single-surface editor for the homepage.
     Landing,
@@ -154,6 +162,15 @@ export default buildConfig({
     Faq,
     SeasonalFeature,
   ],
+  // Admin INTERFACE language (chrome: buttons, menus, system messages, errors).
+  // Distinct from `localization` below, which governs CONTENT values (en/es).
+  // Spanish is the fallback so the non-technical client lands in Spanish by
+  // default; English stays available for the dev/team via their browser or the
+  // per-user language selector in the admin profile.
+  i18n: {
+    supportedLanguages: { es, en },
+    fallbackLanguage: 'es',
+  },
   localization: {
     locales: ['en', 'es'],
     defaultLocale: 'en',

@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload';
 
 import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
+import { NAV_GROUPS } from '../admin/navGroups';
 
 /**
  * EmailContent global — editable marketing copy for booking emails.
@@ -21,6 +22,7 @@ import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
  */
 export const EmailContent: GlobalConfig = {
   slug: 'email-content',
+  label: { en: 'Automated emails', es: 'Correos automáticos' },
   access: {
     read: () => true,
     update: ({ req: { user } }) => Boolean(user),
@@ -29,6 +31,7 @@ export const EmailContent: GlobalConfig = {
     afterChange: [revalidateGlobalAfterChange],
   },
   admin: {
+    group: NAV_GROUPS.settings,
     description:
       'Wording for the booking confirmation email sent to guests after payment. ' +
       'Leave a field empty to use the built-in default. Dynamic details (tour, ' +
@@ -39,88 +42,131 @@ export const EmailContent: GlobalConfig = {
       name: 'logo',
       type: 'upload',
       relationTo: 'media',
+      label: { en: 'Logo', es: 'Logo' },
       admin: {
-        description: 'Optional logo for the email header. If empty, the brand name is shown.',
+        description: {
+          en: 'Optional logo for the email header. If empty, the brand name is shown.',
+          es: 'Logo opcional para el encabezado del correo. Si está vacío, se muestra el nombre de la marca.',
+        },
       },
     },
     {
       name: 'confirmation',
       type: 'group',
-      label: 'Confirmation email',
+      label: { en: 'Confirmation email', es: 'Correo de confirmación' },
       fields: [
         {
           name: 'subject',
           type: 'text',
           localized: true,
+          label: { en: 'Subject', es: 'Asunto' },
           admin: {
-            description: 'Email subject. Tokens: {tour}, {reference}.',
-            placeholder: 'Your booking is confirmed — {reference}',
+            description: {
+              en: 'Email subject. Tokens: {tour}, {reference}.',
+              es: 'Asunto del correo. Etiquetas que se reemplazan solas: {tour}, {reference}.',
+            },
+            placeholder: {
+              en: 'Your booking is confirmed — {reference}',
+              es: 'Tu reserva está confirmada — {reference}',
+            },
           },
         },
         {
           name: 'previewText',
           type: 'text',
           localized: true,
+          label: { en: 'Preview text', es: 'Texto de vista previa' },
           admin: {
-            description: 'Inbox preview snippet shown next to the subject (~90 chars).',
+            description: {
+              en: 'Inbox preview snippet shown next to the subject (~90 chars).',
+              es: 'Fragmento de vista previa que se ve junto al asunto en la bandeja (~90 caracteres).',
+            },
           },
         },
         {
           name: 'greeting',
           type: 'text',
           localized: true,
+          label: { en: 'Greeting', es: 'Saludo' },
           admin: {
-            description: 'Greeting line. Token: {name}.',
-            placeholder: 'Hi {name},',
+            description: {
+              en: 'Greeting line. Token: {name}.',
+              es: 'Línea de saludo. Etiqueta que se reemplaza sola: {name}.',
+            },
+            placeholder: { en: 'Hi {name},', es: 'Hola {name},' },
           },
         },
         {
           name: 'intro',
           type: 'textarea',
           localized: true,
+          label: { en: 'Intro', es: 'Introducción' },
           admin: {
-            description: 'Opening paragraph under the greeting.',
+            description: {
+              en: 'Opening paragraph under the greeting.',
+              es: 'Párrafo de apertura debajo del saludo.',
+            },
           },
         },
         {
           name: 'goodToKnow',
           type: 'textarea',
           localized: true,
+          label: { en: 'Good to know', es: 'Qué tener en cuenta' },
           admin: {
-            description: 'Things to know before the tour. One item per line — shown as bullets.',
+            description: {
+              en: 'Things to know before the tour. One item per line — shown as bullets.',
+              es: 'Cosas que conviene saber antes del tour. Una por línea — se muestran como viñetas.',
+            },
           },
         },
         {
           name: 'meetingPoint',
           type: 'textarea',
           localized: true,
+          label: { en: 'Meeting point', es: 'Punto de encuentro' },
           admin: {
-            description: 'Optional meeting-point note. Leave empty to hide the section.',
+            description: {
+              en: 'Optional meeting-point note. Leave empty to hide the section.',
+              es: 'Nota opcional del punto de encuentro. Déjalo vacío para ocultar la sección.',
+            },
           },
         },
         {
           name: 'closing',
           type: 'textarea',
           localized: true,
+          label: { en: 'Closing', es: 'Cierre' },
           admin: {
-            description: 'Optional closing line before the signature.',
+            description: {
+              en: 'Optional closing line before the signature.',
+              es: 'Línea de cierre opcional antes de la firma.',
+            },
           },
         },
         {
           name: 'signature',
           type: 'text',
           localized: true,
+          label: { en: 'Signature', es: 'Firma' },
           admin: {
-            description: 'Sign-off line.',
-            placeholder: '— The Los Chillangos team',
+            description: { en: 'Sign-off line.', es: 'Línea de despedida.' },
+            placeholder: {
+              en: '— The Los Chillangos team',
+              es: '— El equipo de Los Chillangos',
+            },
           },
         },
         {
           name: 'footnote',
           type: 'textarea',
           localized: true,
+          label: { en: 'Footnote', es: 'Nota al pie' },
           admin: {
-            description: 'Small print in the footer (e.g. cancellation policy).',
+            description: {
+              en: 'Small print in the footer (e.g. cancellation policy).',
+              es: 'Letra chica del pie (ej.: política de cancelación).',
+            },
           },
         },
       ],

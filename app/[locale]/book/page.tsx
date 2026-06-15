@@ -69,7 +69,10 @@ export default async function BookPage({ params, searchParams }: Props) {
     <BookingFlow
       tour={{
         id: tour.id,
-        slug: tour.slug,
+        // slug is auto-generated and optional in the schema, but /book only ever
+        // receives a PUBLISHED tour (which always has one). Fallback satisfies the
+        // string type without changing runtime behavior.
+        slug: tour.slug ?? '',
         title: tour.title,
         category: tour.category,
         price: tour.price,

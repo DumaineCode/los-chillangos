@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload';
 
 import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
+import { NAV_GROUPS } from '../admin/navGroups';
 
 /**
  * Navigation global — top-nav links + book CTA.
@@ -11,6 +12,10 @@ import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
  */
 export const Navigation: GlobalConfig = {
   slug: 'navigation',
+  label: { en: 'Navigation menu', es: 'Menú de navegación' },
+  admin: {
+    group: NAV_GROUPS.settings,
+  },
   access: {
     read: () => true,
     update: ({ req: { user } }) => Boolean(user),
@@ -22,21 +27,28 @@ export const Navigation: GlobalConfig = {
     {
       name: 'links',
       type: 'array',
-      labels: { singular: 'Link', plural: 'Links' },
+      labels: {
+        singular: { en: 'Link', es: 'Enlace' },
+        plural: { en: 'Links', es: 'Enlaces' },
+      },
       fields: [
         {
           name: 'label',
           type: 'text',
           required: true,
           localized: true,
+          label: { en: 'Label', es: 'Texto' },
         },
         {
           name: 'href',
           type: 'text',
           required: true,
+          label: { en: 'Link', es: 'Destino' },
           admin: {
-            description:
-              'Path or anchor (e.g. "tours", "about"). Locale prefix is added by routing.',
+            description: {
+              en: 'Path or anchor (e.g. "tours", "about"). Locale prefix is added by routing.',
+              es: 'Ruta o ancla (ej.: "tours", "about"). El prefijo de idioma lo agrega el sitio automáticamente.',
+            },
           },
         },
       ],
@@ -45,8 +57,12 @@ export const Navigation: GlobalConfig = {
       name: 'bookCtaLabel',
       type: 'text',
       localized: true,
+      label: { en: 'Book button label', es: 'Texto del botón de reservar' },
       admin: {
-        description: 'Label for the primary "Book a tour" CTA in the nav.',
+        description: {
+          en: 'Label for the primary "Book a tour" CTA in the nav.',
+          es: 'Texto del botón principal de "Reservar un tour" en el menú.',
+        },
       },
     },
   ],

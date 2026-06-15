@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload';
 
 import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
+import { NAV_GROUPS } from '../admin/navGroups';
 
 /**
  * Branding global — site-wide brand assets managed from the admin panel.
@@ -13,6 +14,10 @@ import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
  */
 export const Branding: GlobalConfig = {
   slug: 'branding',
+  label: { en: 'Logo & brand', es: 'Logo y marca' },
+  admin: {
+    group: NAV_GROUPS.settings,
+  },
   access: {
     read: () => true,
     update: ({ req: { user } }) => Boolean(user),
@@ -25,31 +30,47 @@ export const Branding: GlobalConfig = {
       name: 'logoLight',
       type: 'upload',
       relationTo: 'media',
+      label: { en: 'Light logo', es: 'Logo para fondos claros' },
       admin: {
-        description: 'Primary logo shown in the top navigation (over light surfaces).',
+        description: {
+          en: 'Primary logo shown in the top navigation (over light surfaces).',
+          es: 'Logo principal que se muestra en el menú de arriba (sobre fondos claros).',
+        },
       },
     },
     {
       name: 'logoDark',
       type: 'upload',
       relationTo: 'media',
+      label: { en: 'Dark logo', es: 'Logo para fondos oscuros' },
       admin: {
-        description: 'Logo used over dark surfaces such as the footer. Falls back to the primary logo.',
+        description: {
+          en: 'Logo used over dark surfaces such as the footer. Falls back to the primary logo.',
+          es: 'Logo para fondos oscuros, como el pie de página. Si está vacío, se usa el logo principal.',
+        },
       },
     },
     {
       name: 'logoAltText',
       type: 'text',
       localized: true,
+      label: { en: 'Logo alt text', es: 'Texto alternativo del logo' },
       admin: {
-        description: 'Accessible alt text for the logo. Defaults to "Los Chillangos".',
+        description: {
+          en: 'Accessible alt text for the logo. Defaults to "Los Chillangos".',
+          es: 'Texto alternativo (accesibilidad) del logo. Por defecto: "Los Chillangos".',
+        },
       },
     },
     {
       name: 'logoHeight',
       type: 'number',
+      label: { en: 'Logo height', es: 'Altura del logo' },
       admin: {
-        description: 'Optional logo height in pixels for the nav (default 40).',
+        description: {
+          en: 'Optional logo height in pixels for the nav (default 40).',
+          es: 'Altura del logo en píxeles para el menú (por defecto 40). Opcional.',
+        },
       },
     },
   ],

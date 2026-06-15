@@ -76,7 +76,10 @@ export default async function TourDetailPage({ params }: Props) {
   const galleryTiles: Media[] = [heroMedia, ...galleryMedia]
     .filter((m): m is Media => Boolean(m?.url))
     .slice(0, 5);
-  const categoryLabel = t(`categoryLabel.${tour.category}`);
+  // Drafts shown in Live Preview can be half-filled — Payload skips required-field
+  // validation for drafts, so `category` may be null. Guard the i18n lookup: an
+  // unguarded t(`categoryLabel.null`) throws MISSING_MESSAGE and 500s the preview.
+  const categoryLabel = tour.category ? t(`categoryLabel.${tour.category}`) : '';
 
   // meetingLocation is a non-localized group {address, lat, lng} added to the
   // Tours collection. Read it via a narrow local cast so this file does not
@@ -102,7 +105,7 @@ export default async function TourDetailPage({ params }: Props) {
           <span style={{ color: 'var(--ink)' }}>{tour.title}</span>
         </div>
         <div className="eyebrow" style={{ marginBottom: 16 }}>
-          {categoryLabel} · {tour.duration}
+          {[categoryLabel, tour.duration].filter(Boolean).join(' · ')}
         </div>
         <h1 className="detail-headline">
           {tour.title}

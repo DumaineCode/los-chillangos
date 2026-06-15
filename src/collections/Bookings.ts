@@ -6,6 +6,7 @@ import {
 } from '../hooks/revalidateBookings';
 import { generateBookingReference } from '../lib/booking/reference';
 import { computeBookingTotals } from '../lib/booking/totals';
+import { NAV_GROUPS } from '../admin/navGroups';
 
 /**
  * Bookings collection — persistent booking record (Sub-etapa A scope).
@@ -74,10 +75,14 @@ const computeTotalAmount: FieldHook = ({ siblingData }) => {
 
 export const Bookings: CollectionConfig = {
   slug: 'bookings',
+  labels: {
+    singular: { en: 'Booking', es: 'Reserva' },
+    plural: { en: 'Bookings', es: 'Reservas' },
+  },
   admin: {
     useAsTitle: 'reference',
     defaultColumns: ['reference', 'tour', 'date', 'time', 'status', 'totalPersons', 'createdAt'],
-    group: 'Operations',
+    group: NAV_GROUPS.operations,
   },
   versions: false,
   access: {
@@ -120,9 +125,13 @@ export const Bookings: CollectionConfig = {
       required: true,
       unique: true,
       index: true,
+      label: { en: 'Reference', es: 'Referencia' },
       admin: {
         readOnly: true,
-        description: 'Auto-generated public booking reference.',
+        description: {
+          en: 'Auto-generated public booking reference.',
+          es: 'Referencia pública de la reserva (se genera sola).',
+        },
       },
     },
     {
@@ -132,8 +141,9 @@ export const Bookings: CollectionConfig = {
       required: true,
       hasMany: false,
       index: true,
+      label: { en: 'Tour', es: 'Tour' },
       admin: {
-        description: 'Which tour was booked.',
+        description: { en: 'Which tour was booked.', es: 'Qué tour se reservó.' },
       },
     },
     {
@@ -141,22 +151,29 @@ export const Bookings: CollectionConfig = {
       type: 'date',
       required: true,
       index: true,
+      label: { en: 'Date', es: 'Fecha' },
       // Note: Payload v3 stores dates as timestamps regardless. We use the
       // `dayOnly` picker for UX; the booking API in Sub-etapa C normalizes
       // the value to the tour's local-calendar midnight before persisting,
       // so a single canonical instant represents the calendar day.
       admin: {
         date: { pickerAppearance: 'dayOnly' },
-        description: 'Local calendar date of the departure (no time component).',
+        description: {
+          en: 'Local calendar date of the departure (no time component).',
+          es: 'Fecha de salida (sin hora).',
+        },
       },
     },
     {
       name: 'time',
       type: 'text',
       required: true,
+      label: { en: 'Time', es: 'Hora' },
       admin: {
-        description:
-          'Departure time in HH:MM. Must match one of the tour timeSlots at booking time.',
+        description: {
+          en: 'Departure time in HH:MM. Must match one of the tour timeSlots at booking time.',
+          es: 'Hora de salida en HH:MM. Debe coincidir con un horario del tour al momento de reservar.',
+        },
       },
       validate: validateHHMM,
     },
@@ -165,6 +182,7 @@ export const Bookings: CollectionConfig = {
       type: 'number',
       required: true,
       min: 1,
+      label: { en: 'Adults', es: 'Adultos' },
       validate: validateInteger(1),
     },
     {
@@ -173,15 +191,20 @@ export const Bookings: CollectionConfig = {
       required: true,
       min: 0,
       defaultValue: 0,
+      label: { en: 'Teens', es: 'Adolescentes' },
       validate: validateInteger(0),
     },
     {
       name: 'totalPersons',
       type: 'number',
       required: true,
+      label: { en: 'Total persons', es: 'Total de personas' },
       admin: {
         readOnly: true,
-        description: 'adults + teens — stored for fast capacity queries.',
+        description: {
+          en: 'adults + teens — stored for fast capacity queries.',
+          es: 'adultos + adolescentes — se guarda para consultar el cupo rápido.',
+        },
       },
       hooks: {
         beforeValidate: [computeTotalPersons],
@@ -191,14 +214,19 @@ export const Bookings: CollectionConfig = {
       name: 'privatize',
       type: 'checkbox',
       defaultValue: false,
+      label: { en: 'Private booking', es: 'Reserva privada' },
     },
     {
       name: 'pricePerPerson',
       type: 'number',
       required: true,
       min: 0,
+      label: { en: 'Price per person', es: 'Precio por persona' },
       admin: {
-        description: 'USD per person at the time of booking (snapshot — not linked).',
+        description: {
+          en: 'USD per person at the time of booking (snapshot — not linked).',
+          es: 'USD por persona al momento de reservar (foto fija — no se actualiza después).',
+        },
       },
     },
     {
@@ -207,9 +235,12 @@ export const Bookings: CollectionConfig = {
       required: true,
       min: 0,
       defaultValue: 0,
+      label: { en: 'Private booking fee', es: 'Cargo por reserva privada' },
       admin: {
-        description:
-          'Snapshot of the privatize flat fee at booking time (matches the legacy +USD 140 constant; not enforced here).',
+        description: {
+          en: 'Snapshot of the privatize flat fee at booking time (matches the legacy +USD 140 constant; not enforced here).',
+          es: 'Foto fija del cargo por privatizar al momento de reservar (equivale al +USD 140 anterior; aquí no se aplica automáticamente).',
+        },
       },
     },
     {
@@ -217,10 +248,11 @@ export const Bookings: CollectionConfig = {
       type: 'text',
       required: true,
       defaultValue: 'USD',
+      label: { en: 'Currency', es: 'Moneda' },
       validate: (value: string | null | undefined) => {
-        if (!value) return 'Currency is required.';
+        if (!value) return 'La moneda es obligatoria.';
         if (!/^[A-Z]{3}$/.test(value)) {
-          return 'Currency must be a 3-letter uppercase ISO code (e.g. "USD").';
+          return 'La moneda debe ser un código ISO de 3 letras en mayúsculas (ej.: "USD").';
         }
         return true;
       },
@@ -230,9 +262,13 @@ export const Bookings: CollectionConfig = {
       type: 'number',
       required: true,
       min: 0,
+      label: { en: 'Total amount', es: 'Importe total' },
       admin: {
         readOnly: true,
-        description: 'Cached total. Stripe charges this amount.',
+        description: {
+          en: 'Cached total. Stripe charges this amount.',
+          es: 'Total guardado. Stripe cobra este importe.',
+        },
       },
       hooks: {
         beforeValidate: [computeTotalAmount],
@@ -241,14 +277,16 @@ export const Bookings: CollectionConfig = {
     {
       name: 'customer',
       type: 'group',
+      label: { en: 'Customer', es: 'Cliente' },
       fields: [
         {
           name: 'name',
           type: 'text',
           required: true,
+          label: { en: 'Name', es: 'Nombre' },
           validate: (value: string | null | undefined) => {
             if (!value || value.trim().length < 2) {
-              return 'Name must be at least 2 characters.';
+              return 'El nombre debe tener al menos 2 caracteres.';
             }
             return true;
           },
@@ -257,15 +295,17 @@ export const Bookings: CollectionConfig = {
           name: 'email',
           type: 'email',
           required: true,
+          label: { en: 'Email', es: 'Correo electrónico' },
         },
         {
           name: 'whatsapp',
           type: 'text',
+          label: { en: 'WhatsApp', es: 'WhatsApp' },
           // Optional. Empty string is allowed; if present, must look phone-ish.
           validate: (value: string | null | undefined) => {
             if (!value) return true;
             if (!/^\+?[0-9\s\-()]{7,20}$/.test(value)) {
-              return 'WhatsApp must be 7–20 digits, optionally prefixed by + (spaces/dashes/parens ok).';
+              return 'El WhatsApp debe tener entre 7 y 20 dígitos, con + opcional (se permiten espacios, guiones y paréntesis).';
             }
             return true;
           },
@@ -275,9 +315,10 @@ export const Bookings: CollectionConfig = {
           type: 'select',
           required: true,
           defaultValue: 'en',
+          label: { en: 'Language', es: 'Idioma' },
           options: [
-            { label: 'English', value: 'en' },
-            { label: 'Spanish', value: 'es' },
+            { label: { en: 'English', es: 'Inglés' }, value: 'en' },
+            { label: { en: 'Spanish', es: 'Español' }, value: 'es' },
           ],
         },
       ],
@@ -288,52 +329,71 @@ export const Bookings: CollectionConfig = {
       required: true,
       index: true,
       defaultValue: 'pending',
+      label: { en: 'Status', es: 'Estado' },
       options: [
-        { label: 'Pending', value: 'pending' },
-        { label: 'Paid', value: 'paid' },
-        { label: 'Expired', value: 'expired' },
-        { label: 'Cancelled', value: 'cancelled' },
-        { label: 'Refunded', value: 'refunded' },
+        { label: { en: 'Pending', es: 'Pendiente' }, value: 'pending' },
+        { label: { en: 'Paid', es: 'Pagada' }, value: 'paid' },
+        { label: { en: 'Expired', es: 'Expirada' }, value: 'expired' },
+        { label: { en: 'Cancelled', es: 'Cancelada' }, value: 'cancelled' },
+        { label: { en: 'Refunded', es: 'Reembolsada' }, value: 'refunded' },
       ],
       admin: {
-        description:
-          'pending: hold active; counts against capacity until holdExpiresAt. ' +
-          'paid: confirmed; counts against capacity permanently. ' +
-          'expired: hold expired without payment; does NOT count. ' +
-          'cancelled: customer or admin cancelled; does NOT count. ' +
-          'refunded: paid then refunded; does NOT count.',
+        description: {
+          en:
+            'pending: hold active; counts against capacity until holdExpiresAt. ' +
+            'paid: confirmed; counts against capacity permanently. ' +
+            'expired: hold expired without payment; does NOT count. ' +
+            'cancelled: customer or admin cancelled; does NOT count. ' +
+            'refunded: paid then refunded; does NOT count.',
+          es:
+            'pendiente: apartado activo; ocupa cupo hasta que vence. ' +
+            'pagada: confirmada; ocupa cupo de forma permanente. ' +
+            'expirada: el apartado venció sin pago; NO ocupa cupo. ' +
+            'cancelada: la canceló el cliente o el equipo; NO ocupa cupo. ' +
+            'reembolsada: se pagó y luego se reembolsó; NO ocupa cupo.',
+        },
       },
     },
     {
       name: 'holdExpiresAt',
       type: 'date',
       index: true,
+      label: { en: 'Hold expires at', es: 'El apartado vence' },
       admin: {
-        description:
-          'When the pending hold lapses. Only meaningful while status = pending. Sub-etapa B will sweep expired holds.',
+        description: {
+          en: 'When the pending hold lapses. Only meaningful while status = pending. Sub-etapa B will sweep expired holds.',
+          es: 'Cuándo vence el apartado pendiente. Solo aplica mientras el estado es "pendiente".',
+        },
       },
     },
     {
       name: 'stripeCheckoutSessionId',
       type: 'text',
       index: true,
+      label: { en: 'Stripe Checkout session ID', es: 'ID de sesión de Stripe Checkout' },
       admin: {
-        description:
-          'Stripe Checkout Session ID (cs_test_… in test mode). Filled when the checkout session is created in Sub-etapa C.',
+        description: {
+          en: 'Stripe Checkout Session ID (cs_test_… in test mode). Filled when the checkout session is created in Sub-etapa C.',
+          es: 'ID de la sesión de Stripe Checkout (cs_test_… en modo prueba). Se llena solo al iniciar el pago.',
+        },
       },
     },
     {
       name: 'stripePaymentIntentId',
       type: 'text',
       index: true,
+      label: { en: 'Stripe PaymentIntent ID', es: 'ID de pago de Stripe (PaymentIntent)' },
       admin: {
-        description:
-          'Stripe PaymentIntent ID. Filled by the Stripe webhook in Sub-etapa C when payment succeeds.',
+        description: {
+          en: 'Stripe PaymentIntent ID. Filled by the Stripe webhook in Sub-etapa C when payment succeeds.',
+          es: 'ID del pago en Stripe. Se llena solo cuando el pago se completa.',
+        },
       },
     },
     {
       name: 'paidAt',
       type: 'date',
+      label: { en: 'Paid at', es: 'Pagada el' },
       admin: {
         readOnly: true,
       },
@@ -341,8 +401,12 @@ export const Bookings: CollectionConfig = {
     {
       name: 'notes',
       type: 'textarea',
+      label: { en: 'Internal notes', es: 'Notas internas' },
       admin: {
-        description: 'Internal admin notes (not sent to the customer).',
+        description: {
+          en: 'Internal admin notes (not sent to the customer).',
+          es: 'Notas internas del equipo (no se le envían al cliente).',
+        },
       },
     },
   ],

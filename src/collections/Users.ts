@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload';
 
+import { NAV_GROUPS } from '../admin/navGroups';
+
 /**
  * Users collection — Payload built-in auth.
  * Login email + password live here. `admin.user: 'users'` in payload.config.ts
@@ -10,9 +12,14 @@ import type { CollectionConfig } from 'payload';
  */
 export const Users: CollectionConfig = {
   slug: 'users',
+  labels: {
+    singular: { en: 'User', es: 'Usuario' },
+    plural: { en: 'Users', es: 'Usuarios' },
+  },
   admin: {
     useAsTitle: 'email',
     defaultColumns: ['name', 'email'],
+    group: NAV_GROUPS.settings,
   },
   auth: true,
   fields: [
@@ -20,6 +27,7 @@ export const Users: CollectionConfig = {
       name: 'name',
       type: 'text',
       required: true,
+      label: { en: 'Name', es: 'Nombre' },
     },
   ],
 };

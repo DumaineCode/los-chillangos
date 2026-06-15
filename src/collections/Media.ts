@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload';
 
+import { NAV_GROUPS } from '../admin/navGroups';
+
 /**
  * Media collection — uploads.
  *
@@ -16,8 +18,13 @@ import type { CollectionConfig } from 'payload';
  */
 export const Media: CollectionConfig = {
   slug: 'media',
+  labels: {
+    singular: { en: 'Image', es: 'Imagen' },
+    plural: { en: 'Images', es: 'Imágenes' },
+  },
   admin: {
     useAsTitle: 'filename',
+    group: NAV_GROUPS.media,
   },
   access: {
     // Public read so <next/image> can fetch media via the storage adapter
@@ -29,8 +36,12 @@ export const Media: CollectionConfig = {
       name: 'alt',
       type: 'text',
       required: true,
+      label: { en: 'Alt text', es: 'Texto alternativo' },
       admin: {
-        description: 'Accessibility: short description of the image content.',
+        description: {
+          en: 'Accessibility: short description of the image content.',
+          es: 'Accesibilidad: descripción corta de lo que muestra la imagen.',
+        },
       },
     },
   ],
