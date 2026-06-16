@@ -83,6 +83,11 @@ export const Bookings: CollectionConfig = {
     useAsTitle: 'reference',
     defaultColumns: ['reference', 'tour', 'date', 'time', 'status', 'totalPersons', 'createdAt'],
     group: NAV_GROUPS.operations,
+    components: {
+      // Tab bar above the native list so it reads as the "All" tab of the same
+      // "Reservas" surface as the custom week calendar (/admin/agenda).
+      beforeList: ['/components/admin/BookingsBeforeList'],
+    },
   },
   versions: false,
   access: {

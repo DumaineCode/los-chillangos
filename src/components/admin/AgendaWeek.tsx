@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { TOUR_TIMEZONE } from '../../lib/booking/availability';
 import type { AgendaBookingRow, AgendaDeparture, WeekAgenda } from '../../lib/booking/agenda';
+import { ReservasTabs } from './ReservasTabs';
 
 /**
  * Presentational client component for the admin Agenda view.
@@ -125,6 +126,7 @@ export function AgendaWeek({ agenda, language }: { agenda: WeekAgenda; language:
 
   return (
     <div className="lc-agenda">
+      <ReservasTabs active="week" language={language} />
       <div className="lc-agenda__head">
         <div>
           <h1 className="lc-agenda__title">{t.title}</h1>

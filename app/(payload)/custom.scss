@@ -91,31 +91,55 @@
 }
 
 /*
- * Custom nav link (admin.components.afterNavLinks) → /admin/agenda. Mimics the
- * spacing/feel of Payload's own nav links without depending on its internals.
+ * Reservas tab bar (ReservasTabs) — the single visual surface that unifies the
+ * custom week calendar (/admin/agenda) and the native bookings list
+ * (/admin/collections/bookings). Rendered on top of BOTH routes; each passes
+ * its own `active` tab. Segmented-control look, leaning on Payload theme vars.
  */
-.lc-navlink {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  margin: 2px 0;
-  border-radius: var(--style-radius-s, 4px);
-  color: var(--theme-elevation-800, #333);
-  text-decoration: none;
-  font-size: 1rem;
-  transition: background 0.15s ease, color 0.15s ease;
+.lc-restabs {
+  --lc-accent: #c2410c;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: calc(var(--base, 20px) * 0.9);
+  border: 1px solid var(--theme-elevation-150, #e0e0e0);
+  border-radius: var(--style-radius-m, 8px);
+  background: var(--theme-elevation-50, #fafafa);
 
-  &:hover,
-  &:focus-visible {
-    background: var(--theme-elevation-100, #f0f0f0);
-    color: var(--theme-text, #111);
-    outline: none;
+  &__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border-radius: var(--style-radius-s, 6px);
+    color: var(--theme-elevation-700, #555);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--theme-text, #111);
+      background: var(--theme-elevation-100, #f0f0f0);
+      outline: none;
+    }
+
+    &.is-active {
+      color: #fff;
+      background: var(--lc-accent);
+
+      &:hover,
+      &:focus-visible {
+        background: var(--lc-accent);
+      }
+    }
   }
 
   &__icon {
     display: inline-flex;
-    color: #c2410c;
   }
 }
 

@@ -132,10 +132,8 @@ export default buildConfig({
         Logo: '/components/admin/AdminLogo',
       },
       // Welcome panel above the dashboard — orients a non-technical client with
-      // plain-language shortcuts (home page / tours / agenda / bookings).
+      // plain-language shortcuts (home page / tours / bookings).
       beforeDashboard: ['/components/admin/WelcomeDashboard'],
-      // Left-menu entry to the visual week agenda (custom view below).
-      afterNavLinks: ['/components/admin/AgendaNavLink'],
       // Custom admin views. `agenda` → /admin/agenda: a visual week calendar of
       // departures with per-slot capacity fill, a friendlier surface than the
       // default Bookings table for "what's scheduled and how full is it?".
