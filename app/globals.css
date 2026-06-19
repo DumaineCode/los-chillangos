@@ -238,6 +238,48 @@ body:has(.hero-cine) { padding-top: 0; }
 .nav-links a:hover { color: var(--ink); }
 .nav-right { display: flex; align-items: center; gap: 16px; }
 
+/* WhatsApp click-to-chat button — number visible next to the icon. Same pill
+   family as the lang/theme toggles, accented with the WhatsApp brand green. */
+.nav-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ink-soft);
+  transition: color 120ms, border-color 120ms, background 120ms;
+}
+.nav-whatsapp:hover {
+  color: #fff;
+  background: #25d366;
+  border-color: #25d366;
+}
+.nav-whatsapp-icon { flex: none; color: #25d366; transition: color 120ms; }
+.nav-whatsapp:hover .nav-whatsapp-icon { color: #fff; }
+.nav-whatsapp-number { font-variant-numeric: tabular-nums; }
+.nav.over-hero .nav-whatsapp {
+  color: rgba(255, 243, 214, 0.85);
+  border-color: rgba(255, 243, 214, 0.4);
+}
+.nav.over-hero .nav-whatsapp:hover {
+  color: #fff;
+  background: #25d366;
+  border-color: #25d366;
+}
+.nav.over-hero .nav-whatsapp .nav-whatsapp-icon { color: #25d366; }
+/* On small screens the inline header button is hidden; the number stays
+   reachable from the mobile menu footer instead (rendered in the overlay). */
+@media (max-width: 700px) {
+  .nav-whatsapp { display: none; }
+}
+
 /* Lang toggle */
 .lang-toggle {
   display: inline-flex;
@@ -411,6 +453,34 @@ body:has(.hero-cine) { padding-top: 0; }
 .nav-overlay-social { color: var(--ink-muted); }
 .nav-overlay-contact:hover,
 .nav-overlay-social:hover { color: var(--terra); }
+
+/* Prominent WhatsApp CTA inside the mobile menu — solid brand-green button so
+   it reads as the primary contact action, not a discreet text link. */
+.nav-overlay-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  background: #25d366;
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+.nav-overlay-whatsapp:hover,
+.nav-overlay-whatsapp:active {
+  background: #1fbe5b;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(37, 211, 102, 0.45);
+}
+.nav-overlay-whatsapp-icon { flex: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .nav-overlay,

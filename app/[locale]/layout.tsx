@@ -132,7 +132,7 @@ export default async function LocaleLayout({ children, params }: Props) {
               logoSrc={logoSrc}
               logoAlt={logoAlt}
               logoHeight={logoHeight}
-              email={contact?.email ?? null}
+              whatsapp={contact?.whatsapp ?? null}
               instagram={social?.instagram ?? null}
               overHero
             />

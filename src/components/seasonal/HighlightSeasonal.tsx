@@ -2,9 +2,31 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 
 import { Link } from '../../../i18n/navigation';
-import type { Locale } from '../../../i18n/routing';
+import { routing, type Locale } from '../../../i18n/routing';
 import { resolveMediaUrl } from '../../lib/seasonal/resolveMediaUrl';
 import type { Tour } from '../../payload-types';
+
+/**
+ * Format an ISO date string for display, defensively.
+ *
+ * `Intl.DateTimeFormat` throws `RangeError: Incorrect locale information
+ * provided` when handed an empty/garbage locale — which can happen when this
+ * RSC is rendered for non-locale requests (favicon, apple-touch-icon, etc.)
+ * before the locale guard rejects them. A seasonal date banner must NEVER crash
+ * the page, so we fall back to the default locale and swallow formatting errors.
+ */
+function formatEventDate(eventDate: string, locale: Locale): string | null {
+  const safeLocale = routing.locales.includes(locale) ? locale : routing.defaultLocale;
+  try {
+    return new Intl.DateTimeFormat(safeLocale, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(eventDate));
+  } catch {
+    return null;
+  }
+}
 
 type Props = {
   tour: Tour | null;
@@ -27,11 +49,7 @@ export function HighlightSeasonal({ tour, eyebrow, locale }: Props) {
   const hero = seasonal.seasonalHero;
   const imageUrl = resolveMediaUrl(hero?.image) ?? resolveMediaUrl(hero?.poster);
 
-  const formattedDate = seasonal.eventDate
-    ? new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(
-        new Date(seasonal.eventDate)
-      )
-    : null;
+  const formattedDate = seasonal.eventDate ? formatEventDate(seasonal.eventDate, locale) : null;
 
   return (
     <section className="section highlight-seasonal-section">
