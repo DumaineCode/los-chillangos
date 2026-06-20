@@ -202,6 +202,37 @@
     "address2": "Ciudad de México, 06700",
     "geoLabel": "19.43°N · 99.13°W"
   },
+  "contact": {
+    "eyebrow": "Hablemos",
+    "title": "Contáctanos.",
+    "sub": "Cuéntanos qué tienes en mente y te respondemos pronto.",
+    "directTitle": "También puedes escribirnos directo",
+    "phoneLabel": "Teléfono",
+    "emailLabel": "Correo",
+    "addressLabel": "Dónde estamos",
+    "followLabel": "Síguenos",
+    "form": {
+      "nameLabel": "Nombre",
+      "namePlaceholder": "Tu nombre",
+      "emailLabel": "Correo",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "phoneLabel": "Teléfono (opcional)",
+      "phonePlaceholder": "+52 55 1234 5678",
+      "messageLabel": "Tu mensaje",
+      "messagePlaceholder": "Cuéntanos qué necesitas…",
+      "submit": "Enviar mensaje",
+      "sending": "Enviando…",
+      "successTitle": "¡Mensaje enviado!",
+      "successBody": "Gracias por escribirnos. Te respondemos lo antes posible.",
+      "sendAnother": "Enviar otro mensaje",
+      "errors": {
+        "name": "Cuéntanos tu nombre.",
+        "email": "Ese correo no parece válido.",
+        "message": "Escribe un mensaje un poco más largo.",
+        "unexpected": "Algo salió mal. Inténtalo de nuevo."
+      }
+    }
+  },
   "booking": {
     "pageTitle": "Reserva un tour — Los Chillangos",
     "pageDescription": "Elige fecha, dinos quiénes vienen y cerramos por WhatsApp.",

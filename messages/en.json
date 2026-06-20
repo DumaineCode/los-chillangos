@@ -202,6 +202,37 @@
     "address2": "Ciudad de México, 06700",
     "geoLabel": "19.43°N · 99.13°W"
   },
+  "contact": {
+    "eyebrow": "Let's talk",
+    "title": "Get in touch.",
+    "sub": "Tell us what you have in mind and we'll get back to you soon.",
+    "directTitle": "Or reach us directly",
+    "phoneLabel": "Phone",
+    "emailLabel": "Email",
+    "addressLabel": "Where we are",
+    "followLabel": "Follow us",
+    "form": {
+      "nameLabel": "Name",
+      "namePlaceholder": "Your name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "phoneLabel": "Phone (optional)",
+      "phonePlaceholder": "+1 718 555 0119",
+      "messageLabel": "Your message",
+      "messagePlaceholder": "Tell us what you need…",
+      "submit": "Send message",
+      "sending": "Sending…",
+      "successTitle": "Message sent!",
+      "successBody": "Thanks for reaching out. We'll reply as soon as we can.",
+      "sendAnother": "Send another message",
+      "errors": {
+        "name": "Tell us your name.",
+        "email": "That email doesn't look right.",
+        "message": "Please write a slightly longer message.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    }
+  },
   "booking": {
     "pageTitle": "Book a tour — Los Chillangos",
     "pageDescription": "Pick a date, tell us who's coming, and we'll finalize on WhatsApp.",

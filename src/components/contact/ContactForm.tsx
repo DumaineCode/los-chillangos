@@ -1,0 +1,183 @@
+'use client';
+
+import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+
+type Status = 'idle' | 'submitting' | 'success' | 'error';
+
+type FieldErrors = {
+  name?: boolean;
+  email?: boolean;
+  message?: boolean;
+};
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Public contact form (Client Component).
+ *
+ * Minimal by design — name, email, message + an optional phone. POSTs JSON to
+ * `/api/contact`, which stores a `contact-messages` row and emails the owner.
+ *
+ * Styling reuses the shared `.field` / `.btn` system from globals.css so it
+ * matches the booking flow visually. Validation is intentionally light on the
+ * client (the server re-validates with Zod authoritatively).
+ */
+export function ContactForm() {
+  const t = useTranslations('contact.form');
+  const locale = useLocale();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [message, setMessage] = useState('');
+  const [status, setStatus] = useState<Status>('idle');
+  const [errors, setErrors] = useState<FieldErrors>({});
+
+  function validate(): boolean {
+    const next: FieldErrors = {
+      name: name.trim().length < 2,
+      email: !EMAIL_RE.test(email.trim()),
+      message: message.trim().length < 10,
+    };
+    setErrors(next);
+    return !next.name && !next.email && !next.message;
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (status === 'submitting') return;
+    if (!validate()) return;
+
+    setStatus('submitting');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          message: message.trim(),
+          locale: locale === 'es' ? 'es' : 'en',
+        }),
+      });
+      if (!res.ok) {
+        setStatus('error');
+        return;
+      }
+      setStatus('success');
+      setName('');
+      setEmail('');
+      setPhone('');
+      setMessage('');
+      setErrors({});
+    } catch {
+      setStatus('error');
+    }
+  }
+
+  const errStyle: React.CSSProperties = {
+    color: 'var(--terra)',
+    fontSize: 12,
+    marginTop: 4,
+  };
+
+  if (status === 'success') {
+    return (
+      <div className="contact-form-success" role="status">
+        <p className="contact-success-title">{t('successTitle')}</p>
+        <p className="contact-success-body">{t('successBody')}</p>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() => setStatus('idle')}
+        >
+          {t('sendAnother')}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form className="contact-form" onSubmit={handleSubmit} noValidate>
+      <div className="field-grid">
+        <div className="field full">
+          <label htmlFor="contact-name">{t('nameLabel')}</label>
+          <input
+            id="contact-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t('namePlaceholder')}
+            autoComplete="name"
+          />
+          {errors.name ? (
+            <span role="alert" style={errStyle}>
+              {t('errors.name')}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="field">
+          <label htmlFor="contact-email">{t('emailLabel')}</label>
+          <input
+            id="contact-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t('emailPlaceholder')}
+            autoComplete="email"
+          />
+          {errors.email ? (
+            <span role="alert" style={errStyle}>
+              {t('errors.email')}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="field">
+          <label htmlFor="contact-phone">{t('phoneLabel')}</label>
+          <input
+            id="contact-phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder={t('phonePlaceholder')}
+            autoComplete="tel"
+          />
+        </div>
+
+        <div className="field full">
+          <label htmlFor="contact-message">{t('messageLabel')}</label>
+          <textarea
+            id="contact-message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder={t('messagePlaceholder')}
+            rows={5}
+          />
+          {errors.message ? (
+            <span role="alert" style={errStyle}>
+              {t('errors.message')}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      {status === 'error' ? (
+        <p role="alert" className="contact-form-error">
+          {t('errors.unexpected')}
+        </p>
+      ) : null}
+
+      <button
+        type="submit"
+        className="btn btn-primary btn-lg contact-submit"
+        disabled={status === 'submitting'}
+      >
+        {status === 'submitting' ? t('sending') : t('submit')}
+      </button>
+    </form>
+  );
+}
