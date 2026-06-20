@@ -117,9 +117,13 @@
   },
   "testimonial": {
     "eyebrow": "Notas de visitantes",
-    "quote": "La ruta en bici por Roma y Condesa fue lo mejor que hicimos en la ciudad. Nuestra guía Mariana hizo que se sintiera como pasear con una amiga de toda la vida.",
-    "name": "Hana K.",
-    "loc": "Brooklyn, NY · Mar 2026"
+    "items": [
+      {
+        "quote": "La ruta en bici por Roma y Condesa fue lo mejor que hicimos en la ciudad. Nuestra guía Mariana hizo que se sintiera como pasear con una amiga de toda la vida.",
+        "name": "Hana K.",
+        "loc": "Brooklyn, NY · Mar 2026"
+      }
+    ]
   },
   "faq": {
     "eyebrow": "Lo práctico",

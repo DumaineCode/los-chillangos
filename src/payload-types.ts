@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     tours: Tour;
     bookings: Booking;
+    'contact-messages': ContactMessage;
     users: User;
     media: Media;
     mediaVideo: MediaVideo;
@@ -81,6 +82,7 @@ export interface Config {
   collectionsSelect: {
     tours: ToursSelect<false> | ToursSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
+    'contact-messages': ContactMessagesSelect<false> | ContactMessagesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     mediaVideo: MediaVideoSelect<false> | MediaVideoSelect<true>;
@@ -490,6 +492,28 @@ export interface Booking {
   createdAt: string;
 }
 /**
+ * Messages sent through the contact form on the home page.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-messages".
+ */
+export interface ContactMessage {
+  id: number;
+  name: string;
+  email: string;
+  /**
+   * Optional — only present if the visitor left a number.
+   */
+  phone?: string | null;
+  message: string;
+  /**
+   * Mark messages as you handle them.
+   */
+  status: 'new' | 'read' | 'replied' | 'archived';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -546,6 +570,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'bookings';
         value: number | Booking;
+      } | null)
+    | ({
+        relationTo: 'contact-messages';
+        value: number | ContactMessage;
       } | null)
     | ({
         relationTo: 'users';
@@ -730,6 +758,19 @@ export interface BookingsSelect<T extends boolean = true> {
   stripePaymentIntentId?: T;
   paidAt?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-messages_select".
+ */
+export interface ContactMessagesSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  phone?: T;
+  message?: T;
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -983,19 +1024,27 @@ export interface Landing {
      * Small label, e.g. "Notes from guests".
      */
     eyebrow?: string | null;
-    quote?: string | null;
     /**
-     * Guest name, e.g. "Hana K.".
+     * Each entry is a full testimonial shown in the slider. The layout stays identical across slides.
      */
-    name?: string | null;
-    /**
-     * Location / date line, e.g. "Brooklyn, NY · Mar 2026".
-     */
-    loc?: string | null;
-    /**
-     * Guest photo. If empty, a placeholder circle is shown.
-     */
-    avatar?: (number | null) | Media;
+    items?:
+      | {
+          quote?: string | null;
+          /**
+           * Guest name, e.g. "Hana K.".
+           */
+          name?: string | null;
+          /**
+           * Location / date line, e.g. "Brooklyn, NY · Mar 2026".
+           */
+          loc?: string | null;
+          /**
+           * Guest photo. If empty, a placeholder circle is shown.
+           */
+          avatar?: (number | null) | Media;
+          id?: string | null;
+        }[]
+      | null;
   };
   services?: {
     /**
@@ -1414,19 +1463,27 @@ export interface Testimonial {
    * Small label, e.g. "Notes from guests".
    */
   eyebrow?: string | null;
-  quote?: string | null;
   /**
-   * Guest name, e.g. "Hana K.".
+   * Each entry is a full testimonial shown in the slider.
    */
-  name?: string | null;
-  /**
-   * Location / date line, e.g. "Brooklyn, NY · Mar 2026".
-   */
-  loc?: string | null;
-  /**
-   * Guest photo. If empty, a placeholder circle is shown.
-   */
-  avatar?: (number | null) | Media;
+  items?:
+    | {
+        quote?: string | null;
+        /**
+         * Guest name, e.g. "Hana K.".
+         */
+        name?: string | null;
+        /**
+         * Location / date line, e.g. "Brooklyn, NY · Mar 2026".
+         */
+        loc?: string | null;
+        /**
+         * Guest photo. If empty, a placeholder circle is shown.
+         */
+        avatar?: (number | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1605,10 +1662,15 @@ export interface LandingSelect<T extends boolean = true> {
     | T
     | {
         eyebrow?: T;
-        quote?: T;
-        name?: T;
-        loc?: T;
-        avatar?: T;
+        items?:
+          | T
+          | {
+              quote?: T;
+              name?: T;
+              loc?: T;
+              avatar?: T;
+              id?: T;
+            };
       };
   services?:
     | T
@@ -1855,10 +1917,15 @@ export interface AboutSelect<T extends boolean = true> {
  */
 export interface TestimonialSelect<T extends boolean = true> {
   eyebrow?: T;
-  quote?: T;
-  name?: T;
-  loc?: T;
-  avatar?: T;
+  items?:
+    | T
+    | {
+        quote?: T;
+        name?: T;
+        loc?: T;
+        avatar?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

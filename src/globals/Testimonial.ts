@@ -28,26 +28,33 @@ export const Testimonial: GlobalConfig = {
       admin: { description: 'Small label, e.g. "Notes from guests".' },
     },
     {
-      name: 'quote',
-      type: 'textarea',
-      localized: true,
-    },
-    {
-      name: 'name',
-      type: 'text',
-      admin: { description: 'Guest name, e.g. "Hana K.".' },
-    },
-    {
-      name: 'loc',
-      type: 'text',
-      localized: true,
-      admin: { description: 'Location / date line, e.g. "Brooklyn, NY · Mar 2026".' },
-    },
-    {
-      name: 'avatar',
-      type: 'upload',
-      relationTo: 'media',
-      admin: { description: 'Guest photo. If empty, a placeholder circle is shown.' },
+      name: 'items',
+      type: 'array',
+      admin: { description: 'Each entry is a full testimonial shown in the slider.' },
+      fields: [
+        {
+          name: 'quote',
+          type: 'textarea',
+          localized: true,
+        },
+        {
+          name: 'name',
+          type: 'text',
+          admin: { description: 'Guest name, e.g. "Hana K.".' },
+        },
+        {
+          name: 'loc',
+          type: 'text',
+          localized: true,
+          admin: { description: 'Location / date line, e.g. "Brooklyn, NY · Mar 2026".' },
+        },
+        {
+          name: 'avatar',
+          type: 'upload',
+          relationTo: 'media',
+          admin: { description: 'Guest photo. If empty, a placeholder circle is shown.' },
+        },
+      ],
     },
   ],
 };

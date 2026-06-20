@@ -174,9 +174,7 @@ interface Messages {
   };
   testimonial: {
     eyebrow: string;
-    quote: string;
-    name: string;
-    loc: string;
+    items: Array<{ quote: string; name: string; loc: string }>;
   };
   faq: {
     eyebrow: string;
@@ -608,15 +606,17 @@ async function seedContentGlobals(
   console.log('[seed] global "about" upserted (en + es).');
 
   // --- Testimonial ---
-  // `name` is non-localized; set it on en (applies to both). Others localized.
-  await payload.updateGlobal({
+  // `name` is non-localized; set it on en (applies to both). quote/loc localized.
+  const testimonialEn = await payload.updateGlobal({
     slug: 'testimonial',
     locale: 'en',
     data: {
       eyebrow: msgEn.testimonial.eyebrow,
-      quote: msgEn.testimonial.quote,
-      name: msgEn.testimonial.name,
-      loc: msgEn.testimonial.loc,
+      items: msgEn.testimonial.items.map((it) => ({
+        quote: it.quote,
+        name: it.name,
+        loc: it.loc,
+      })),
     },
   });
   await payload.updateGlobal({
@@ -624,8 +624,11 @@ async function seedContentGlobals(
     locale: 'es',
     data: {
       eyebrow: msgEs.testimonial.eyebrow,
-      quote: msgEs.testimonial.quote,
-      loc: msgEs.testimonial.loc,
+      items: (testimonialEn.items ?? []).map((it, i) => ({
+        id: it.id,
+        quote: msgEs.testimonial.items[i]?.quote,
+        loc: msgEs.testimonial.items[i]?.loc,
+      })),
     },
   });
   console.log('[seed] global "testimonial" upserted (en + es).');

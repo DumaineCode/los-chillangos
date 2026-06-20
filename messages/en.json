@@ -117,9 +117,13 @@
   },
   "testimonial": {
     "eyebrow": "Notes from guests",
-    "quote": "The bike route through Roma and Condesa was the single best thing we did in the city. Our guide Mariana made it feel like we were riding with a friend who'd lived here forever.",
-    "name": "Hana K.",
-    "loc": "Brooklyn, NY · Mar 2026"
+    "items": [
+      {
+        "quote": "The bike route through Roma and Condesa was the single best thing we did in the city. Our guide Mariana made it feel like we were riding with a friend who'd lived here forever.",
+        "name": "Hana K.",
+        "loc": "Brooklyn, NY · Mar 2026"
+      }
+    ]
   },
   "faq": {
     "eyebrow": "Practical",

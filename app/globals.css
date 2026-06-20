@@ -1227,6 +1227,41 @@ body:has(.hero-cine) { padding-top: 0; }
   color: var(--ink-muted);
 }
 
+/* Slider — keeps each slide's layout identical, only adds horizontal paging. */
+.testimonial-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.testimonial-track::-webkit-scrollbar {
+  display: none;
+}
+.testimonial-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  scroll-snap-align: center;
+}
+.testimonial-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 32px;
+}
+.testimonial-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-muted);
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+}
+.testimonial-dot:hover {
+  opacity: 0.7;
+}
+
 /* === Team === */
 .team {
   display: grid;

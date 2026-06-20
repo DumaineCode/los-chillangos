@@ -426,45 +426,58 @@ export const Landing: GlobalConfig = {
               },
             },
             {
-              name: 'quote',
-              type: 'textarea',
-              localized: true,
-              label: { en: 'Quote', es: 'Cita' },
-            },
-            {
-              name: 'name',
-              type: 'text',
-              label: { en: 'Guest name', es: 'Nombre del viajero' },
+              name: 'items',
+              type: 'array',
+              label: { en: 'Testimonials', es: 'Testimonios' },
               admin: {
                 description: {
-                  en: 'Guest name, e.g. "Hana K.".',
-                  es: 'Nombre del viajero, ej.: "Hana K.".',
+                  en: 'Each entry is a full testimonial shown in the slider. The layout stays identical across slides.',
+                  es: 'Cada entrada es un testimonio completo que se muestra en el slider. El diseño es idéntico en todos.',
                 },
               },
-            },
-            {
-              name: 'loc',
-              type: 'text',
-              localized: true,
-              label: { en: 'Location / date', es: 'Lugar / fecha' },
-              admin: {
-                description: {
-                  en: 'Location / date line, e.g. "Brooklyn, NY · Mar 2026".',
-                  es: 'Línea de lugar y fecha, ej.: "Brooklyn, NY · Mar 2026".',
+              fields: [
+                {
+                  name: 'quote',
+                  type: 'textarea',
+                  localized: true,
+                  label: { en: 'Quote', es: 'Cita' },
                 },
-              },
-            },
-            {
-              name: 'avatar',
-              type: 'upload',
-              relationTo: 'media',
-              label: { en: 'Photo', es: 'Foto' },
-              admin: {
-                description: {
-                  en: 'Guest photo. If empty, a placeholder circle is shown.',
-                  es: 'Foto del viajero. Si está vacía, se muestra un círculo de marcador.',
+                {
+                  name: 'name',
+                  type: 'text',
+                  label: { en: 'Guest name', es: 'Nombre del viajero' },
+                  admin: {
+                    description: {
+                      en: 'Guest name, e.g. "Hana K.".',
+                      es: 'Nombre del viajero, ej.: "Hana K.".',
+                    },
+                  },
                 },
-              },
+                {
+                  name: 'loc',
+                  type: 'text',
+                  localized: true,
+                  label: { en: 'Location / date', es: 'Lugar / fecha' },
+                  admin: {
+                    description: {
+                      en: 'Location / date line, e.g. "Brooklyn, NY · Mar 2026".',
+                      es: 'Línea de lugar y fecha, ej.: "Brooklyn, NY · Mar 2026".',
+                    },
+                  },
+                },
+                {
+                  name: 'avatar',
+                  type: 'upload',
+                  relationTo: 'media',
+                  label: { en: 'Photo', es: 'Foto' },
+                  admin: {
+                    description: {
+                      en: 'Guest photo. If empty, a placeholder circle is shown.',
+                      es: 'Foto del viajero. Si está vacía, se muestra un círculo de marcador.',
+                    },
+                  },
+                },
+              ],
             },
           ],
         },

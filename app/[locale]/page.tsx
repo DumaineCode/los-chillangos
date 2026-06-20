@@ -135,7 +135,12 @@ export default async function HomePage({ params }: Props) {
   const heroCtaGhost = hero?.ctaGhost ?? '';
 
   const aboutImageUrl = resolveMediaUrl(about?.image);
-  const testimonialAvatarUrl = resolveMediaUrl(testimonial?.avatar);
+  const testimonialItems = (testimonial?.items ?? []).map((item) => ({
+    quote: item.quote,
+    name: item.name,
+    loc: item.loc,
+    avatarUrl: resolveMediaUrl(item.avatar),
+  }));
 
   const teamMembers = (team?.items ?? []).map((m) => ({
     name: m.name,
@@ -337,29 +342,54 @@ export default async function HomePage({ params }: Props) {
           <div className="eyebrow" style={{ marginBottom: 32 }}>
             {testimonial?.eyebrow}
           </div>
-          <p className="testimonial">{testimonial?.quote}</p>
-          <div className="testimonial-meta" style={{ justifyContent: 'center' }}>
-            {testimonialAvatarUrl ? (
-              <div
-                className="testimonial-avatar"
-                style={{ position: 'relative', overflow: 'hidden' }}
-              >
-                <Image
-                  src={testimonialAvatarUrl}
-                  alt={testimonial?.name || 'Guest'}
-                  fill
-                  sizes="64px"
-                  style={{ objectFit: 'cover' }}
-                />
+          {testimonialItems.length > 0 ? (
+            <div className="testimonial-slider">
+              <div className="testimonial-track">
+                {testimonialItems.map((item, i) => (
+                  <article
+                    key={i}
+                    id={`testimonial-${i}`}
+                    className="testimonial-slide"
+                  >
+                    <p className="testimonial">{item.quote}</p>
+                    <div className="testimonial-meta" style={{ justifyContent: 'center' }}>
+                      {item.avatarUrl ? (
+                        <div
+                          className="testimonial-avatar"
+                          style={{ position: 'relative', overflow: 'hidden' }}
+                        >
+                          <Image
+                            src={item.avatarUrl}
+                            alt={item.name || 'Guest'}
+                            fill
+                            sizes="64px"
+                            style={{ objectFit: 'cover' }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="testimonial-avatar placeholder" data-label=""></div>
+                      )}
+                      <div>
+                        <div className="testimonial-name">{item.name}</div>
+                        <div className="testimonial-loc">{item.loc}</div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
               </div>
-            ) : (
-              <div className="testimonial-avatar placeholder" data-label=""></div>
-            )}
-            <div>
-              <div className="testimonial-name">{testimonial?.name}</div>
-              <div className="testimonial-loc">{testimonial?.loc}</div>
+              {testimonialItems.length > 1 ? (
+                <div className="testimonial-dots" aria-hidden="true">
+                  {testimonialItems.map((_, i) => (
+                    <a
+                      key={i}
+                      href={`#testimonial-${i}`}
+                      className="testimonial-dot"
+                    />
+                  ))}
+                </div>
+              ) : null}
             </div>
-          </div>
+          ) : null}
         </div>
       </section>
 
