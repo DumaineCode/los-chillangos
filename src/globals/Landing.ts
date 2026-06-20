@@ -66,12 +66,10 @@ export const Landing: GlobalConfig = {
           name: 'hero',
           label: { en: 'Hero', es: 'Portada' },
           fields: [
-            {
-              name: 'eyebrow',
-              type: 'text',
-              localized: true,
-              label: { en: 'Eyebrow', es: 'Antetítulo' },
-            },
+            // Title is split across four words because `h1c` renders inside
+            // <em> on the public hero (brand-color highlight). The 4-word split
+            // is deliberate: each word is its own line/break-point in the
+            // cinematic layout. Keep all four even if some are empty.
             {
               name: 'h1a',
               type: 'text',
@@ -88,7 +86,13 @@ export const Landing: GlobalConfig = {
               name: 'h1c',
               type: 'text',
               localized: true,
-              label: { en: 'Headline word 3', es: 'Título — palabra 3' },
+              label: { en: 'Headline word 3 (highlighted)', es: 'Título — palabra 3 (resaltada)' },
+              admin: {
+                description: {
+                  en: 'This word renders in the brand accent color.',
+                  es: 'Esta palabra se muestra en el color de marca.',
+                },
+              },
             },
             {
               name: 'h1d',
@@ -96,24 +100,48 @@ export const Landing: GlobalConfig = {
               localized: true,
               label: { en: 'Headline word 4', es: 'Título — palabra 4' },
             },
-            {
-              name: 'lede',
-              type: 'textarea',
-              localized: true,
-              label: { en: 'Lede', es: 'Texto de entrada' },
-            },
+            // ── Primary button (label + link) ────────────────────────────
             {
               name: 'ctaPrimary',
               type: 'text',
               localized: true,
-              label: { en: 'Primary button', es: 'Botón principal' },
+              label: { en: 'Primary button — label', es: 'Botón principal — texto' },
             },
+            {
+              // Destination is NOT localized: the same target works for both
+              // languages (anchors stay #anchor, /book → /es/book via
+              // next-intl's localized Link).
+              name: 'ctaPrimaryHref',
+              type: 'text',
+              defaultValue: '#tours',
+              label: { en: 'Primary button — link', es: 'Botón principal — destino' },
+              admin: {
+                description: {
+                  en: 'Where the primary button takes the visitor. Examples: "#tours" (section on the home page), "/book" (another page on your site), "https://wa.me/52...".',
+                  es: 'A dónde lleva el botón principal. Ejemplos: "#tours" (una sección de la página de inicio), "/book" (otra página de tu sitio), "https://wa.me/52...".',
+                },
+              },
+            },
+            // ── Secondary button (label + link) ──────────────────────────
             {
               name: 'ctaGhost',
               type: 'text',
               localized: true,
-              label: { en: 'Secondary button', es: 'Botón secundario' },
+              label: { en: 'Secondary button — label', es: 'Botón secundario — texto' },
             },
+            {
+              name: 'ctaGhostHref',
+              type: 'text',
+              defaultValue: '#about',
+              label: { en: 'Secondary button — link', es: 'Botón secundario — destino' },
+              admin: {
+                description: {
+                  en: 'Where the secondary button takes the visitor. Examples: "#about", "/services", "mailto:hola@…".',
+                  es: 'A dónde lleva el botón secundario. Ejemplos: "#about", "/services", "mailto:hola@…".',
+                },
+              },
+            },
+            // ── Background media ─────────────────────────────────────────
             {
               // Structural (NOT localized): chooses the hero background medium.
               name: 'mediaType',
@@ -165,96 +193,6 @@ export const Landing: GlobalConfig = {
                   es: 'Póster: imagen inicial y para móvil o con menos movimiento. Muy recomendable.',
                 },
               },
-            },
-            {
-              name: 'live',
-              type: 'text',
-              localized: true,
-              label: { en: 'Live status line', es: 'Línea de estado "en vivo"' },
-              admin: {
-                description: {
-                  en: 'Top status line, e.g. "Live · CDMX · 19.43°N 99.13°W".',
-                  es: 'Línea de estado de arriba, ej.: "Live · CDMX · 19.43°N 99.13°W".',
-                },
-              },
-            },
-            {
-              name: 'estLabel',
-              type: 'text',
-              localized: true,
-              label: { en: 'Est. label', es: 'Etiqueta "Est."' },
-              admin: {
-                description: {
-                  en: 'Small label next to the neighborhoods, e.g. "Est. 2024".',
-                  es: 'Etiqueta pequeña junto a los barrios, ej.: "Est. 2024".',
-                },
-              },
-            },
-            {
-              name: 'neighborhoods',
-              type: 'text',
-              localized: true,
-              label: { en: 'Neighborhoods', es: 'Barrios' },
-              admin: {
-                description: {
-                  en: 'Neighborhoods line, e.g. "Roma · Condesa · Coyoacán · Centro".',
-                  es: 'Línea de barrios, ej.: "Roma · Condesa · Coyoacán · Centro".',
-                },
-              },
-            },
-            {
-              name: 'scroll',
-              type: 'text',
-              localized: true,
-              label: { en: 'Scroll hint', es: 'Indicación de desplazamiento' },
-              admin: {
-                description: {
-                  en: 'Scroll hint at the bottom of the hero, e.g. "Scroll".',
-                  es: 'Indicación para desplazarse, al pie de la portada, ej.: "Scroll".',
-                },
-              },
-            },
-            {
-              name: 'stats',
-              type: 'array',
-              labels: {
-                singular: { en: 'Stat', es: 'Dato' },
-                plural: { en: 'Stats', es: 'Datos' },
-              },
-              maxRows: 4,
-              admin: {
-                description: {
-                  en: 'The four stat blocks shown under the hero lede.',
-                  es: 'Los cuatro bloques de datos que se muestran bajo el texto de entrada.',
-                },
-              },
-              fields: [
-                {
-                  name: 'num',
-                  type: 'text',
-                  required: true,
-                  label: { en: 'Number', es: 'Número' },
-                  admin: {
-                    description: {
-                      en: 'Big number, e.g. "12" or "3–4h".',
-                      es: 'Número grande, ej.: "12" o "3–4h".',
-                    },
-                  },
-                },
-                {
-                  name: 'label',
-                  type: 'textarea',
-                  required: true,
-                  localized: true,
-                  label: { en: 'Caption', es: 'Leyenda' },
-                  admin: {
-                    description: {
-                      en: 'Caption under the number. Line breaks are kept.',
-                      es: 'Leyenda debajo del número. Se respetan los saltos de línea.',
-                    },
-                  },
-                },
-              ],
             },
           ],
         },
@@ -386,13 +324,34 @@ export const Landing: GlobalConfig = {
               name: 'image',
               type: 'upload',
               relationTo: 'media',
-              label: { en: 'Image', es: 'Imagen' },
+              label: { en: 'Image (fallback)', es: 'Imagen (alternativa)' },
               admin: {
                 description: {
-                  en: 'Photo for the section. If empty, a placeholder is shown.',
-                  es: 'Foto de la sección. Si está vacía, se muestra un marcador de posición.',
+                  en: 'Single photo, used only when the gallery below is empty. If both are empty, a placeholder is shown.',
+                  es: 'Foto única, se usa solo cuando la galería de abajo está vacía. Si ambas están vacías, se muestra un marcador de posición.',
                 },
               },
+            },
+            {
+              name: 'images',
+              type: 'array',
+              label: { en: 'Image gallery (slider)', es: 'Galería de imágenes (slider)' },
+              maxRows: 8,
+              admin: {
+                description: {
+                  en: 'Upload one or more photos. With two or more, they auto-rotate as a slider in the same image frame (no design change). Swipe or drag also works.',
+                  es: 'Subí una o más fotos. Con dos o más, rotan solas como slider en el mismo marco de imagen (sin cambiar el diseño). También se puede deslizar o arrastrar.',
+                },
+              },
+              fields: [
+                {
+                  name: 'image',
+                  type: 'upload',
+                  relationTo: 'media',
+                  required: true,
+                  label: { en: 'Photo', es: 'Foto' },
+                },
+              ],
             },
             {
               name: 'imageLabel',

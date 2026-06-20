@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { draftMode } from 'next/headers';
 import Image from 'next/image';
+import type { ReactNode } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Link } from '../../i18n/navigation';
 import { type Locale } from '../../i18n/routing';
+import { AboutSlider } from '../../src/components/AboutSlider';
 import { CatalogFilter } from '../../src/components/CatalogFilter';
 import { FAQList } from '../../src/components/FAQ';
 import { RefreshRouteOnSave } from '../../src/components/RefreshRouteOnSave';
@@ -38,14 +40,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const hero = landing?.hero;
   const title = [hero?.h1a, hero?.h1b, hero?.h1c, hero?.h1d].filter(Boolean).join(' ').trim();
-  const description = hero?.lede ?? undefined;
 
   return {
     title: title || 'Los Chillangos',
-    description,
     openGraph: {
       title: title || 'Los Chillangos',
-      description,
       type: 'website',
       locale,
     },
@@ -105,7 +104,6 @@ export default async function HomePage({ params }: Props) {
   const valuesItems = (values?.items ?? []).map((v) => ({ t: v.title, d: v.description }));
   const servicesItems = (services?.items ?? []).map((s) => ({ t: s.title, d: s.description }));
   const faqItems = (faq?.items ?? []).map((f) => ({ q: f.question, a: f.answer }));
-  const heroStats = hero?.stats ?? [];
   const marqueeText = marquee?.text ?? '';
   const seasonalEyebrow = landing?.seasonal?.eyebrow ?? '';
 
@@ -129,12 +127,18 @@ export default async function HomePage({ params }: Props) {
   const heroImageUrl = resolveMediaUrl(hero?.heroImage);
   const heroVideoUrl = resolveMediaUrl(hero?.heroVideo);
   const showHeroVideo = hero?.mediaType === 'video' && heroVideoUrl !== null;
-  const heroEyebrow = hero?.eyebrow ?? '';
-  const heroLede = hero?.lede ?? '';
   const heroCtaPrimary = hero?.ctaPrimary ?? '';
   const heroCtaGhost = hero?.ctaGhost ?? '';
+  // CTA destinations are editable per global. Defaults preserve the original
+  // anchors so existing rows that pre-date the field render exactly as before.
+  const heroCtaPrimaryHref = hero?.ctaPrimaryHref?.trim() || '#tours';
+  const heroCtaGhostHref = hero?.ctaGhostHref?.trim() || '#about';
 
-  const aboutImageUrl = resolveMediaUrl(about?.image);
+  // Gallery first (slider), single `image` as fallback for legacy content.
+  const aboutGalleryUrls = (about?.images ?? [])
+    .map((entry) => resolveMediaUrl(entry.image))
+    .filter((url): url is string => url !== null);
+  const aboutImageUrl = aboutGalleryUrls[0] ?? resolveMediaUrl(about?.image);
   const testimonialItems = (testimonial?.items ?? []).map((item) => ({
     quote: item.quote,
     name: item.name,
@@ -171,7 +175,7 @@ export default async function HomePage({ params }: Props) {
             <Image
               className="hero-cine-img"
               src={heroImageUrl}
-              alt={heroEyebrow || 'Los Chillangos'}
+              alt="Los Chillangos"
               fill
               priority
               sizes="100vw"
@@ -191,26 +195,7 @@ export default async function HomePage({ params }: Props) {
           )}
         </div>
         <div className="container hero-cine-inner">
-          <div className="hero-cine-top fade-in" style={{ animationDelay: '0.1s' }}>
-            <span>
-              <span className="dot"></span>
-              {hero?.live}
-            </span>
-            <span style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-              <span>{hero?.estLabel}</span>
-              <span style={{ color: 'rgba(255,243,214,0.4)' }}>/</span>
-              <span>{hero?.neighborhoods}</span>
-            </span>
-          </div>
-
           <div className="hero-cine-mid">
-            <div
-              className="hero-cine-eyebrow fade-in"
-              style={{ animationDelay: '0.25s' }}
-              data-testid="hero-eyebrow"
-            >
-              {heroEyebrow}
-            </div>
             <h1 className="hero-cine-headline">
               {hero?.h1a} {hero?.h1b}
               <br />
@@ -220,32 +205,15 @@ export default async function HomePage({ params }: Props) {
           </div>
 
           <div className="hero-cine-bot">
-            <p className="hero-cine-lede fade-in" style={{ animationDelay: '1.1s' }}>
-              {heroLede}
-            </p>
-            <div className="hero-cine-stats fade-in" style={{ animationDelay: '1.25s' }}>
-              {heroStats.map((stat, i) => (
-                <div className="hero-cine-stat" key={stat.id ?? i}>
-                  <span className="num">{stat.num}</span>
-                  <span className="lbl" style={{ whiteSpace: 'pre-line' }}>
-                    {stat.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="hero-cine-ctas fade-in" style={{ animationDelay: '1.4s' }}>
-              <Link href="#tours" className="btn btn-primary btn-lg">
+            <div className="hero-cine-ctas fade-in" style={{ animationDelay: '0.4s' }}>
+              <HeroCta href={heroCtaPrimaryHref} className="btn btn-primary btn-lg">
                 {heroCtaPrimary} →
-              </Link>
-              <Link href="#about" className="btn btn-ghost btn-lg">
+              </HeroCta>
+              <HeroCta href={heroCtaGhostHref} className="btn btn-ghost btn-lg">
                 {heroCtaGhost}
-              </Link>
+              </HeroCta>
             </div>
           </div>
-        </div>
-        <div className="hero-cine-scroll">
-          <span>{hero?.scroll}</span>
-          <span className="hero-cine-scroll-line"></span>
         </div>
       </section>
 
@@ -305,7 +273,12 @@ export default async function HomePage({ params }: Props) {
       <section className="section" id="about" style={{ background: 'var(--bg-warm)' }}>
         <div className="container">
           <div className="editorial">
-            {aboutImageUrl ? (
+            {aboutGalleryUrls.length > 1 ? (
+              <AboutSlider
+                images={aboutGalleryUrls}
+                alt={about?.imageLabel || about?.title || 'Los Chillangos'}
+              />
+            ) : aboutImageUrl ? (
               <div className="editorial-img" style={{ position: 'relative', overflow: 'hidden' }}>
                 <Image
                   src={aboutImageUrl}
@@ -480,4 +453,42 @@ export default async function HomePage({ params }: Props) {
 function resolveMediaUrl(value: number | Media | MediaVideo | null | undefined): string | null {
   if (!value || typeof value === 'number') return null;
   return value.url ?? null;
+}
+
+/**
+ * Hero CTA link that adapts to the destination:
+ *   - Internal app routes (starting with `/`, e.g. "/book")    → next-intl
+ *     `<Link>` so the active locale prefix is applied.
+ *   - Anchors (`#tours`), absolute URLs (`https://…`,
+ *     `mailto:`, `tel:`)                                       → plain `<a>`
+ *     because next-intl `<Link>` would localize them incorrectly.
+ * External URLs also get `target="_blank"` + `rel="noopener"`.
+ */
+function HeroCta({
+  href,
+  className,
+  children,
+}: {
+  href: string;
+  className: string;
+  children: ReactNode;
+}) {
+  const isInternalRoute = href.startsWith('/') && !href.startsWith('//');
+  if (isInternalRoute) {
+    return (
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    );
+  }
+  const isExternal = /^https?:\/\//i.test(href);
+  return (
+    <a
+      href={href}
+      className={className}
+      {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+    >
+      {children}
+    </a>
+  );
 }

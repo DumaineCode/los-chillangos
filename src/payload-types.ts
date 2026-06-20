@@ -914,14 +914,23 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface Landing {
   id: number;
   hero?: {
-    eyebrow?: string | null;
     h1a?: string | null;
     h1b?: string | null;
+    /**
+     * This word renders in the brand accent color.
+     */
     h1c?: string | null;
     h1d?: string | null;
-    lede?: string | null;
     ctaPrimary?: string | null;
+    /**
+     * Where the primary button takes the visitor. Examples: "#tours" (section on the home page), "/book" (another page on your site), "https://wa.me/52...".
+     */
+    ctaPrimaryHref?: string | null;
     ctaGhost?: string | null;
+    /**
+     * Where the secondary button takes the visitor. Examples: "#about", "/services", "mailto:hola@…".
+     */
+    ctaGhostHref?: string | null;
     /**
      * Choose the hero background medium.
      */
@@ -935,38 +944,6 @@ export interface Landing {
      * Poster: first paint (LCP) + mobile/reduced-motion still. Strongly recommended.
      */
     posterImage?: (number | null) | Media;
-    /**
-     * Top status line, e.g. "Live · CDMX · 19.43°N 99.13°W".
-     */
-    live?: string | null;
-    /**
-     * Small label next to the neighborhoods, e.g. "Est. 2024".
-     */
-    estLabel?: string | null;
-    /**
-     * Neighborhoods line, e.g. "Roma · Condesa · Coyoacán · Centro".
-     */
-    neighborhoods?: string | null;
-    /**
-     * Scroll hint at the bottom of the hero, e.g. "Scroll".
-     */
-    scroll?: string | null;
-    /**
-     * The four stat blocks shown under the hero lede.
-     */
-    stats?:
-      | {
-          /**
-           * Big number, e.g. "12" or "3–4h".
-           */
-          num: string;
-          /**
-           * Caption under the number. Line breaks are kept.
-           */
-          label: string;
-          id?: string | null;
-        }[]
-      | null;
   };
   marquee?: {
     /**
@@ -1011,9 +988,18 @@ export interface Landing {
      */
     meetCta?: string | null;
     /**
-     * Photo for the section. If empty, a placeholder is shown.
+     * Single photo, used only when the gallery below is empty. If both are empty, a placeholder is shown.
      */
     image?: (number | null) | Media;
+    /**
+     * Upload one or more photos. With two or more, they auto-rotate as a slider in the same image frame (no design change). Swipe or drag also works.
+     */
+    images?:
+      | {
+          image: number | Media;
+          id?: string | null;
+        }[]
+      | null;
     /**
      * Caption shown over the placeholder when no image is uploaded.
      */
@@ -1604,29 +1590,18 @@ export interface LandingSelect<T extends boolean = true> {
   hero?:
     | T
     | {
-        eyebrow?: T;
         h1a?: T;
         h1b?: T;
         h1c?: T;
         h1d?: T;
-        lede?: T;
         ctaPrimary?: T;
+        ctaPrimaryHref?: T;
         ctaGhost?: T;
+        ctaGhostHref?: T;
         mediaType?: T;
         heroImage?: T;
         heroVideo?: T;
         posterImage?: T;
-        live?: T;
-        estLabel?: T;
-        neighborhoods?: T;
-        scroll?: T;
-        stats?:
-          | T
-          | {
-              num?: T;
-              label?: T;
-              id?: T;
-            };
       };
   marquee?:
     | T
@@ -1656,6 +1631,12 @@ export interface LandingSelect<T extends boolean = true> {
         p2?: T;
         meetCta?: T;
         image?: T;
+        images?:
+          | T
+          | {
+              image?: T;
+              id?: T;
+            };
         imageLabel?: T;
       };
   testimonial?:
