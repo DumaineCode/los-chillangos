@@ -172,6 +172,8 @@
     "sectionAbout": "Sobre este tour",
     "sectionItin": "Tu tarde",
     "sectionIncl": "Qué incluye",
+    "sectionExtras": "Extras opcionales",
+    "extraInfoAria": "Más información sobre {name}",
     "sectionMeet": "Punto de encuentro",
     "sectionRoute": "Ruta",
     "openInMaps": "Abrir en Google Maps",

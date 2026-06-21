@@ -10,6 +10,7 @@ import { RefreshRouteOnSave } from '../../../../src/components/RefreshRouteOnSav
 import { TourMap } from '../../../../src/components/TourMap';
 import { RouteMap } from '../../../../src/components/maps/RouteMap';
 import { SeasonalTourLayout } from '../../../../src/components/seasonal/SeasonalTourLayout';
+import { Tooltip } from '../../../../src/components/ui/Tooltip';
 import { resolveMediaImage } from '../../../../src/lib/media';
 import { getPayload } from '../../../../src/lib/payload';
 import { shouldRenderSeasonal } from '../../../../src/lib/seasonal/shouldRenderSeasonal';
@@ -113,6 +114,15 @@ export default async function TourDetailPage({ params }: Props) {
     .map((w) => ({ lat: w.lat, lng: w.lng, label: w.label ?? null }));
   const hasRoute = routeWaypoints.length >= 2;
 
+  // Active extras assigned to this tour (resolved at depth:2). Unresolved
+  // numeric relationship IDs and inactive extras are filtered out.
+  const tourExtras = (tour.extras ?? [])
+    .filter(
+      (e): e is Extract<NonNullable<Tour['extras']>[number], { id: number }> =>
+        typeof e === 'object' && e !== null
+    )
+    .filter((e) => e.active !== false);
+
   return (
     <div>
       {isDraft ? <RefreshRouteOnSave /> : null}
@@ -192,6 +202,28 @@ export default async function TourDetailPage({ params }: Props) {
                     <div className="include-row" key={i}>
                       <span className="include-icon">✓</span>
                       <span>{inc.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+            {tourExtras.length > 0 ? (
+              <section>
+                <h3>{t('sectionExtras')}</h3>
+                <div className="includes">
+                  {tourExtras.map((extra) => (
+                    <div
+                      className="include-row"
+                      key={extra.id}
+                      style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                    >
+                      <span>{extra.name}</span>
+                      {extra.disclaimer ? (
+                        <Tooltip
+                          content={extra.disclaimer}
+                          label={t('extraInfoAria', { name: extra.name })}
+                        />
+                      ) : null}
                     </div>
                   ))}
                 </div>

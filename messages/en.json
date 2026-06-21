@@ -172,6 +172,8 @@
     "sectionAbout": "About this ride",
     "sectionItin": "Your afternoon",
     "sectionIncl": "What's included",
+    "sectionExtras": "Optional extras",
+    "extraInfoAria": "More information about {name}",
     "sectionMeet": "Meeting point",
     "sectionRoute": "Route",
     "openInMaps": "Open in Google Maps",
