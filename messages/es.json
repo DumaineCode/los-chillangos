@@ -262,7 +262,6 @@
     "steps": {
       "date": {
         "title": "Elige la fecha",
-        "lede": "Los lunes descansamos. Elige cualquier otro día desde hoy.",
         "timeTitle": "Elige la hora"
       },
       "people": {

@@ -119,7 +119,6 @@ export function StepDate({
   return (
     <div data-testid="booking-step-1">
       <h2>{t('title')}</h2>
-      <p className="lede">{t('lede')}</p>
 
       {isTourPaused ? (
         <p

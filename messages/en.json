@@ -262,7 +262,6 @@
     "steps": {
       "date": {
         "title": "Pick a date",
-        "lede": "Mondays we rest. Pick any other day from here forward.",
         "timeTitle": "Pick a time"
       },
       "people": {
