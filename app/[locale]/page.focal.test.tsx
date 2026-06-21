@@ -80,6 +80,7 @@ function media(focalX: number | null, focalY: number | null, url = '/media/x.jpg
 
 type LandingOpts = {
   heroImage?: unknown;
+  heroVideo?: unknown;
   mediaType?: string;
   testimonialItems?: unknown[];
   teamItems?: unknown[];
@@ -94,6 +95,7 @@ function buildLanding(opts: LandingOpts) {
       h1d: ' CDMX',
       mediaType: opts.mediaType ?? 'image',
       heroImage: opts.heroImage ?? null,
+      heroVideo: opts.heroVideo ?? null,
     },
     marquee: { text: 'marquee' },
     values: { eyebrow: 'V', title: 'V', sub: '', items: [] },
@@ -180,5 +182,30 @@ describe('HomePage — image focal points (FR-12)', () => {
     });
 
     expect(container.querySelector('.team-photo img')).toHaveStyle({ objectPosition: '50% 50%' });
+  });
+});
+
+describe('HomePage — hero video focal point (FR-14)', () => {
+  it('frames the hero video by its own focal point', async () => {
+    const { container } = await renderHome({
+      mediaType: 'video',
+      heroVideo: media(40, 60, '/media/hero.mp4'),
+    });
+
+    const video = container.querySelector('video.hero-cine-video');
+    expect(video).not.toBeNull();
+    expect(video).toHaveStyle({ objectPosition: '40% 60%' });
+    expect(video).toHaveStyle({ objectFit: 'cover' });
+  });
+
+  it('defaults the hero video to 50% 50% for legacy/null focal', async () => {
+    const { container } = await renderHome({
+      mediaType: 'video',
+      heroVideo: media(null, null, '/media/hero.mp4'),
+    });
+
+    expect(container.querySelector('video.hero-cine-video')).toHaveStyle({
+      objectPosition: '50% 50%',
+    });
   });
 });

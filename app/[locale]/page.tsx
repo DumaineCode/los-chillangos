@@ -182,6 +182,10 @@ export default async function HomePage({ params }: Props) {
   const heroImage = resolveMediaImage(hero?.heroImage);
   const heroVideoUrl = resolveMediaUrl(hero?.heroVideo);
   const showHeroVideo = hero?.mediaType === 'video' && heroVideoUrl !== null;
+  // The <video> object-position frames the clip by its own focal point. Routed
+  // through resolveMediaImage to reuse the hydrated-doc guard (heroVideo may be
+  // a number/null). Legacy/null focal → centered, byte-identical to before.
+  const heroVideoPosition = resolveMediaImage(hero?.heroVideo)?.objectPosition ?? '50% 50%';
   const heroCtaPrimary = hero?.ctaPrimary ?? '';
   const heroCtaGhost = hero?.ctaGhost ?? '';
   // CTA destinations are editable per global. Defaults preserve the original
@@ -225,7 +229,7 @@ export default async function HomePage({ params }: Props) {
               loop
               playsInline
               preload="metadata"
-              style={{ objectFit: 'cover' }}
+              style={{ objectFit: 'cover', objectPosition: heroVideoPosition }}
             />
           ) : heroImage ? (
             <Image

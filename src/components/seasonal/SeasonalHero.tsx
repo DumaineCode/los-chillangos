@@ -27,6 +27,14 @@ export function SeasonalHero({ seasonal, title, locale, dateLabel, locationLabel
   const videoUrl = resolveMediaUrl(hero?.video);
   const posterUrl = resolveMediaUrl(hero?.poster);
   const image = resolveMediaImage(hero?.image);
+  // One object-position frames BOTH the <video> and its poster still. Poster-first:
+  // the poster is the focal-annotated LCP/reduced-motion frame, so its focal wins
+  // when a poster exists; absent a poster, fall through to the video's own focal,
+  // then to centre. Routed through resolveMediaImage to reuse the hydrated-doc guard.
+  const videoPosition =
+    resolveMediaImage(hero?.poster)?.objectPosition ??
+    resolveMediaImage(hero?.video)?.objectPosition ??
+    '50% 50%';
 
   const formattedDate = seasonal.eventDate
     ? new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(
@@ -47,7 +55,7 @@ export function SeasonalHero({ seasonal, title, locale, dateLabel, locationLabel
             loop
             playsInline
             preload="metadata"
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: 'cover', objectPosition: videoPosition }}
           />
         ) : image ? (
           <Image
