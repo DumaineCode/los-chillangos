@@ -82,7 +82,8 @@
   --terra: #FF2E7A;       /* Rosa Mexicano — acento principal */
   --terra-deep: #D11F60;  /* Rosa Mexicano oscurecido para hovers */
   --moss: #00B2D6;        /* Azul Maya — acento secundario */
-  --cream: #FFF3D6;       /* Crema — superficies/cards */
+  --cream: #FFF3D6;       /* Crema — superficies/cards (TEMÁTICO: se invierte en dark) */
+  --cream-fixed: #FFF3D6; /* Crema CONSTANTE en ambos temas — para texto/fondos sobre superficies oscuras fijas (hero, footer, badges). NO redefinir en dark. */
   --rose: #FF2E7A;        /* alias del Rosa Mexicano */
   --black: #000000;       /* Negro */
 
@@ -163,10 +164,10 @@ a { color: inherit; text-decoration: none; }
   background: var(--ink);
   color: var(--bg);
 }
-.btn-primary:hover { background: var(--terra); color: #FFF3D6; }
+.btn-primary:hover { background: var(--terra); color: var(--cream-fixed); }
 .btn-terra {
   background: var(--terra);
-  color: #FFF3D6;
+  color: var(--cream-fixed);
 }
 .btn-terra:hover { background: var(--terra-deep); }
 .btn-ghost {
@@ -197,19 +198,19 @@ body:has(.hero-cine) { padding-top: 0; }
   background: transparent;
   backdrop-filter: none;
   border-bottom-color: transparent;
-  color: #FFF3D6;
+  color: var(--cream-fixed);
 }
 /* The logo is a single, constant image (managed via the Branding global). It
    does not swap on scroll; only the surrounding nav chrome restyles over the
    hero. */
 .nav.over-hero .nav-links a { color: rgba(255,243,214,0.78); text-shadow: 0 1px 8px rgba(13,24,42,0.4); }
-.nav.over-hero .nav-links a:hover { color: #FFF3D6; }
+.nav.over-hero .nav-links a:hover { color: var(--cream-fixed); }
 .nav.over-hero .lang-toggle { border-color: rgba(255,243,214,0.4); }
 .nav.over-hero .lang-toggle button { color: rgba(255,243,214,0.7); }
-.nav.over-hero .lang-toggle button.active { background: #FFF3D6; color: #0D182A; }
-.nav.over-hero .btn-primary { background: #FFF3D6; color: #0D182A; }
-.nav.over-hero .btn-primary:hover { background: var(--terra); color: #FFF3D6; }
-.nav.over-hero .btn-ghost { color: #FFF3D6; border-color: rgba(255,243,214,0.4); }
+.nav.over-hero .lang-toggle button.active { background: var(--cream-fixed); color: #0D182A; }
+.nav.over-hero .btn-primary { background: var(--cream-fixed); color: #0D182A; }
+.nav.over-hero .btn-primary:hover { background: var(--terra); color: var(--cream-fixed); }
+.nav.over-hero .btn-ghost { color: var(--cream-fixed); border-color: rgba(255,243,214,0.4); }
 .nav-inner {
   display: flex;
   align-items: center;
@@ -323,8 +324,8 @@ body:has(.hero-cine) { padding-top: 0; }
   border-color: rgba(255, 243, 214, 0.4);
 }
 .nav.over-hero .theme-toggle:hover {
-  color: #fff3d6;
-  border-color: #fff3d6;
+  color: var(--cream-fixed);
+  border-color: var(--cream-fixed);
 }
 
 /* Hamburger — hidden on desktop, shown under 900px via the responsive block. */
@@ -500,7 +501,7 @@ body:has(.hero-cine) { padding-top: 0; }
   width: 100%;
   overflow: hidden;
   background: #0D182A;
-  color: #FFF3D6;
+  color: var(--cream-fixed);
   margin-top: -1px;
 }
 .hero-cine-media {
@@ -571,7 +572,7 @@ body:has(.hero-cine) { padding-top: 0; }
   line-height: 0.92;
   letter-spacing: -0.025em;
   margin: 0;
-  color: #FFF3D6;
+  color: var(--cream-fixed);
   text-wrap: balance;
   max-width: 14ch;
 }
@@ -593,18 +594,18 @@ body:has(.hero-cine) { padding-top: 0; }
 }
 .hero-cine-ctas .btn-primary {
   background: var(--terra);
-  color: #FFF3D6;
+  color: var(--cream-fixed);
 }
 .hero-cine-ctas .btn-primary:hover {
   background: var(--terra-deep);
 }
 .hero-cine-ctas .btn-ghost {
   border-color: rgba(255,243,214,0.4);
-  color: #FFF3D6;
+  color: var(--cream-fixed);
 }
 .hero-cine-ctas .btn-ghost:hover {
   background: rgba(255,243,214,0.1);
-  border-color: #FFF3D6;
+  border-color: var(--cream-fixed);
 }
 
 /* Search widget below hero */
@@ -754,7 +755,7 @@ body:has(.hero-cine) { padding-top: 0; }
     );
 }
 .placeholder.dark::after {
-  background: #FFF3D6;
+  background: var(--cream-fixed);
   color: #0D182A;
 }
 .placeholder.terra {
@@ -765,7 +766,7 @@ body:has(.hero-cine) { padding-top: 0; }
       #FF2E7A 1px, #FF2E7A 14px
     );
 }
-.placeholder.terra::after { background: #0D182A; color: #FFF3D6; }
+.placeholder.terra::after { background: #0D182A; color: var(--cream-fixed); }
 .placeholder.moss {
   background:
     repeating-linear-gradient(
@@ -774,7 +775,7 @@ body:has(.hero-cine) { padding-top: 0; }
       #00B2D6 1px, #00B2D6 14px
     );
 }
-.placeholder.moss::after { background: #0D182A; color: #FFF3D6; }
+.placeholder.moss::after { background: #0D182A; color: var(--cream-fixed); }
 
 /* === Section === */
 .section { padding: 100px 0; }
@@ -853,7 +854,7 @@ body:has(.hero-cine) { padding-top: 0; }
    dark), heavier weight + wider tracking, and a soft terra glow. */
 .tour-card-tag.seasonal {
   background: var(--terra);
-  color: #FFF3D6;
+  color: var(--cream-fixed);
   font-weight: 600;
   letter-spacing: 0.14em;
   padding: 5px 11px;
@@ -1211,7 +1212,7 @@ body:has(.hero-cine) { padding-top: 0; }
 /* === Footer === */
 .footer {
   background: #000000;
-  color: #FFF3D6;
+  color: var(--cream-fixed);
   padding: 80px 0 32px;
 }
 .footer-headline {
@@ -1915,7 +1916,7 @@ body:has(.hero-cine) { padding-top: 0; }
      and dark mode (the theme tokens --bg-deep/--bg-warm invert under
      [data-theme="dark"], which previously washed the overlay white). */
   --seasonal-ink: #0d182a; /* fixed deep navy for overlay/background */
-  --seasonal-paper: #fff3d6; /* fixed cream for text over media */
+  --seasonal-paper: var(--cream-fixed); /* fixed cream for text over media */
   background: var(--seasonal-ink);
   color: var(--seasonal-paper);
   margin-top: -1px;
