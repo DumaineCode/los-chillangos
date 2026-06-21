@@ -28,6 +28,7 @@ export const checkoutPayloadSchema = z.object({
       .regex(/^\+?[0-9\s\-()]{7,20}$/)
       .optional()
       .or(z.literal('')),
+    country: z.string().min(2),
     locale: z.enum(['en', 'es']),
   }),
 });

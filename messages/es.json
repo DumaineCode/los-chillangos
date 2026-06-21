@@ -283,11 +283,13 @@
         "emailPlaceholder": "tu@ejemplo.com",
         "whatsappLabel": "WhatsApp (opcional)",
         "whatsappPlaceholder": "+52 55 1234 5678",
-        "whatsappHint": "Formato internacional. Nos ayuda a contestarte más rápido."
+        "whatsappHint": "Formato internacional. Nos ayuda a contestarte más rápido.",
+        "countryLabel": "País de origen",
+        "countryPlaceholder": "Selecciona tu país"
       },
       "confirm": {
         "title": "Listo para confirmar",
-        "lede": "Te llevamos a WhatsApp. Cierra los detalles directo con el equipo.",
+        "lede": "Revisa tu reserva y continúa al pago seguro.",
         "redirectLede": "¿No abrió? Usa el enlace de abajo.",
         "footer": "Enviado desde loschillangos.com"
       }
@@ -330,6 +332,7 @@
       "nameRequired": "Cuéntanos tu nombre.",
       "emailInvalid": "Ese email no parece válido.",
       "whatsappInvalid": "Usa un formato internacional, ej. +52 55 1234 5678.",
+      "countryRequired": "Cuéntanos de dónde vienes.",
       "maxGroup": "Máximo ocho personas por tour.",
       "minAdults": "Al menos un adulto por reserva.",
       "dayClosed": "Este tour no opera ese día.",

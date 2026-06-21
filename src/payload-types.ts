@@ -474,6 +474,10 @@ export interface Booking {
     name: string;
     email: string;
     whatsapp?: string | null;
+    /**
+     * ISO 3166-1 alpha-2 code (e.g. MX, US, AR).
+     */
+    country: string;
     locale: 'en' | 'es';
   };
   /**
@@ -766,6 +770,7 @@ export interface BookingsSelect<T extends boolean = true> {
         name?: T;
         email?: T;
         whatsapp?: T;
+        country?: T;
         locale?: T;
       };
   status?: T;

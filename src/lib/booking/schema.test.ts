@@ -175,6 +175,7 @@ describe('stepDetailsSchema', () => {
       name: 'Hana Kobayashi',
       email: 'hana@example.com',
       whatsappOptional: '+52 55 1234 5678',
+      country: 'MX',
     });
     expect(result.success).toBe(true);
   });
@@ -184,6 +185,7 @@ describe('stepDetailsSchema', () => {
       name: 'Hana Kobayashi',
       email: 'hana@example.com',
       whatsappOptional: '',
+      country: 'US',
     });
     expect(result.success).toBe(true);
   });
@@ -192,6 +194,7 @@ describe('stepDetailsSchema', () => {
     const result = stepDetailsSchema.safeParse({
       name: 'Hana Kobayashi',
       email: 'hana@example.com',
+      country: 'AR',
     });
     expect(result.success).toBe(true);
   });
@@ -200,6 +203,7 @@ describe('stepDetailsSchema', () => {
     const result = stepDetailsSchema.safeParse({
       name: 'H',
       email: 'hana@example.com',
+      country: 'MX',
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -212,6 +216,7 @@ describe('stepDetailsSchema', () => {
     const result = stepDetailsSchema.safeParse({
       name: 'Hana Kobayashi',
       email: 'not-an-email',
+      country: 'MX',
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -225,11 +230,25 @@ describe('stepDetailsSchema', () => {
       name: 'Hana Kobayashi',
       email: 'hana@example.com',
       whatsappOptional: 'not a phone',
+      country: 'MX',
     });
     expect(result.success).toBe(false);
     if (!result.success) {
       const messages = result.error.issues.map((i) => i.message);
       expect(messages).toContain('errors.whatsappInvalid');
+    }
+  });
+
+  it('rejects a missing country', () => {
+    const result = stepDetailsSchema.safeParse({
+      name: 'Hana Kobayashi',
+      email: 'hana@example.com',
+      country: '',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const messages = result.error.issues.map((i) => i.message);
+      expect(messages).toContain('errors.countryRequired');
     }
   });
 });

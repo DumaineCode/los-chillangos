@@ -71,6 +71,7 @@ export function BookingFlow({ tour, locale }: Props) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [whatsappOptional, setWhatsappOptional] = useState('');
+  const [country, setCountry] = useState('');
 
   const [dateError, setDateError] = useState<string | null>(null);
   const [peopleError, setPeopleError] = useState<string | null>(null);
@@ -78,6 +79,7 @@ export function BookingFlow({ tour, locale }: Props) {
     name?: string | null;
     email?: string | null;
     whatsapp?: string | null;
+    country?: string | null;
   }>({});
 
   const availableDays = tour.availableDays;
@@ -124,10 +126,11 @@ export function BookingFlow({ tour, locale }: Props) {
         name,
         email,
         whatsapp: whatsappOptional,
+        country,
         locale,
       },
     }),
-    [tour.id, date, time, adults, teens, privatize, name, email, whatsappOptional, locale]
+    [tour.id, date, time, adults, teens, privatize, name, email, whatsappOptional, country, locale]
   );
 
   function handleNext() {
@@ -158,7 +161,7 @@ export function BookingFlow({ tour, locale }: Props) {
       return;
     }
     if (step === 3) {
-      const result = stepDetailsSchema.safeParse({ name, email, whatsappOptional });
+      const result = stepDetailsSchema.safeParse({ name, email, whatsappOptional, country });
       if (!result.success) {
         const next: typeof detailErrors = {};
         for (const issue of result.error.issues) {
@@ -166,6 +169,7 @@ export function BookingFlow({ tour, locale }: Props) {
           if (field === 'name') next.name = issue.message;
           else if (field === 'email') next.email = issue.message;
           else if (field === 'whatsappOptional') next.whatsapp = issue.message;
+          else if (field === 'country') next.country = issue.message;
         }
         setDetailErrors(next);
         return;
@@ -265,9 +269,12 @@ export function BookingFlow({ tour, locale }: Props) {
                   name={name}
                   email={email}
                   whatsappOptional={whatsappOptional}
+                  country={country}
+                  locale={locale}
                   onNameChange={setName}
                   onEmailChange={setEmail}
                   onWhatsappChange={setWhatsappOptional}
+                  onCountryChange={setCountry}
                   errors={detailErrors}
                 />
               )}

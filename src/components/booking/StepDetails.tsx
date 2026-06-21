@@ -1,28 +1,43 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+
+import { COUNTRIES } from '../../lib/booking/countries';
 
 type Props = {
   name: string;
   email: string;
   whatsappOptional: string;
+  country: string;
+  locale: 'en' | 'es';
   onNameChange: (v: string) => void;
   onEmailChange: (v: string) => void;
   onWhatsappChange: (v: string) => void;
-  errors: { name?: string | null; email?: string | null; whatsapp?: string | null };
+  onCountryChange: (v: string) => void;
+  errors: { name?: string | null; email?: string | null; whatsapp?: string | null; country?: string | null };
 };
 
 export function StepDetails({
   name,
   email,
   whatsappOptional,
+  country,
+  locale,
   onNameChange,
   onEmailChange,
   onWhatsappChange,
+  onCountryChange,
   errors,
 }: Props) {
   const t = useTranslations('booking.steps.details');
   const tErr = useTranslations('booking.errors');
+
+  const sortedCountries = useMemo(
+    () =>
+      [...COUNTRIES].sort((a, b) => a[locale].localeCompare(b[locale], locale)),
+    [locale],
+  );
 
   const renderError = (key?: string | null) =>
     key ? (
@@ -74,6 +89,25 @@ export function StepDetails({
             {t('whatsappHint')}
           </small>
           {renderError(errors.whatsapp)}
+        </div>
+        <div className="field full">
+          <label htmlFor="booking-country">{t('countryLabel')}</label>
+          <select
+            id="booking-country"
+            value={country}
+            onChange={(e) => onCountryChange(e.target.value)}
+            autoComplete="country"
+          >
+            <option value="" disabled>
+              {t('countryPlaceholder')}
+            </option>
+            {sortedCountries.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.flag} {c[locale]}
+              </option>
+            ))}
+          </select>
+          {renderError(errors.country)}
         </div>
       </div>
     </div>

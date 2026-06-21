@@ -15,6 +15,7 @@ export interface OwnerNotificationProps {
     name: string;
     email: string;
     whatsapp?: string | null;
+    country?: string | null;
     locale: string;
   };
   /** Deep link to the booking in the Payload admin (omitted if unknown). */
@@ -107,6 +108,7 @@ export function OwnerNotification({
         <Row label="Customer" value={customer.name} />
         <Row label="Email" value={customer.email} />
         {customer.whatsapp ? <Row label="WhatsApp" value={customer.whatsapp} /> : null}
+        {customer.country ? <Row label="Country" value={customer.country} /> : null}
         <Row label="Language" value={customer.locale.toUpperCase()} />
       </Section>
 

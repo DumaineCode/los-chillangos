@@ -108,6 +108,7 @@ export const stepDetailsSchema = z.object({
     .regex(/^\+?[0-9\s\-()]{7,20}$/, 'errors.whatsappInvalid')
     .optional()
     .or(z.literal('')),
+  country: z.string({ message: 'errors.countryRequired' }).min(2, 'errors.countryRequired'),
 });
 
 export type StepDateInput = z.infer<ReturnType<typeof stepDateSchema>>;

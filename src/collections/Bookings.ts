@@ -316,6 +316,13 @@ export const Bookings: CollectionConfig = {
           },
         },
         {
+          name: 'country',
+          type: 'text',
+          required: true,
+          label: { en: 'Country', es: 'País' },
+          admin: { description: 'ISO 3166-1 alpha-2 code (e.g. MX, US, AR).' },
+        },
+        {
           name: 'locale',
           type: 'select',
           required: true,

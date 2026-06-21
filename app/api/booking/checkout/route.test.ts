@@ -86,6 +86,7 @@ function makeBody(overrides: Record<string, unknown> = {}): string {
       name: 'Hana K',
       email: 'hana@example.com',
       whatsapp: '',
+      country: 'MX',
       locale: 'en',
     },
     ...overrides,

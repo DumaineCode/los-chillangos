@@ -107,6 +107,9 @@ describe('BookingFlow', () => {
     fireEvent.change(screen.getByLabelText(/^email$/i), {
       target: { value: 'hana@example.com' },
     });
+    fireEvent.change(screen.getByLabelText(/country of origin/i), {
+      target: { value: 'MX' },
+    });
     fireEvent.click(screen.getByTestId('booking-next'));
 
     expect(screen.getByRole('heading', { name: /ready to confirm/i })).toBeInTheDocument();
@@ -128,13 +131,14 @@ describe('BookingFlow', () => {
       tourId: number;
       time: string;
       adults: number;
-      customer: { name: string; email: string; locale: string };
+      customer: { name: string; email: string; country: string; locale: string };
     };
     expect(body.tourId).toBe(1);
     expect(body.time).toBe('09:00');
     expect(body.adults).toBe(2);
     expect(body.customer.name).toBe('Hana Kobayashi');
     expect(body.customer.email).toBe('hana@example.com');
+    expect(body.customer.country).toBe('MX');
     expect(body.customer.locale).toBe('en');
   });
 
@@ -171,6 +175,9 @@ describe('BookingFlow', () => {
     });
     fireEvent.change(screen.getByLabelText(/^email$/i), {
       target: { value: 'hana@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/country of origin/i), {
+      target: { value: 'MX' },
     });
     fireEvent.click(screen.getByTestId('booking-next'));
     fireEvent.click(screen.getByTestId('booking-confirm'));

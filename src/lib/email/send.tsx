@@ -65,7 +65,7 @@ interface BookingEmailData {
   timeLabel: string;
   guestsLabel: string;
   totalLabel: string;
-  customer: { name: string; firstName: string; email: string; whatsapp: string | null };
+  customer: { name: string; firstName: string; email: string; whatsapp: string | null; country: string | null };
   copy: EmailCopy;
   logoUrl: string | null;
   contact: {
@@ -91,6 +91,7 @@ interface BookingDoc {
     name?: string | null;
     email?: string | null;
     whatsapp?: string | null;
+    country?: string | null;
     locale?: string | null;
   } | null;
 }
@@ -134,6 +135,7 @@ async function loadBookingEmailData(bookingId: number): Promise<BookingEmailData
       firstName: fullName.split(' ')[0] ?? fullName,
       email: booking.customer.email,
       whatsapp: booking.customer.whatsapp?.trim() || null,
+      country: booking.customer.country?.trim() || null,
     },
     copy,
     logoUrl,
@@ -328,6 +330,7 @@ async function sendOwnerNotification(data: BookingEmailData): Promise<void> {
         name: data.customer.name,
         email: data.customer.email,
         whatsapp: data.customer.whatsapp,
+        country: data.customer.country,
         locale: data.locale,
       }}
       adminUrl={data.adminUrl}

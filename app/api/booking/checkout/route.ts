@@ -166,6 +166,7 @@ export async function POST(request: Request): Promise<Response> {
           name: data.customer.name,
           email: data.customer.email,
           whatsapp: data.customer.whatsapp || undefined,
+          country: data.customer.country,
           locale: data.customer.locale,
         },
         status: 'pending',
