@@ -2,6 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 
+import { formatExtraPrice } from '@/lib/booking/extraPriceLabel';
+
 import type { WizardExtra } from './BookingFlow';
 
 type Props = {
@@ -34,6 +36,7 @@ export function StepPeople({
 }: Props) {
   const t = useTranslations('booking.steps.people');
   const tErr = useTranslations('booking.errors');
+  const tCommon = useTranslations('common');
 
   const cap = Math.max(1, Math.trunc(slotCapacity));
   const groupAtMax = adults + teens >= cap;
@@ -115,6 +118,11 @@ export function StepPeople({
           </h3>
           {extras.map((extra) => {
             const selected = selectedExtraIds.includes(extra.id);
+            const priceLabel = formatExtraPrice({
+              price: extra.price,
+              priceType: extra.priceType,
+              perPersonSuffix: tCommon('perPersonShort'),
+            });
             return (
               <label
                 key={extra.id}
@@ -127,6 +135,7 @@ export function StepPeople({
               >
                 <div className="stepper-info">
                   <h4>{extra.name}</h4>
+                  <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>{priceLabel}</p>
                   {extra.disclaimer ? (
                     <p title={extra.disclaimer}>{extra.disclaimer}</p>
                   ) : null}

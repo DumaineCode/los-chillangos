@@ -176,12 +176,15 @@ describe('BookingFlow', () => {
     // Base: subtotal 178 AND total 178 (no extras yet) → both rows show $178.
     expect(screen.getAllByText('$178')).toHaveLength(2);
 
+    // The price label sits next to the checkbox even before selection.
+    expect(screen.getByText('+$140')).toBeInTheDocument();
+
     // Toggle the extra ON → total rises by 140 → 318 (subtotal stays 178).
     fireEvent.click(extraToggle);
     expect(screen.getByText('$318')).toBeInTheDocument();
     expect(screen.getByText('$178')).toBeInTheDocument(); // subtotal unchanged
-    // The extra appears as its own line: +$140.
-    expect(screen.getByText('+$140')).toBeInTheDocument();
+    // Now +$140 shows twice: at the checkbox row AND as the summary line item.
+    expect(screen.getAllByText('+$140')).toHaveLength(2);
 
     // Advance to confirm and inspect the posted payload.
     fireEvent.click(screen.getByTestId('booking-next'));
