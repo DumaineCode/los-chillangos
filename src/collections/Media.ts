@@ -44,6 +44,18 @@ export const Media: CollectionConfig = {
         },
       },
     },
+    {
+      // Live, component-accurate crop preview driven by focalX/focalY. Renders
+      // the four canonical site frames so the editor can pick a focal point that
+      // survives every cover crop. Registered in the generated importMap.
+      name: 'focalPreview',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '/components/admin/FocalPreviewField',
+        },
+      },
+    },
   ],
   upload: {
     mimeTypes: ['image/*'],
