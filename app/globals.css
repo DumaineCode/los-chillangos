@@ -1747,10 +1747,11 @@ body:has(.hero-cine) { padding-top: 0; }
 .cart-summary {
   position: sticky;
   top: 96px;
-  background: var(--cream);
-  border: 1px solid var(--line);
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
   border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 8px 28px rgba(13, 24, 42, 0.06);
 }
 .cart-img { aspect-ratio: 16 / 9; }
 .cart-body { padding: 24px; }
