@@ -103,6 +103,7 @@ export interface Config {
     'social-links': SocialLink;
     branding: Branding;
     'email-content': EmailContent;
+    'booking-settings': BookingSetting;
     hero: Hero;
     marquee: Marquee;
     values: Value;
@@ -121,6 +122,7 @@ export interface Config {
     'social-links': SocialLinksSelect<false> | SocialLinksSelect<true>;
     branding: BrandingSelect<false> | BrandingSelect<true>;
     'email-content': EmailContentSelect<false> | EmailContentSelect<true>;
+    'booking-settings': BookingSettingsSelect<false> | BookingSettingsSelect<true>;
     hero: HeroSelect<false> | HeroSelect<true>;
     marquee: MarqueeSelect<false> | MarqueeSelect<true>;
     values: ValuesSelect<false> | ValuesSelect<true>;
@@ -1321,6 +1323,19 @@ export interface EmailContent {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "booking-settings".
+ */
+export interface BookingSetting {
+  id: number;
+  /**
+   * How many days before the tour a customer can cancel for free. Shown in the booking sidebar.
+   */
+  freeCancellationDays: number;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero".
  */
 export interface Hero {
@@ -1825,6 +1840,16 @@ export interface EmailContentSelect<T extends boolean = true> {
         signature?: T;
         footnote?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "booking-settings_select".
+ */
+export interface BookingSettingsSelect<T extends boolean = true> {
+  freeCancellationDays?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

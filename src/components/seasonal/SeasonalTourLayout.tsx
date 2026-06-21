@@ -10,6 +10,8 @@ import { SeasonalHero } from './SeasonalHero';
 type Props = {
   tour: Tour;
   locale: Locale;
+  /** Free-cancellation window (days) from the BookingSettings global. */
+  freeCancellationDays: number;
 };
 
 /**
@@ -23,7 +25,7 @@ type Props = {
  * Uses `useTranslations`, which next-intl resolves on the server in RSC and
  * via `NextIntlClientProvider` in tests.
  */
-export function SeasonalTourLayout({ tour, locale }: Props) {
+export function SeasonalTourLayout({ tour, locale, freeCancellationDays }: Props) {
   const t = useTranslations('seasonal');
   const tCommon = useTranslations('common');
   const tDetail = useTranslations('detail');
@@ -82,7 +84,7 @@ export function SeasonalTourLayout({ tour, locale }: Props) {
                 marginTop: 12,
               }}
             >
-              {tDetail('freeCancel')}
+              {tDetail('freeCancel', { days: freeCancellationDays })}
             </p>
           </aside>
         </div>

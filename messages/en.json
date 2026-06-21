@@ -175,7 +175,7 @@
     "sectionMeet": "Meeting point",
     "sectionRoute": "Route",
     "openInMaps": "Open in Google Maps",
-    "freeCancel": "Free cancellation · 24h before",
+    "freeCancel": "Free cancellation · {days, plural, one {# day before} other {# days before}}",
     "galleryPlaceholder": {
       "main": "Hero photo",
       "detail1": "Detail · bike on cobble",

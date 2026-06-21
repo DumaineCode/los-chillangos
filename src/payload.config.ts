@@ -31,6 +31,7 @@ import { SocialLinks } from './globals/SocialLinks';
 import { Branding } from './globals/Branding';
 import { SeasonalFeature } from './globals/SeasonalFeature';
 import { EmailContent } from './globals/EmailContent';
+import { BookingSettings } from './globals/BookingSettings';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -159,6 +160,7 @@ export default buildConfig({
     SocialLinks,
     Branding,
     EmailContent,
+    BookingSettings,
     // ── Legacy per-section globals — hidden from the nav (admin.hidden) but
     // kept registered so their data survives as the migration source + rollback
     // safety net. Remove only after the Landing migration is verified in prod.

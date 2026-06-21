@@ -65,7 +65,7 @@ function makeTour(overrides: Partial<Tour> = {}): Tour {
 function renderLayout(tour: Tour) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
-      <SeasonalTourLayout tour={tour} locale="en" />
+      <SeasonalTourLayout tour={tour} locale="en" freeCancellationDays={3} />
     </NextIntlClientProvider>
   );
 }

@@ -175,7 +175,7 @@
     "sectionMeet": "Punto de encuentro",
     "sectionRoute": "Ruta",
     "openInMaps": "Abrir en Google Maps",
-    "freeCancel": "Cancelación gratis · 24h antes",
+    "freeCancel": "Cancelación gratis · {days, plural, one {# día antes} other {# días antes}}",
     "galleryPlaceholder": {
       "main": "Foto principal",
       "detail1": "Detalle · bici en empedrado",

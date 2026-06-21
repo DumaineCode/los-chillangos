@@ -54,13 +54,24 @@ export default async function TourDetailPage({ params }: Props) {
   const tour = await fetchTourForRender(slug, locale as Locale);
   if (!tour) notFound();
 
+  // Editable booking policy: free-cancellation window (days). Falls back to 3
+  // if the global isn't set yet or the fetch fails, so the sidebar never breaks.
+  // Fetched before the seasonal branch since BOTH layouts show this value.
+  const payload = await getPayload();
+  const bookingSettings = await payload.findGlobal({ slug: 'booking-settings' }).catch(() => null);
+  const freeCancellationDays = bookingSettings?.freeCancellationDays ?? 3;
+
   // Seasonal tours render a dedicated cinematic template; everything else keeps
   // the standard layout below.
   if (shouldRenderSeasonal(tour)) {
     return (
       <>
         {isDraft ? <RefreshRouteOnSave /> : null}
-        <SeasonalTourLayout tour={tour} locale={locale as Locale} />
+        <SeasonalTourLayout
+          tour={tour}
+          locale={locale as Locale}
+          freeCancellationDays={freeCancellationDays}
+        />
       </>
     );
   }
@@ -96,7 +107,7 @@ export default async function TourDetailPage({ params }: Props) {
   const routeWaypoints = (tour.route ?? [])
     .filter(
       (w): w is { label?: string | null; lat: number; lng: number; id?: string | null } =>
-        typeof w?.lat === 'number' && typeof w?.lng === 'number',
+        typeof w?.lat === 'number' && typeof w?.lng === 'number'
     )
     .map((w) => ({ lat: w.lat, lng: w.lng, label: w.label ?? null }));
   const hasRoute = routeWaypoints.length >= 2;
@@ -252,7 +263,7 @@ export default async function TourDetailPage({ params }: Props) {
                 marginTop: 12,
               }}
             >
-              {t('freeCancel')}
+              {t('freeCancel', { days: freeCancellationDays })}
             </p>
           </aside>
         </div>
