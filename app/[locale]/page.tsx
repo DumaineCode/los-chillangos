@@ -499,7 +499,7 @@ export default async function HomePage({ params }: Props) {
                         src={m.photoUrl}
                         alt={m.name || 'Team member'}
                         fill
-                        sizes="160px"
+                        sizes="(max-width: 768px) 140px, 200px"
                         style={{ objectFit: 'cover' }}
                       />
                     </div>

@@ -1148,8 +1148,8 @@ body:has(.hero-cine) { padding-top: 0; }
   align-items: center;
 }
 .team-photo {
-  width: 160px;
-  height: 160px;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
   margin-bottom: 18px;
   border: 1px solid var(--line-strong);
@@ -1811,7 +1811,7 @@ body:has(.hero-cine) { padding-top: 0; }
   .editorial { grid-template-columns: 1fr; gap: 32px; }
   .strip-cards { grid-template-columns: 1fr; }
   .team { grid-template-columns: 1fr 1fr 1fr; gap: 24px 12px; }
-  .team-photo { width: clamp(78px, 26vw, 120px); height: clamp(78px, 26vw, 120px); margin-bottom: 12px; }
+  .team-photo { width: clamp(78px, 26vw, 140px); height: clamp(78px, 26vw, 140px); margin-bottom: 12px; }
   .team-name { font-size: 16px; }
   .team-role { font-size: 9px; letter-spacing: 0.05em; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
