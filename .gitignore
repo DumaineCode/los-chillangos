@@ -37,7 +37,7 @@ coverage/
 .atl/
 
 # Local media (Payload local-fs uploads, added in PR 2)
-media/
+/media/
 
 # Test artifacts (added in PR 5/6)
 playwright-report/
