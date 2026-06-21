@@ -179,7 +179,7 @@ export default async function HomePage({ params }: Props) {
     node: <TourCard key={tour.id} tour={tour} locale={locale as Locale} />,
   }));
 
-  const heroImageUrl = resolveMediaUrl(hero?.heroImage);
+  const heroImage = resolveMediaImage(hero?.heroImage);
   const heroVideoUrl = resolveMediaUrl(hero?.heroVideo);
   const showHeroVideo = hero?.mediaType === 'video' && heroVideoUrl !== null;
   const heroCtaPrimary = hero?.ctaPrimary ?? '';
@@ -199,13 +199,13 @@ export default async function HomePage({ params }: Props) {
     quote: item.quote,
     name: item.name,
     loc: item.loc,
-    avatarUrl: resolveMediaUrl(item.avatar),
+    avatar: resolveMediaImage(item.avatar),
   }));
 
   const teamMembers = (team?.items ?? []).map((m) => ({
     name: m.name,
     role: m.role,
-    photoUrl: resolveMediaUrl(m.photo),
+    photo: resolveMediaImage(m.photo),
   }));
 
   return (
@@ -227,15 +227,15 @@ export default async function HomePage({ params }: Props) {
               preload="metadata"
               style={{ objectFit: 'cover' }}
             />
-          ) : heroImageUrl ? (
+          ) : heroImage ? (
             <Image
               className="hero-cine-img"
-              src={heroImageUrl}
+              src={heroImage.url}
               alt="Los Chillangos"
               fill
               priority
               sizes="100vw"
-              style={{ objectFit: 'cover' }}
+              style={{ objectFit: 'cover', objectPosition: heroImage.objectPosition }}
             />
           ) : (
             // Fallback to legacy brand image until the client uploads.
@@ -421,17 +421,17 @@ export default async function HomePage({ params }: Props) {
                   >
                     <p className="testimonial">{item.quote}</p>
                     <div className="testimonial-meta" style={{ justifyContent: 'center' }}>
-                      {item.avatarUrl ? (
+                      {item.avatar ? (
                         <div
                           className="testimonial-avatar"
                           style={{ position: 'relative', overflow: 'hidden' }}
                         >
                           <Image
-                            src={item.avatarUrl}
+                            src={item.avatar.url}
                             alt={item.name || 'Guest'}
                             fill
                             sizes="64px"
-                            style={{ objectFit: 'cover' }}
+                            style={{ objectFit: 'cover', objectPosition: item.avatar.objectPosition }}
                           />
                         </div>
                       ) : (
@@ -492,17 +492,17 @@ export default async function HomePage({ params }: Props) {
             <div className="team">
               {teamMembers.map((m, i) => (
                 <div className="team-member" key={i}>
-                  {m.photoUrl ? (
+                  {m.photo ? (
                     <div
                       className="team-photo"
                       style={{ position: 'relative', overflow: 'hidden' }}
                     >
                       <Image
-                        src={m.photoUrl}
+                        src={m.photo.url}
                         alt={m.name || 'Team member'}
                         fill
                         sizes="(max-width: 768px) 140px, 200px"
-                        style={{ objectFit: 'cover' }}
+                        style={{ objectFit: 'cover', objectPosition: m.photo.objectPosition }}
                       />
                     </div>
                   ) : (

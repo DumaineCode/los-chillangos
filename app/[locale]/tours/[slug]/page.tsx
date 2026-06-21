@@ -10,6 +10,7 @@ import { RefreshRouteOnSave } from '../../../../src/components/RefreshRouteOnSav
 import { TourMap } from '../../../../src/components/TourMap';
 import { RouteMap } from '../../../../src/components/maps/RouteMap';
 import { SeasonalTourLayout } from '../../../../src/components/seasonal/SeasonalTourLayout';
+import { resolveMediaImage } from '../../../../src/lib/media';
 import { getPayload } from '../../../../src/lib/payload';
 import { shouldRenderSeasonal } from '../../../../src/lib/seasonal/shouldRenderSeasonal';
 import type { Media, Tour } from '../../../../src/payload-types';
@@ -322,15 +323,18 @@ function resolveMedia(value: number | Media | null | undefined): Media | null {
 }
 
 function GalleryTile({ media, alt }: { media: Media; alt: string }) {
-  if (!media.url) return null;
+  // Route through the shared resolver so the tile (hero AND every gallery image)
+  // frames by its own focal point and shares the cache-bust/version token.
+  const resolved = resolveMediaImage(media);
+  if (!resolved) return null;
   return (
     <div className="gallery-img" style={{ position: 'relative' }}>
       <Image
-        src={media.url}
+        src={resolved.url}
         alt={media.alt ?? alt}
         fill
         sizes="(max-width: 900px) 50vw, 33vw"
-        style={{ objectFit: 'cover' }}
+        style={{ objectFit: 'cover', objectPosition: resolved.objectPosition }}
       />
     </div>
   );
