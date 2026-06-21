@@ -80,7 +80,7 @@ export function BookingFlow({ tour, locale }: Props) {
   const [time, setTime] = useState('');
   const [adults, setAdults] = useState(2);
   const [teens, setTeens] = useState(0);
-  const [privatize, setPrivatize] = useState(false);
+  const [selectedExtraIds, setSelectedExtraIds] = useState<ReadonlyArray<number>>([]);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [whatsappOptional, setWhatsappOptional] = useState('');
@@ -120,13 +120,48 @@ export function BookingFlow({ tour, locale }: Props) {
     [tour.id, tour.availableDays, tour.timeSlots, tour.isSeasonal, tour.seasonal]
   );
 
-  const breakdown = useMemo(
-    () => calculatePrice({ pricePerAdult: tour.price, adults, teens, privatize }),
-    [tour.price, adults, teens, privatize]
+  // Extras assigned to this tour (active, resolved by the page projection).
+  const tourExtras = useMemo<ReadonlyArray<WizardExtra>>(() => tour.extras ?? [], [tour.extras]);
+
+  // The extras the customer has toggled on, in the tour's display order.
+  const selectedExtras = useMemo(
+    () => tourExtras.filter((e) => selectedExtraIds.includes(e.id)),
+    [tourExtras, selectedExtraIds]
   );
+
+  const pax = adults + teens;
+
+  const breakdown = useMemo(
+    () =>
+      calculatePrice({
+        pricePerAdult: tour.price,
+        adults,
+        teens,
+        selectedExtras: selectedExtras.map((e) => ({ price: e.price, priceType: e.priceType })),
+      }),
+    [tour.price, adults, teens, selectedExtras]
+  );
+
+  // Per-extra rows for the summary sidebar (name + computed amount).
+  const extraLines = useMemo(
+    () =>
+      selectedExtras.map((e) => ({
+        id: e.id,
+        name: e.name,
+        amount: e.priceType === 'perPerson' ? e.price * pax : e.price,
+      })),
+    [selectedExtras, pax]
+  );
+
+  function toggleExtra(id: number, selected: boolean) {
+    setSelectedExtraIds((prev) =>
+      selected ? [...prev.filter((x) => x !== id), id] : prev.filter((x) => x !== id)
+    );
+  }
 
   // The exact payload that StepConfirm posts to /api/booking/checkout.
   // We build it eagerly so StepConfirm stays focused on UX, not data shape.
+  // Only extraIds + priceType travel — the server re-resolves prices.
   const checkoutPayload = useMemo(
     () => ({
       tourId: tour.id,
@@ -134,7 +169,7 @@ export function BookingFlow({ tour, locale }: Props) {
       time,
       adults,
       teens,
-      privatize,
+      selectedExtras: selectedExtras.map((e) => ({ extraId: e.id, priceType: e.priceType })),
       customer: {
         name,
         email,
@@ -143,7 +178,7 @@ export function BookingFlow({ tour, locale }: Props) {
         locale,
       },
     }),
-    [tour.id, date, time, adults, teens, privatize, name, email, whatsappOptional, country, locale]
+    [tour.id, date, time, adults, teens, selectedExtras, name, email, whatsappOptional, country, locale]
   );
 
   function handleNext() {
@@ -164,7 +199,11 @@ export function BookingFlow({ tour, locale }: Props) {
     }
     if (step === 2) {
       const schema = stepPeopleSchema({ slotCapacity });
-      const result = schema.safeParse({ adults, teens, privatize });
+      const result = schema.safeParse({
+        adults,
+        teens,
+        selectedExtras: selectedExtras.map((e) => ({ extraId: e.id, priceType: e.priceType })),
+      });
       if (!result.success) {
         setPeopleError(result.error.issues[0]?.message ?? null);
         return;
@@ -244,7 +283,7 @@ export function BookingFlow({ tour, locale }: Props) {
               time={time}
               adults={adults}
               teens={teens}
-              privatize={privatize}
+              extraLines={extraLines}
               breakdown={breakdown}
               locale={locale}
             />
@@ -267,13 +306,14 @@ export function BookingFlow({ tour, locale }: Props) {
                 <StepPeople
                   adults={adults}
                   teens={teens}
-                  privatize={privatize}
+                  extras={tourExtras}
+                  selectedExtraIds={selectedExtraIds}
                   pricePerAdult={tour.price}
                   slotCapacity={slotCapacity}
                   locale={locale}
                   onAdultsChange={setAdults}
                   onTeensChange={setTeens}
-                  onPrivatizeChange={setPrivatize}
+                  onToggleExtra={toggleExtra}
                   error={peopleError}
                 />
               )}
@@ -325,7 +365,7 @@ export function BookingFlow({ tour, locale }: Props) {
                 time={time}
                 adults={adults}
                 teens={teens}
-                privatize={privatize}
+                extraLines={extraLines}
                 breakdown={breakdown}
                 locale={locale}
               />

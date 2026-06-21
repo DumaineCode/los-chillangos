@@ -9,7 +9,7 @@ type CheckoutPayload = {
   time: string;
   adults: number;
   teens: number;
-  privatize: boolean;
+  selectedExtras: Array<{ extraId: number; priceType: 'total' | 'perPerson' }>;
   customer: {
     name: string;
     email: string;

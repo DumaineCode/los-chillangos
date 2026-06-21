@@ -10,7 +10,8 @@ type Props = {
   time: string;
   adults: number;
   teens: number;
-  privatize: boolean;
+  /** One row per selected extra: its name + computed amount in USD. */
+  extraLines: ReadonlyArray<{ id: number; name: string; amount: number }>;
   breakdown: PriceBreakdown;
   locale: 'en' | 'es';
 };
@@ -27,7 +28,7 @@ export function BookingSummary({
   time,
   adults,
   teens,
-  privatize,
+  extraLines,
   breakdown,
   locale,
 }: Props) {
@@ -68,12 +69,12 @@ export function BookingSummary({
             {teens > 0 ? ` · ${t('teens', { count: teens })}` : ''}
           </span>
         </div>
-        {privatize ? (
-          <div className="summary-row">
-            <span>{t('privatize')}</span>
-            <span>+{currency(breakdown.addon)}</span>
+        {extraLines.map((line) => (
+          <div className="summary-row" key={line.id}>
+            <span>{line.name}</span>
+            <span>+{currency(line.amount)}</span>
           </div>
-        ) : null}
+        ))}
         <div
           className="summary-row"
           style={{ borderTop: '1px solid var(--line)', marginTop: 8, paddingTop: 14 }}

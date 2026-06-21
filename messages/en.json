@@ -270,9 +270,10 @@
         "adultHint": "Full price · 13+",
         "teenLabel": "Teens",
         "teenHint": "Ages 12–17",
-        "addonsTitle": "Add-ons",
-        "privatizeLabel": "Private tour",
-        "privatizeHint": "+USD 140 · just your group"
+      "addonsTitle": "Add-ons",
+      "extrasTitle": "Extras",
+      "extrasNone": "No extras available for this tour.",
+      "extraInfoAria": "More information about {name}"
       },
       "details": {
         "title": "Your details",

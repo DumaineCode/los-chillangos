@@ -2,28 +2,34 @@
 
 import { useTranslations } from 'next-intl';
 
+import type { WizardExtra } from './BookingFlow';
+
 type Props = {
   adults: number;
   teens: number;
-  privatize: boolean;
+  /** Extras assigned to this tour (active, resolved). */
+  extras: ReadonlyArray<WizardExtra>;
+  /** IDs of currently-selected extras. */
+  selectedExtraIds: ReadonlyArray<number>;
   pricePerAdult: number;
   /** Per-slot capacity from `tour.timeSlots[].capacity`. Defaults to 8 for safety. */
   slotCapacity: number;
   locale: 'en' | 'es';
   onAdultsChange: (n: number) => void;
   onTeensChange: (n: number) => void;
-  onPrivatizeChange: (v: boolean) => void;
+  onToggleExtra: (id: number, selected: boolean) => void;
   error?: string | null;
 };
 
 export function StepPeople({
   adults,
   teens,
-  privatize,
+  extras,
+  selectedExtraIds,
   slotCapacity,
   onAdultsChange,
   onTeensChange,
-  onPrivatizeChange,
+  onToggleExtra,
   error,
 }: Props) {
   const t = useTranslations('booking.steps.people');
@@ -94,36 +100,49 @@ export function StepPeople({
         </div>
       </div>
 
-      <h3
-        style={{
-          fontFamily: 'var(--serif)',
-          fontSize: 24,
-          fontWeight: 400,
-          margin: '40px 0 16px',
-          letterSpacing: '-0.01em',
-        }}
-      >
-        {t('addonsTitle')}
-      </h3>
-      <label
-        className="stepper-row"
-        style={{
-          cursor: 'pointer',
-          borderTop: '1px solid var(--line)',
-          borderBottom: '1px solid var(--line)',
-        }}
-      >
-        <div className="stepper-info">
-          <h4>{t('privatizeLabel')}</h4>
-          <p>{t('privatizeHint')}</p>
-        </div>
-        <input
-          type="checkbox"
-          checked={privatize}
-          onChange={(e) => onPrivatizeChange(e.target.checked)}
-          style={{ width: 22, height: 22, accentColor: 'var(--terra)' }}
-        />
-      </label>
+      {extras.length > 0 ? (
+        <>
+          <h3
+            style={{
+              fontFamily: 'var(--serif)',
+              fontSize: 24,
+              fontWeight: 400,
+              margin: '40px 0 16px',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {t('extrasTitle')}
+          </h3>
+          {extras.map((extra) => {
+            const selected = selectedExtraIds.includes(extra.id);
+            return (
+              <label
+                key={extra.id}
+                className="stepper-row"
+                style={{
+                  cursor: 'pointer',
+                  borderTop: '1px solid var(--line)',
+                  borderBottom: '1px solid var(--line)',
+                }}
+              >
+                <div className="stepper-info">
+                  <h4>{extra.name}</h4>
+                  {extra.disclaimer ? (
+                    <p title={extra.disclaimer}>{extra.disclaimer}</p>
+                  ) : null}
+                </div>
+                <input
+                  type="checkbox"
+                  aria-label={extra.name}
+                  checked={selected}
+                  onChange={(e) => onToggleExtra(extra.id, e.target.checked)}
+                  style={{ width: 22, height: 22, accentColor: 'var(--terra)' }}
+                />
+              </label>
+            );
+          })}
+        </>
+      ) : null}
 
       {error ? (
         <p role="alert" style={{ color: 'var(--terra)', marginTop: 16, fontSize: 14 }}>

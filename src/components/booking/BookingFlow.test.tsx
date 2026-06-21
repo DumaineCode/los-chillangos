@@ -3,7 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import enMessages from '../../../messages/en.json';
-import { BookingFlow } from './BookingFlow';
+import { BookingFlow, type WizardExtra } from './BookingFlow';
 
 /**
  * Smoke tests for the 4-step booking wizard after the Sub-etapa C rewire.
@@ -30,6 +30,7 @@ const baseTour = {
     { time: '09:00', capacity: 8 },
     { time: '14:00', capacity: 8 },
   ],
+  extras: [] as ReadonlyArray<WizardExtra>,
 };
 
 const baseProps = {
@@ -140,6 +141,69 @@ describe('BookingFlow', () => {
     expect(body.customer.email).toBe('hana@example.com');
     expect(body.customer.country).toBe('MX');
     expect(body.customer.locale).toBe('en');
+  });
+
+  it('toggles an assigned extra: preview total rises by its price and the payload carries selectedExtras', async () => {
+    const assign = vi.fn();
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...window.location, assign },
+    });
+
+    renderFlow({
+      ...baseProps,
+      tour: {
+        ...baseTour,
+        extras: [
+          {
+            id: 7,
+            name: 'Private tour',
+            price: 140,
+            priceType: 'total',
+            disclaimer: 'Just your group.',
+          },
+        ] as ReadonlyArray<WizardExtra>,
+      },
+    });
+
+    selectAFutureNonMondayDay();
+    fireEvent.click(screen.getByRole('button', { name: /09:00/ }));
+    fireEvent.click(screen.getByTestId('booking-next'));
+
+    // On the People step the extra is offered as a yes/no control.
+    const extraToggle = screen.getByRole('checkbox', { name: /private tour/i });
+
+    // Base: subtotal 178 AND total 178 (no extras yet) → both rows show $178.
+    expect(screen.getAllByText('$178')).toHaveLength(2);
+
+    // Toggle the extra ON → total rises by 140 → 318 (subtotal stays 178).
+    fireEvent.click(extraToggle);
+    expect(screen.getByText('$318')).toBeInTheDocument();
+    expect(screen.getByText('$178')).toBeInTheDocument(); // subtotal unchanged
+    // The extra appears as its own line: +$140.
+    expect(screen.getByText('+$140')).toBeInTheDocument();
+
+    // Advance to confirm and inspect the posted payload.
+    fireEvent.click(screen.getByTestId('booking-next'));
+    fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Hana Kobayashi' } });
+    fireEvent.change(screen.getByLabelText(/^email$/i), { target: { value: 'hana@example.com' } });
+    fireEvent.change(screen.getByLabelText(/country of origin/i), { target: { value: 'MX' } });
+    fireEvent.click(screen.getByTestId('booking-next'));
+    fireEvent.click(screen.getByTestId('booking-confirm'));
+
+    await waitFor(() => {
+      expect(assign).toHaveBeenCalled();
+    });
+
+    const fetchMock = vi.mocked(global.fetch);
+    const checkoutCall = fetchMock.mock.calls.find(([url, init]) => {
+      const u = typeof url === 'string' ? url : String(url);
+      return u.includes('/api/booking/checkout') && init?.method === 'POST';
+    });
+    const body = JSON.parse(checkoutCall![1]!.body as string) as {
+      selectedExtras: Array<{ extraId: number; priceType: string }>;
+    };
+    expect(body.selectedExtras).toEqual([{ extraId: 7, priceType: 'total' }]);
   });
 
   it('shows the tourPaused banner when availableDays is empty', () => {
