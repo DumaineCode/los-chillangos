@@ -8,6 +8,7 @@ import { Link } from '../../i18n/navigation';
 import { type Locale } from '../../i18n/routing';
 import { AboutSlider } from '../../src/components/AboutSlider';
 import { CatalogFilter } from '../../src/components/CatalogFilter';
+import { Contact } from '../../src/components/contact/Contact';
 import { FAQList } from '../../src/components/FAQ';
 import { RefreshRouteOnSave } from '../../src/components/RefreshRouteOnSave';
 import { HighlightSeasonal } from '../../src/components/seasonal/HighlightSeasonal';
@@ -72,7 +73,7 @@ export default async function HomePage({ params }: Props) {
   // so the preview reflects the last SAVED state (refresh-on-save).
   const { isEnabled: isDraft } = await draftMode();
 
-  const [landing, toursResult, seasonalTour] = await Promise.all([
+  const [landing, toursResult, seasonalTour, contactInfo, socialLinks] = await Promise.all([
     payload
       .findGlobal({ slug: 'landing', locale: locale as Locale, fallbackLocale: 'en' })
       .catch(() => null),
@@ -85,6 +86,8 @@ export default async function HomePage({ params }: Props) {
       depth: 1,
     }),
     getActiveSeasonalTour(payload, locale as Locale).catch(() => null),
+    payload.findGlobal({ slug: 'contact-info' }).catch(() => null),
+    payload.findGlobal({ slug: 'social-links' }).catch(() => null),
   ]);
 
   // Each homepage section is now a sub-object (named tab) of the single
@@ -446,6 +449,9 @@ export default async function HomePage({ params }: Props) {
           </div>
         </section>
       )}
+
+      {/* Contact */}
+      <Contact locale={locale as Locale} contact={contactInfo} social={socialLinks} />
     </div>
   );
 }
