@@ -48,6 +48,30 @@ describe('selectCardThumbnail', () => {
     expect(result?.objectPosition).toBe('10% 90%');
   });
 
+  it('falls back to the seasonal poster when a seasonal video tour has no image', () => {
+    const result = selectCardThumbnail(
+      tour({
+        isSeasonal: true,
+        heroImage: null,
+        seasonal: {
+          seasonalHero: { mediaType: 'video', image: null, poster: media('/poster.jpg') },
+        },
+      })
+    );
+    expect(result?.url).toBe('/poster.jpg');
+  });
+
+  it('prefers heroImage over seasonal media when both exist on a seasonal tour', () => {
+    const result = selectCardThumbnail(
+      tour({
+        isSeasonal: true,
+        heroImage: media('/hero.jpg'),
+        seasonal: { seasonalHero: { mediaType: 'image', image: media('/seasonal.jpg') } },
+      })
+    );
+    expect(result?.url).toBe('/hero.jpg');
+  });
+
   it('returns null when nothing resolves (keeps placeholder) (FR-5)', () => {
     const result = selectCardThumbnail(
       tour({
