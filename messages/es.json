@@ -271,7 +271,7 @@
         "teenLabel": "Adolescentes",
         "teenHint": "12–17 años",
         "addonsTitle": "Extras",
-        "privatizeLabel": "Privatizar este tour",
+        "privatizeLabel": "Tour privado",
         "privatizeHint": "+USD 140 · solo tu grupo"
       },
       "details": {
@@ -302,7 +302,7 @@
       "riders": "Personas",
       "adults": "{count, plural, one {# adulto} other {# adultos}}",
       "teens": "{count, plural, one {# adolescente} other {# adolescentes}}",
-      "privatize": "Privatizado",
+      "privatize": "Tour privado",
       "subtotal": "Subtotal",
       "addon": "Extras",
       "total": "Total estimado",
@@ -321,7 +321,7 @@
         "email": "Email",
         "whatsapp": "WhatsApp"
       },
-      "privatizeValue": "Privatizar este tour (+USD 140)",
+      "privatizeValue": "Tour privado (+USD 140)",
       "footer": "Enviado desde loschillangos.com",
       "subject": "Nueva solicitud de reserva — {tour}"
     },

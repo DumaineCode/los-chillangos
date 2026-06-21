@@ -45,7 +45,7 @@ const labelsEs: BookingMessageLabels = {
   total: 'Total estimado',
   email: 'Email',
   whatsapp: 'WhatsApp',
-  privatizeValue: 'Privatizar este tour (+USD 140)',
+  privatizeValue: 'Tour privado (+USD 140)',
   footer: 'Enviado desde loschillangos.com',
   subject: 'Nueva solicitud de reserva — {tour}',
   adultsValue: '2 adultos',

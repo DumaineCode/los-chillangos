@@ -244,7 +244,7 @@ export const Bookings: CollectionConfig = {
       admin: {
         description: {
           en: 'Snapshot of the privatize flat fee at booking time (matches the legacy +USD 140 constant; not enforced here).',
-          es: 'Foto fija del cargo por privatizar al momento de reservar (equivale al +USD 140 anterior; aquí no se aplica automáticamente).',
+          es: 'Foto fija del cargo por tour privado al momento de reservar (equivale al +USD 140 anterior; aquí no se aplica automáticamente).',
         },
       },
     },
