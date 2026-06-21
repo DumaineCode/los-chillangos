@@ -16,7 +16,10 @@ import TourDetailPage from './page';
 const findMock = vi.fn();
 
 vi.mock('../../../../src/lib/payload', () => ({
-  getPayload: () => Promise.resolve({ find: findMock }),
+  // `findGlobal` backs the booking-settings lookup added to the tour page
+  // (free-cancellation window); the focal tests don't assert it, so a null
+  // stub is enough — the page guards it with `?.` + `??` fallback.
+  getPayload: () => Promise.resolve({ find: findMock, findGlobal: () => Promise.resolve(null) }),
 }));
 
 vi.mock('next/headers', () => ({
