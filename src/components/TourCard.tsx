@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 
 import { Link } from '../../i18n/navigation';
 import type { Locale } from '../../i18n/routing';
-import { selectCardThumbnailUrl } from '../lib/seasonal/cardThumbnail';
+import { selectCardThumbnail } from '../lib/seasonal/cardThumbnail';
 import type { Tour } from '../payload-types';
 
 type Props = {
@@ -27,23 +27,23 @@ type Props = {
 export async function TourCard({ tour, locale }: Props) {
   const t = await getTranslations({ locale, namespace: 'common' });
 
-  const thumbnailUrl = selectCardThumbnailUrl(tour);
+  const thumbnail = selectCardThumbnail(tour);
   const isSeasonal = tour.isSeasonal === true;
   const tagColorClass = tour.tagColor ?? '';
 
   return (
     <Link href={`/tours/${tour.slug}`} className="tour-card">
       <div
-        className={`tour-card-img ${thumbnailUrl ? '' : 'placeholder'} ${tour.tagColor ?? ''}`}
+        className={`tour-card-img ${thumbnail ? '' : 'placeholder'} ${tour.tagColor ?? ''}`}
         data-label={tour.photoDescription ?? ''}
       >
-        {thumbnailUrl ? (
+        {thumbnail ? (
           <Image
-            src={thumbnailUrl}
+            src={thumbnail.url}
             alt={tour.title}
             fill
             sizes="(max-width: 900px) 50vw, 33vw"
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: 'cover', objectPosition: thumbnail.objectPosition }}
           />
         ) : null}
         {isSeasonal ? (

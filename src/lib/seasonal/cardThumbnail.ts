@@ -1,3 +1,4 @@
+import { resolveMediaImage, type ResolvedImage } from '../media';
 import type { Tour } from '../../payload-types';
 
 import { resolveMediaUrl } from './resolveMediaUrl';
@@ -21,6 +22,25 @@ export function selectCardThumbnailUrl(tour: Tour): string | null {
   if (tour.isSeasonal === true) {
     const seasonalHero = tour.seasonal?.seasonalHero;
     return resolveMediaUrl(seasonalHero?.image) ?? resolveMediaUrl(seasonalHero?.poster);
+  }
+
+  return null;
+}
+
+/**
+ * Structured, focal-point-aware variant of {@link selectCardThumbnailUrl}.
+ *
+ * Same priority chain (heroImage → seasonal image → seasonal poster → null),
+ * but returns the shared resolver's `{ url, objectPosition, alt }` so the card
+ * can frame the thumbnail by its focal point. Pure and deterministic.
+ */
+export function selectCardThumbnail(tour: Tour): ResolvedImage | null {
+  const hero = resolveMediaImage(tour.heroImage);
+  if (hero) return hero;
+
+  if (tour.isSeasonal === true) {
+    const seasonalHero = tour.seasonal?.seasonalHero;
+    return resolveMediaImage(seasonalHero?.image) ?? resolveMediaImage(seasonalHero?.poster);
   }
 
   return null;
