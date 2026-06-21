@@ -173,6 +173,8 @@
     "sectionItin": "Your afternoon",
     "sectionIncl": "What's included",
     "sectionMeet": "Meeting point",
+    "sectionRoute": "Route",
+    "openInMaps": "Open in Google Maps",
     "freeCancel": "Free cancellation · 24h before",
     "galleryPlaceholder": {
       "main": "Hero photo",

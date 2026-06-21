@@ -266,6 +266,17 @@ export interface Tour {
     lng?: number | null;
   };
   /**
+   * Stops along the route, in order. The route map draws the road path between them. Add at least 2 to show the map.
+   */
+  route?:
+    | {
+        label?: string | null;
+        lat: number;
+        lng: number;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Days of the week this tour runs. Leave empty if the tour is paused. The site uses these to gate the booking calendar.
    */
   availableDays?: ('0' | '1' | '2' | '3' | '4' | '5' | '6')[] | null;
@@ -674,6 +685,14 @@ export interface ToursSelect<T extends boolean = true> {
         address?: T;
         lat?: T;
         lng?: T;
+      };
+  route?:
+    | T
+    | {
+        label?: T;
+        lat?: T;
+        lng?: T;
+        id?: T;
       };
   availableDays?: T;
   timeSlots?:

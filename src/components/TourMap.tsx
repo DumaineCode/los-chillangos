@@ -1,70 +1,79 @@
 'use client';
 
-import 'leaflet/dist/leaflet.css';
-import { useEffect, useRef } from 'react';
+import { useCallback } from 'react';
+import { MapPin } from 'lucide-react';
+import type { Map as MapLibreMap } from 'maplibre-gl';
+
+import { MapBase } from './maps/MapBase';
 
 /**
  * Interactive meeting-point map (client component).
  *
- * Renders an OpenStreetMap map via Leaflet at the tour's stored coordinates.
- * Leaflet is imported dynamically inside an effect so it never runs during SSR
- * (it touches `window`). A lightweight `divIcon` marker avoids Leaflet's
- * bundler-unfriendly default icon assets and matches the site's accent color.
+ * Migrated from Leaflet to MapLibre GL (mapcn approach) via the shared
+ * `MapBase`. Renders an accent-colored pin at the tour's stored coordinates and
+ * offers a button to open the spot in Google Maps. Props are unchanged so the
+ * tour detail page keeps calling it the same way.
  */
 
 type Props = {
   lat: number;
   lng: number;
   label?: string | null;
+  /** Label for the "open in Google Maps" button (localized by the caller). */
+  openInMapsLabel?: string;
 };
 
-export function TourMap({ lat, lng, label }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
+export function TourMap({ lat, lng, label, openInMapsLabel = 'Open in Google Maps' }: Props) {
+  const handleReady = useCallback(
+    (map: MapLibreMap) => {
+      void (async () => {
+        const maplibregl = (await import('maplibre-gl')).default;
 
-  useEffect(() => {
-    let map: import('leaflet').Map | undefined;
-    let cancelled = false;
+        // Accent-colored teardrop pin built as a DOM element, matching the
+        // site's --terra accent (kept consistent with the old divIcon look).
+        const el = document.createElement('div');
+        el.className = 'tour-map-pin';
+        el.innerHTML = '<span></span>';
 
-    void (async () => {
-      const L = (await import('leaflet')).default;
-      if (cancelled || !containerRef.current) return;
+        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat([lng, lat])
+          .addTo(map);
 
-      map = L.map(containerRef.current, {
-        center: [lat, lng],
-        zoom: 15,
-        scrollWheelZoom: false,
-        attributionControl: true,
-      });
+        if (label) {
+          marker.setPopup(new maplibregl.Popup({ offset: 24 }).setText(label));
+        }
+      })();
+    },
+    [lat, lng, label],
+  );
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19,
-      }).addTo(map);
-
-      const icon = L.divIcon({
-        className: 'tour-map-pin',
-        html: '<span></span>',
-        iconSize: [22, 22],
-        iconAnchor: [11, 22],
-      });
-
-      const marker = L.marker([lat, lng], { icon }).addTo(map);
-      if (label) marker.bindPopup(label);
-    })();
-
-    return () => {
-      cancelled = true;
-      map?.remove();
-    };
-  }, [lat, lng, label]);
+  const mapsHref = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
   return (
-    <div
-      ref={containerRef}
-      role="img"
-      aria-label={label ? `Map showing ${label}` : 'Map showing the meeting point'}
-      style={{ aspectRatio: '21 / 9', borderRadius: 4, marginTop: 16, overflow: 'hidden' }}
-    />
+    <div style={{ marginTop: 16 }}>
+      <MapBase
+        center={[lng, lat]}
+        zoom={15}
+        onReady={handleReady}
+        aria-label={label ? `Map showing ${label}` : 'Map showing the meeting point'}
+        style={{ aspectRatio: '21 / 9', borderRadius: 4, overflow: 'hidden' }}
+      />
+      <a
+        href={mapsHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn btn-ghost btn-sm"
+        style={{
+          marginTop: 12,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+      >
+        <MapPin size={16} aria-hidden />
+        {openInMapsLabel}
+      </a>
+    </div>
   );
 }
 

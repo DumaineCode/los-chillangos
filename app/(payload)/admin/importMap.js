@@ -1,4 +1,5 @@
 import { default as default_50388ba2c81e8be9f2edc29f18a8e961 } from '../../../src/components/admin/MeetingLocationField'
+import { default as default_c854f4d6f465f712fc5b8a06361eb3c2 } from '../../../src/components/admin/RouteField'
 import { default as default_19895021b8e50244eef69214e8648652 } from '../../../src/components/admin/BookingsBeforeList'
 import { default as default_27eed1898e8caadb2fd2266b54bb4509 } from '../../../src/components/admin/AdminLogo'
 import { default as default_1a68d16f6390dcabe453495a1f93438a } from '../../../src/components/admin/WelcomeDashboard'
@@ -9,6 +10,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 /** @type import('payload').ImportMap */
 export const importMap = {
   "/components/admin/MeetingLocationField#default": default_50388ba2c81e8be9f2edc29f18a8e961,
+  "/components/admin/RouteField#default": default_c854f4d6f465f712fc5b8a06361eb3c2,
   "/components/admin/BookingsBeforeList#default": default_19895021b8e50244eef69214e8648652,
   "/components/admin/AdminLogo#default": default_27eed1898e8caadb2fd2266b54bb4509,
   "/components/admin/WelcomeDashboard#default": default_1a68d16f6390dcabe453495a1f93438a,

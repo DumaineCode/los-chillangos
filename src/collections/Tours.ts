@@ -519,6 +519,36 @@ export const Tours: CollectionConfig = {
               ],
             },
             {
+              // Ordered list of waypoints that define the tour route. NOT
+              // localized — coordinates are the same in every language. A custom
+              // admin component (RouteField) lets the client search each stop in
+              // plain language (Photon), add/reorder/remove them, and preview the
+              // line. The public route map renders the real road path between
+              // these points via OSRM. With fewer than 2 waypoints the public
+              // page hides the route section entirely.
+              name: 'route',
+              type: 'array',
+              label: { en: 'Route', es: 'Ruta' },
+              labels: {
+                singular: { en: 'Waypoint', es: 'Punto de la ruta' },
+                plural: { en: 'Waypoints', es: 'Puntos de la ruta' },
+              },
+              admin: {
+                description: {
+                  en: 'Stops along the route, in order. The route map draws the road path between them. Add at least 2 to show the map.',
+                  es: 'Paradas de la ruta, en orden. El mapa de ruta traza el camino entre ellas. Agrega al menos 2 para mostrar el mapa.',
+                },
+                components: {
+                  Field: '/components/admin/RouteField',
+                },
+              },
+              fields: [
+                { name: 'label', type: 'text' },
+                { name: 'lat', type: 'number', required: true },
+                { name: 'lng', type: 'number', required: true },
+              ],
+            },
+            {
               name: 'availableDays',
               type: 'select',
               hasMany: true,

@@ -8,6 +8,7 @@ import { Link } from '../../../../i18n/navigation';
 import { type Locale } from '../../../../i18n/routing';
 import { RefreshRouteOnSave } from '../../../../src/components/RefreshRouteOnSave';
 import { TourMap } from '../../../../src/components/TourMap';
+import { RouteMap } from '../../../../src/components/maps/RouteMap';
 import { SeasonalTourLayout } from '../../../../src/components/seasonal/SeasonalTourLayout';
 import { getPayload } from '../../../../src/lib/payload';
 import { shouldRenderSeasonal } from '../../../../src/lib/seasonal/shouldRenderSeasonal';
@@ -81,17 +82,24 @@ export default async function TourDetailPage({ params }: Props) {
   // unguarded t(`categoryLabel.null`) throws MISSING_MESSAGE and 500s the preview.
   const categoryLabel = tour.category ? t(`categoryLabel.${tour.category}`) : '';
 
-  // meetingLocation is a non-localized group {address, lat, lng} added to the
-  // Tours collection. Read it via a narrow local cast so this file does not
-  // depend on a regenerated payload-types (which is currently entangled with
-  // unrelated parallel work). Render the map only when real coords exist.
-  const meetingLocation = (
-    tour as { meetingLocation?: { address?: string | null; lat?: number | null; lng?: number | null } | null }
-  ).meetingLocation;
+  // meetingLocation is a non-localized group {address, lat, lng} on the Tour.
+  // Render the map only when real coords exist.
+  const meetingLocation = tour.meetingLocation;
   const mapCoords =
     typeof meetingLocation?.lat === 'number' && typeof meetingLocation?.lng === 'number'
       ? { lat: meetingLocation.lat, lng: meetingLocation.lng }
       : null;
+
+  // route is an ordered array of {label?, lat, lng} on the Tour. Keep only rows
+  // with real coords; the route map needs at least two points, otherwise the
+  // whole section is hidden.
+  const routeWaypoints = (tour.route ?? [])
+    .filter(
+      (w): w is { label?: string | null; lat: number; lng: number; id?: string | null } =>
+        typeof w?.lat === 'number' && typeof w?.lng === 'number',
+    )
+    .map((w) => ({ lat: w.lat, lng: w.lng, label: w.label ?? null }));
+  const hasRoute = routeWaypoints.length >= 2;
 
   return (
     <div>
@@ -177,6 +185,17 @@ export default async function TourDetailPage({ params }: Props) {
                 </div>
               </section>
             ) : null}
+            {hasRoute && (
+              <section>
+                <h3>{t('sectionRoute')}</h3>
+                <RouteMap
+                  waypoints={routeWaypoints}
+                  name={tour.title}
+                  distance={tour.distance}
+                  duration={tour.duration}
+                />
+              </section>
+            )}
             {(tour.meetingPoint || tour.meetingPointText || mapCoords) && (
               <section>
                 <h3>{t('sectionMeet')}</h3>
@@ -191,6 +210,7 @@ export default async function TourDetailPage({ params }: Props) {
                     lat={mapCoords.lat}
                     lng={mapCoords.lng}
                     label={meetingLocation?.address ?? tour.meetingPoint}
+                    openInMapsLabel={t('openInMaps')}
                   />
                 ) : (
                   <div

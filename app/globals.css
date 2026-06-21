@@ -1339,7 +1339,10 @@ body:has(.hero-cine) { padding-top: 0; }
   }
 }
 
-/* Leaflet meeting-point map: accent-colored teardrop pin (divIcon). */
+/* Meeting-point map (MapLibre): accent-colored teardrop pin. */
+.tour-map-pin {
+  cursor: pointer;
+}
 .tour-map-pin span {
   display: block;
   width: 18px;
@@ -1349,6 +1352,71 @@ body:has(.hero-cine) { padding-top: 0; }
   border: 2px solid #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   transform: rotate(-45deg);
+}
+
+/* Route map (MapLibre): numbered stop markers + floating info card. */
+.route-stop-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--terra);
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.route-card {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100% - 24px);
+  padding: 12px 16px;
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+.route-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--terra);
+  color: #fff;
+}
+.route-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.route-card-name {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.route-card-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-muted);
 }
 
 .detail-body {
