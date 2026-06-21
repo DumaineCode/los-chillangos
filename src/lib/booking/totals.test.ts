@@ -3,13 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { computeBookingTotals } from './totals';
 
 describe('computeBookingTotals', () => {
-  it('sums adults only when teens=0 and privatize=false', () => {
+  it('sums adults only when teens=0 and no extras', () => {
     const out = computeBookingTotals({
       adults: 2,
       teens: 0,
       pricePerPerson: 89,
-      privatize: false,
-      privatizeFee: 140,
+      selectedExtras: [],
     });
 
     expect(out.totalPersons).toBe(2);
@@ -24,33 +23,44 @@ describe('computeBookingTotals', () => {
       adults: 2,
       teens: 1,
       pricePerPerson: 89,
-      privatize: false,
-      privatizeFee: 140,
+      selectedExtras: [],
     });
 
     expect(out.totalPersons).toBe(3);
     expect(out.totalAmount).toBe(89 * 3);
   });
 
-  it('adds privatizeFee when privatize=true', () => {
+  it('adds a flat (total) extra once on top of headcount × price', () => {
+    // "Tour privado" is now an extra (140, total) flowing through the unified
+    // contract — there is no privatize boolean in the active path anymore.
     const out = computeBookingTotals({
       adults: 2,
       teens: 0,
       pricePerPerson: 89,
-      privatize: true,
-      privatizeFee: 140,
+      selectedExtras: [{ price: 140, priceType: 'total' }],
     });
 
     expect(out.totalAmount).toBe(178 + 140);
   });
 
-  it('does NOT add privatizeFee when privatize=false', () => {
+  it('scales a perPerson extra by headcount', () => {
+    const out = computeBookingTotals({
+      adults: 2,
+      teens: 1,
+      pricePerPerson: 80,
+      selectedExtras: [{ price: 20, priceType: 'perPerson' }],
+    });
+
+    // base 80*3 = 240, extra 20*3 = 60
+    expect(out.totalAmount).toBe(240 + 60);
+  });
+
+  it('no-extras regression: total equals the base subtotal exactly', () => {
     const out = computeBookingTotals({
       adults: 1,
       teens: 0,
       pricePerPerson: 100,
-      privatize: false,
-      privatizeFee: 140,
+      selectedExtras: [],
     });
 
     expect(out.totalAmount).toBe(100);
@@ -61,8 +71,7 @@ describe('computeBookingTotals', () => {
       adults: 1,
       teens: 0,
       pricePerPerson: 100,
-      privatize: false,
-      privatizeFee: 0,
+      selectedExtras: [],
     });
 
     expect(out.totalPersons).toBe(1);
@@ -76,8 +85,7 @@ describe('computeBookingTotals', () => {
       adults: undefined,
       teens: undefined,
       pricePerPerson: undefined,
-      privatize: false,
-      privatizeFee: undefined,
+      selectedExtras: undefined,
     });
 
     expect(out.totalPersons).toBe(0);

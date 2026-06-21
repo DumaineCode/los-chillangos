@@ -1,29 +1,37 @@
+import { type SelectedExtra, extrasAmount } from './pricing';
+
 /**
  * Booking totals — snapshotted at booking time.
  *
- * `pricing.ts` is the wizard-side preview model (flat per-person price plus
- * the +USD 140 privatize add-on). This module computes the persisted
- * snapshot that will be stored on the `bookings` row (`totalPersons`,
- * `totalAmount`) and sent to Stripe. The Bookings collection field hook
- * calls this so admin-edited and API-created rows stay consistent.
+ * `pricing.ts` is the wizard-side preview model (flat per-person price plus the
+ * unified `selectedExtras` contract). This module computes the persisted
+ * snapshot stored on the `bookings` row (`totalPersons`, `totalAmount`) and
+ * sent to Stripe. The Bookings collection field hook calls this so admin-edited
+ * and API-created rows stay consistent.
  *
  * Design notes:
  *   - `pricePerPerson` is whatever the caller agreed to charge per head AT
  *     booking time. It is a snapshot, not a foreign key to `tours.price`.
- *   - The math here is intentionally trivial (headcount × price) so the DB
- *     total equals what Stripe charges and what the wizard preview shows,
- *     with no hidden adjustments.
- *   - A parity test in `pricing.test.ts` asserts `calculatePrice` and
- *     `computeBookingTotals` return the same total for the same inputs.
+ *   - `selectedExtras` is the SAME shape `calculatePrice` consumes, so the two
+ *     can never drift. A parity test in `pricing.test.ts` asserts they return
+ *     the same total for identical inputs.
+ *   - The math is intentionally trivial (headcount × price + extras) so the DB
+ *     total equals what Stripe charges and what the wizard preview shows.
  *   - Undefined inputs collapse to 0 so a partial form save in `/admin`
  *     doesn't produce NaN.
+ *
+ * Legacy `privatize`/`privatizeFee` are NO LONGER part of the active total. The
+ * columns remain on the Bookings collection for historical rows, but the active
+ * pricing path computes from `selectedExtras` only. Historical rows that
+ * predate extras simply pass an empty `selectedExtras` and keep their stored
+ * `totalAmount` (the headcount × pricePerPerson term reproduces their base; the
+ * old privatize fee, if any, is preserved as-is on the row and not recomputed).
  */
 export interface BookingTotalsInput {
   adults: number | null | undefined;
   teens: number | null | undefined;
   pricePerPerson: number | null | undefined;
-  privatize: boolean | null | undefined;
-  privatizeFee: number | null | undefined;
+  selectedExtras?: ReadonlyArray<SelectedExtra> | null;
 }
 
 export interface BookingTotals {
@@ -39,11 +47,10 @@ export function computeBookingTotals(input: BookingTotalsInput): BookingTotals {
   const adults = num(input.adults);
   const teens = num(input.teens);
   const pricePerPerson = num(input.pricePerPerson);
-  const privatizeFee = num(input.privatizeFee);
-  const privatize = Boolean(input.privatize);
 
   const totalPersons = adults + teens;
-  const totalAmount = totalPersons * pricePerPerson + (privatize ? privatizeFee : 0);
+  const extras = extrasAmount(input.selectedExtras ?? [], totalPersons);
+  const totalAmount = totalPersons * pricePerPerson + extras;
 
   return { totalPersons, totalAmount };
 }

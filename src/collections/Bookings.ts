@@ -5,8 +5,27 @@ import {
   revalidateBookingsAfterDelete,
 } from '../hooks/revalidateBookings';
 import { generateBookingReference } from '../lib/booking/reference';
+import type { SelectedExtra } from '../lib/booking/pricing';
 import { computeBookingTotals } from '../lib/booking/totals';
 import { NAV_GROUPS } from '../admin/navGroups';
+
+/**
+ * Map the persisted `selectedExtras` snapshot rows to the pricing contract.
+ *
+ * The snapshot stores the full extra (extraId, name, unitPrice, priceType,
+ * computedAmount); the pricing math only needs `price` (= unitPrice) and
+ * `priceType`. Non-array / partial inputs collapse to an empty selection so a
+ * fresh admin create (or a legacy row with no extras) recomputes to base.
+ */
+function toSelectedExtras(raw: unknown): SelectedExtra[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((r): r is Record<string, unknown> => typeof r === 'object' && r !== null)
+    .map((r) => ({
+      price: typeof r.unitPrice === 'number' ? r.unitPrice : 0,
+      priceType: r.priceType === 'perPerson' ? 'perPerson' : 'total',
+    }));
+}
 
 /**
  * Bookings collection — persistent booking record (Sub-etapa A scope).
@@ -55,20 +74,18 @@ const computeTotalPersons: FieldHook = ({ siblingData }) => {
     adults: siblingData?.adults as number | undefined,
     teens: siblingData?.teens as number | undefined,
     pricePerPerson: siblingData?.pricePerPerson as number | undefined,
-    privatize: siblingData?.privatize as boolean | undefined,
-    privatizeFee: siblingData?.privatizeFee as number | undefined,
+    selectedExtras: toSelectedExtras(siblingData?.selectedExtras),
   });
   return totalPersons;
 };
 
-/** Computes `totalAmount` from sibling headcount + per-person + privatize. */
+/** Computes `totalAmount` from sibling headcount + per-person + selected extras. */
 const computeTotalAmount: FieldHook = ({ siblingData }) => {
   const { totalAmount } = computeBookingTotals({
     adults: siblingData?.adults as number | undefined,
     teens: siblingData?.teens as number | undefined,
     pricePerPerson: siblingData?.pricePerPerson as number | undefined,
-    privatize: siblingData?.privatize as boolean | undefined,
-    privatizeFee: siblingData?.privatizeFee as number | undefined,
+    selectedExtras: toSelectedExtras(siblingData?.selectedExtras),
   });
   return totalAmount;
 };
@@ -106,17 +123,30 @@ export const Bookings: CollectionConfig = {
           data.reference = generateBookingReference();
         }
         // Recompute snapshot totals at the collection level so programmatic
-        // creates that bypass field hooks (e.g. the API route in C) still
-        // produce consistent rows.
+        // creates that bypass field hooks (e.g. the checkout API route) still
+        // produce consistent rows from the unified `selectedExtras` contract.
+        const selectedExtras = toSelectedExtras(data.selectedExtras);
         const { totalPersons, totalAmount } = computeBookingTotals({
           adults: data.adults as number | undefined,
           teens: data.teens as number | undefined,
           pricePerPerson: data.pricePerPerson as number | undefined,
-          privatize: data.privatize as boolean | undefined,
-          privatizeFee: data.privatizeFee as number | undefined,
+          selectedExtras,
         });
         data.totalPersons = totalPersons;
-        data.totalAmount = totalAmount;
+
+        // Historical-row guard: legacy bookings created before the extras
+        // system have NO selectedExtras but may carry a privatize fee folded
+        // into their stored totalAmount. Recomputing from an empty extras set
+        // would silently drop that fee, rewriting a past charge. So only
+        // overwrite totalAmount when this row actually has extras OR has no
+        // prior total to preserve. New bookings always pass selectedExtras
+        // (even an empty array means "no extras, base only") via the checkout
+        // route, and historical rows keep their snapshot untouched.
+        const hasPriorTotal =
+          typeof data.totalAmount === 'number' && Number.isFinite(data.totalAmount);
+        if (selectedExtras.length > 0 || !hasPriorTotal) {
+          data.totalAmount = totalAmount;
+        }
         return data;
       },
     ],
