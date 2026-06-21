@@ -2,8 +2,6 @@
 
 import { useTranslations } from 'next-intl';
 
-import { calculatePrice } from '../../lib/booking/pricing';
-
 type Props = {
   adults: number;
   teens: number;
@@ -22,9 +20,7 @@ export function StepPeople({
   adults,
   teens,
   privatize,
-  pricePerAdult,
   slotCapacity,
-  locale,
   onAdultsChange,
   onTeensChange,
   onPrivatizeChange,
@@ -32,14 +28,6 @@ export function StepPeople({
 }: Props) {
   const t = useTranslations('booking.steps.people');
   const tErr = useTranslations('booking.errors');
-  const tSummary = useTranslations('booking.summary');
-
-  const breakdown = calculatePrice({ pricePerAdult, adults, teens, privatize });
-  const totalFormatted = new Intl.NumberFormat(locale === 'es' ? 'es-MX' : 'en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(breakdown.total);
 
   const cap = Math.max(1, Math.trunc(slotCapacity));
   const groupAtMax = adults + teens >= cap;
@@ -142,22 +130,6 @@ export function StepPeople({
           {tErr(error.replace(/^errors\./, ''))}
         </p>
       ) : null}
-
-      <div
-        style={{
-          marginTop: 32,
-          padding: '16px 18px',
-          borderRadius: 6,
-          background: 'var(--cream)',
-          border: '1px solid var(--line)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-        }}
-      >
-        <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>{tSummary('total')}</span>
-        <span style={{ fontFamily: 'var(--serif)', fontSize: 24 }}>{totalFormatted}</span>
-      </div>
     </div>
   );
 }
