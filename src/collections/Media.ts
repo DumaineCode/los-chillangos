@@ -47,6 +47,9 @@ export const Media: CollectionConfig = {
   ],
   upload: {
     mimeTypes: ['image/*'],
+    // Explicit (Payload defaults this to true when imageSizes are defined).
+    // Self-documents that focalX/focalY drive cover framing via resolveMediaImage.
+    focalPoint: true,
     imageSizes: [
       {
         name: 'thumbnail',
