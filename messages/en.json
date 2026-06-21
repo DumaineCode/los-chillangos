@@ -191,6 +191,9 @@
   },
   "seasonal": {
     "eyebrow": "Seasonal",
+    "sectionTitle": "Special event",
+    "sectionSub": "A one-time experience — here for this date only.",
+    "singleDate": "Single date",
     "featuredLabel": "This season",
     "dateLabel": "Event date",
     "locationLabel": "Location",

@@ -54,7 +54,20 @@ export function HighlightSeasonal({ tour, eyebrow, locale }: Props) {
   return (
     <section className="section highlight-seasonal-section">
       <div className="container">
+        <div className="section-head highlight-seasonal-head">
+          <div>
+            <div className="eyebrow highlight-seasonal-eyebrow" style={{ marginBottom: 16 }}>
+              <SpecialEventIcon />
+              <span>{t('eyebrow')}</span>
+            </div>
+            <h2 className="section-title">{t('sectionTitle')}</h2>
+          </div>
+          <p className="section-sub">{t('sectionSub')}</p>
+        </div>
         <Link href={`/tours/${tour.slug}`} className="highlight-seasonal">
+          <span className="highlight-seasonal-stamp" aria-hidden="true">
+            <Image src="/brand/sello-evento.png" alt="" width={120} height={120} />
+          </span>
           <div className="highlight-seasonal-media">
             {imageUrl ? (
               <Image
@@ -67,7 +80,13 @@ export function HighlightSeasonal({ tour, eyebrow, locale }: Props) {
             ) : null}
           </div>
           <div className="highlight-seasonal-body">
-            <div className="eyebrow mono">{eyebrow}</div>
+            <div className="highlight-seasonal-tags">
+              <span className="eyebrow mono">{eyebrow}</span>
+              <span className="highlight-seasonal-singledate mono">
+                <SpecialEventIcon />
+                {t('singleDate')}
+              </span>
+            </div>
             <h2 className="highlight-seasonal-title">{tour.title}</h2>
             {seasonal.tagline ? (
               <p className="highlight-seasonal-tagline">{seasonal.tagline}</p>
@@ -81,5 +100,30 @@ export function HighlightSeasonal({ tour, eyebrow, locale }: Props) {
         </Link>
       </div>
     </section>
+  );
+}
+
+/**
+ * Calendar-with-star glyph: signals a one-time, special-event date.
+ * Inherits `currentColor` so it picks up the surrounding eyebrow color.
+ */
+function SpecialEventIcon() {
+  return (
+    <svg
+      className="special-event-icon"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M3 9h18M8 2v4M16 2v4" />
+      <path d="M12 12.5l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2L7.8 14.8l2.2-.3z" />
+    </svg>
   );
 }

@@ -191,6 +191,9 @@
   },
   "seasonal": {
     "eyebrow": "De temporada",
+    "sectionTitle": "Evento especial",
+    "sectionSub": "Una experiencia única — solo por esta fecha.",
+    "singleDate": "Fecha única",
     "featuredLabel": "Esta temporada",
     "dateLabel": "Fecha del evento",
     "locationLabel": "Ubicación",

@@ -1995,17 +1995,42 @@ body:has(.hero-cine) { padding-top: 0; }
   padding-top: 0;
 }
 .highlight-seasonal {
+  position: relative;
   display: grid;
   grid-template-columns: 1.1fr 1fr;
   min-height: 380px;
   border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
   border-radius: 6px;
-  overflow: hidden;
+  /* `overflow: visible` so the tilted stamp can spill past the corner. The
+     media panel clips its own image via its own overflow:hidden below. */
+  overflow: visible;
   text-decoration: none;
   color: inherit;
   background: var(--bg-warm);
   transition: border-color 200ms ease, box-shadow 200ms ease;
   cursor: pointer;
+}
+
+/* Tilted stamp pinned to the card's top-right corner, spilling slightly out. */
+.highlight-seasonal-stamp {
+  position: absolute;
+  top: -22px;
+  right: -22px;
+  z-index: 2;
+  width: clamp(84px, 9vw, 120px);
+  height: auto;
+  transform: rotate(40deg);
+  transform-origin: center;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 14px color-mix(in srgb, var(--ink) 28%, transparent));
+  transition: transform 250ms ease;
+}
+.highlight-seasonal-stamp img {
+  width: 100%;
+  height: auto;
+}
+.highlight-seasonal:hover .highlight-seasonal-stamp {
+  transform: rotate(40deg) scale(1.04);
 }
 .highlight-seasonal:hover {
   border-color: var(--terra);
@@ -2015,6 +2040,9 @@ body:has(.hero-cine) { padding-top: 0; }
   position: relative;
   min-height: 280px;
   overflow: hidden;
+  /* Card uses overflow:visible for the stamp, so the media panel must round
+     and clip its OWN corners to keep the image inside the card silhouette. */
+  border-radius: 6px 0 0 6px;
 }
 .highlight-seasonal-body {
   display: flex;
@@ -2025,6 +2053,38 @@ body:has(.hero-cine) { padding-top: 0; }
 }
 .highlight-seasonal-body .eyebrow {
   color: var(--terra);
+}
+
+/* Section header (title + icon) — no number, since the event isn't always on. */
+.highlight-seasonal-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--terra);
+}
+.special-event-icon {
+  flex: none;
+}
+
+/* Tag row inside the card: CMS eyebrow + the "single date" pill. */
+.highlight-seasonal-tags {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.highlight-seasonal-singledate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--terra) 40%, transparent);
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--terra);
+  background: color-mix(in srgb, var(--terra) 8%, transparent);
 }
 .highlight-seasonal-title {
   font-family: var(--serif);
@@ -2086,8 +2146,16 @@ body:has(.hero-cine) { padding-top: 0; }
   .highlight-seasonal {
     grid-template-columns: 1fr;
   }
+  .highlight-seasonal-media {
+    border-radius: 6px 6px 0 0;
+  }
   .highlight-seasonal-body {
     padding: 32px;
+  }
+  .highlight-seasonal-stamp {
+    top: -16px;
+    right: -10px;
+    width: clamp(64px, 22vw, 92px);
   }
 }
 
