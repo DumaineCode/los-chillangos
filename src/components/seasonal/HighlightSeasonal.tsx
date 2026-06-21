@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl';
 
 import { Link } from '../../../i18n/navigation';
 import { routing, type Locale } from '../../../i18n/routing';
-import { resolveMediaUrl } from '../../lib/seasonal/resolveMediaUrl';
+import { resolveMediaImage } from '../../lib/media';
 import type { Tour } from '../../payload-types';
 
 /**
@@ -47,7 +47,7 @@ export function HighlightSeasonal({ tour, eyebrow, locale }: Props) {
 
   const seasonal = tour.seasonal ?? {};
   const hero = seasonal.seasonalHero;
-  const imageUrl = resolveMediaUrl(hero?.image) ?? resolveMediaUrl(hero?.poster);
+  const image = resolveMediaImage(hero?.image) ?? resolveMediaImage(hero?.poster);
 
   const formattedDate = seasonal.eventDate ? formatEventDate(seasonal.eventDate, locale) : null;
 
@@ -69,13 +69,13 @@ export function HighlightSeasonal({ tour, eyebrow, locale }: Props) {
             <Image src="/brand/sello-evento.png" alt="" width={120} height={120} />
           </span>
           <div className="highlight-seasonal-media">
-            {imageUrl ? (
+            {image ? (
               <Image
-                src={imageUrl}
+                src={image.url}
                 alt={tour.title}
                 fill
                 sizes="(max-width: 900px) 100vw, 50vw"
-                style={{ objectFit: 'cover' }}
+                style={{ objectFit: 'cover', objectPosition: image.objectPosition }}
               />
             ) : null}
           </div>

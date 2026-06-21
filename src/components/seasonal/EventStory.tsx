@@ -1,5 +1,6 @@
 import Image from 'next/image';
 
+import { resolveMediaImage } from '../../lib/media';
 import { resolveMediaUrl } from '../../lib/seasonal/resolveMediaUrl';
 import type { Tour } from '../../payload-types';
 
@@ -28,7 +29,7 @@ export function EventStory({ storytelling, eyebrow }: Props) {
     <section className="event-story container">
       <div className="eyebrow mono">{eyebrow}</div>
       {blocks.map((block, i) => {
-        const imageUrl = resolveMediaUrl(block.image);
+        const image = resolveMediaImage(block.image);
         return (
           <div
             className={`event-story-row${i % 2 === 1 ? ' reverse' : ''}`}
@@ -38,14 +39,14 @@ export function EventStory({ storytelling, eyebrow }: Props) {
               {block.heading ? <h3>{block.heading}</h3> : null}
               {block.body ? <p>{block.body}</p> : null}
             </div>
-            {imageUrl ? (
+            {image ? (
               <div className="event-story-media" style={{ position: 'relative' }}>
                 <Image
-                  src={imageUrl}
+                  src={image.url}
                   alt={block.heading ?? ''}
                   fill
                   sizes="(max-width: 900px) 100vw, 50vw"
-                  style={{ objectFit: 'cover' }}
+                  style={{ objectFit: 'cover', objectPosition: image.objectPosition }}
                 />
               </div>
             ) : null}

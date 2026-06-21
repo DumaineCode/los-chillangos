@@ -1,6 +1,7 @@
 import Image from 'next/image';
 
 import type { Locale } from '../../../i18n/routing';
+import { resolveMediaImage } from '../../lib/media';
 import { resolveMediaUrl } from '../../lib/seasonal/resolveMediaUrl';
 import type { Tour } from '../../payload-types';
 
@@ -25,7 +26,7 @@ export function SeasonalHero({ seasonal, title, locale, dateLabel, locationLabel
   const isVideo = hero?.mediaType === 'video';
   const videoUrl = resolveMediaUrl(hero?.video);
   const posterUrl = resolveMediaUrl(hero?.poster);
-  const imageUrl = resolveMediaUrl(hero?.image);
+  const image = resolveMediaImage(hero?.image);
 
   const formattedDate = seasonal.eventDate
     ? new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(
@@ -48,15 +49,15 @@ export function SeasonalHero({ seasonal, title, locale, dateLabel, locationLabel
             preload="metadata"
             style={{ objectFit: 'cover' }}
           />
-        ) : imageUrl ? (
+        ) : image ? (
           <Image
             className="seasonal-hero-img"
-            src={imageUrl}
+            src={image.url}
             alt={title}
             fill
             priority
             sizes="100vw"
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: 'cover', objectPosition: image.objectPosition }}
           />
         ) : null}
       </div>

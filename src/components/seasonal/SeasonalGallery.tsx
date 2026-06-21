@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-import { resolveMediaUrl } from '../../lib/seasonal/resolveMediaUrl';
+import { resolveMediaImage, type ResolvedImage } from '../../lib/media';
 import type { Tour } from '../../payload-types';
 
 type GalleryItem = NonNullable<NonNullable<Tour['seasonal']>['gallery']>[number];
@@ -19,8 +19,11 @@ type Props = {
  */
 export function SeasonalGallery({ gallery, eyebrow, title }: Props) {
   const items = (gallery ?? [])
-    .map((item) => ({ id: item?.id, url: resolveMediaUrl(item?.image) }))
-    .filter((item): item is { id: string | null | undefined; url: string } => item.url !== null);
+    .map((item) => ({ id: item?.id, image: resolveMediaImage(item?.image) }))
+    .filter(
+      (item): item is { id: string | null | undefined; image: ResolvedImage } =>
+        item.image !== null
+    );
 
   if (items.length === 0) return null;
 
@@ -31,11 +34,11 @@ export function SeasonalGallery({ gallery, eyebrow, title }: Props) {
         {items.map((item, i) => (
           <div className="seasonal-gallery-item" key={item.id ?? i} style={{ position: 'relative' }}>
             <Image
-              src={item.url}
+              src={item.image.url}
               alt={`${title} — ${i + 1}`}
               fill
               sizes="(max-width: 900px) 50vw, 33vw"
-              style={{ objectFit: 'cover' }}
+              style={{ objectFit: 'cover', objectPosition: item.image.objectPosition }}
             />
           </div>
         ))}
