@@ -1488,14 +1488,18 @@ body:has(.hero-cine) { padding-top: 0; }
 }
 .include-icon { color: var(--terra); flex-shrink: 0; margin-top: 2px; }
 
-/* Booking sidebar */
+/* Booking sidebar
+   Neutral light surface (not cream): cream + rosa are both warm/saturated, so
+   the pink CTA loses pop on cream. A cool, desaturated surface lets the rosa
+   button stand out by saturation contrast while keeping the card light. */
 .booking-sidebar {
   position: sticky;
   top: 96px;
-  background: var(--cream);
-  border: 1px solid var(--line);
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
   border-radius: 8px;
   padding: 28px;
+  box-shadow: 0 8px 28px rgba(13, 24, 42, 0.06);
 }
 .booking-price {
   display: flex;
