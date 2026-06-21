@@ -479,6 +479,10 @@ export const Tours: CollectionConfig = {
               name: 'meetingPoint',
               type: 'text',
               localized: true,
+              // Default suggestion only — applied once at creation time. The
+              // client can override it per tour. Same physical address in both
+              // locales, so a plain string covers ES and EN.
+              defaultValue: 'Hamburgo 246, Juárez, Cuauhtémoc, 06600 Ciudad de México, CDMX',
               label: { en: 'Meeting point', es: 'Punto de encuentro' },
               admin: {
                 description: {
@@ -517,10 +521,13 @@ export const Tours: CollectionConfig = {
                   Field: '/components/admin/MeetingLocationField',
                 },
               },
+              // Default suggestion only — applied once at creation. The custom
+              // field reads these via useField and shows the pin pre-filled; the
+              // client can search a new address to override all three at once.
               fields: [
-                { name: 'address', type: 'text' },
-                { name: 'lat', type: 'number' },
-                { name: 'lng', type: 'number' },
+                { name: 'address', type: 'text', defaultValue: 'Calle Hamburgo 246, Mexico City, Mexico' },
+                { name: 'lat', type: 'number', defaultValue: 19.42328 },
+                { name: 'lng', type: 'number', defaultValue: -99.17007 },
               ],
             },
             {
