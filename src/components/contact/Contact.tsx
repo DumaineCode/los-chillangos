@@ -12,7 +12,7 @@ import type { ComponentType } from 'react';
 import type { Locale } from '../../../i18n/routing';
 import { buildWhatsAppLink, formatWhatsAppDisplay } from '../../lib/contact/whatsapp';
 import type { ContactInfo, SocialLink } from '../../payload-types';
-import { ContactForm } from './ContactForm';
+import { ContactForm, type ContactFormStrings } from './ContactForm';
 
 type Props = {
   locale: Locale;
@@ -34,6 +34,29 @@ type Props = {
  */
 export async function Contact({ locale, contact, social }: Props) {
   const t = await getTranslations({ locale, namespace: 'contact' });
+  const tForm = await getTranslations({ locale, namespace: 'contact.form' });
+
+  const formStrings: ContactFormStrings = {
+    nameLabel: tForm('nameLabel'),
+    namePlaceholder: tForm('namePlaceholder'),
+    emailLabel: tForm('emailLabel'),
+    emailPlaceholder: tForm('emailPlaceholder'),
+    phoneLabel: tForm('phoneLabel'),
+    phonePlaceholder: tForm('phonePlaceholder'),
+    messageLabel: tForm('messageLabel'),
+    messagePlaceholder: tForm('messagePlaceholder'),
+    submit: tForm('submit'),
+    sending: tForm('sending'),
+    successTitle: tForm('successTitle'),
+    successBody: tForm('successBody'),
+    sendAnother: tForm('sendAnother'),
+    errors: {
+      name: tForm('errors.name'),
+      email: tForm('errors.email'),
+      message: tForm('errors.message'),
+      unexpected: tForm('errors.unexpected'),
+    },
+  };
 
   const whatsappLink = buildWhatsAppLink(contact?.whatsapp);
   const whatsappDisplay = formatWhatsAppDisplay(contact?.whatsapp);
@@ -69,7 +92,7 @@ export async function Contact({ locale, contact, social }: Props) {
         <div className="contact-grid">
           {/* Form */}
           <div className="contact-form-col">
-            <ContactForm />
+            <ContactForm locale={locale} strings={formStrings} />
           </div>
 
           {/* Channels we already have in the admin */}

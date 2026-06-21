@@ -2091,3 +2091,139 @@ body:has(.hero-cine) { padding-top: 0; }
     display: none;
   }
 }
+
+/* ── Contact section ──────────────────────────────────────── */
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+.contact-info-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  margin: 0 0 24px;
+}
+
+/* channels list */
+.contact-channels {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.contact-channel {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.contact-channel-icon {
+  flex-shrink: 0;
+  color: var(--ink-soft);
+  margin-top: 1px;
+  display: flex;
+}
+
+.contact-channel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.contact-channel-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.contact-channel-body a,
+.contact-channel-value {
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.contact-channel-body a:hover {
+  color: var(--terra);
+}
+
+/* social icons row */
+.contact-socials {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contact-socials-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.contact-social-link {
+  color: var(--ink-soft);
+  transition: color 0.18s ease;
+  display: flex;
+  align-items: center;
+}
+
+.contact-social-link:hover {
+  color: var(--ink);
+}
+
+/* form */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contact-submit {
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
+.contact-form-error {
+  color: var(--terra);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+.contact-form-success {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 32px;
+  background: var(--bg-warm);
+}
+
+.contact-success-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.contact-success-body {
+  color: var(--ink-soft);
+  font-size: 14px;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}

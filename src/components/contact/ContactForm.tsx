@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -13,20 +12,43 @@ type FieldErrors = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+export type ContactFormStrings = {
+  nameLabel: string;
+  namePlaceholder: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  phoneLabel: string;
+  phonePlaceholder: string;
+  messageLabel: string;
+  messagePlaceholder: string;
+  submit: string;
+  sending: string;
+  successTitle: string;
+  successBody: string;
+  sendAnother: string;
+  errors: {
+    name: string;
+    email: string;
+    message: string;
+    unexpected: string;
+  };
+};
+
+type Props = {
+  locale: string;
+  strings: ContactFormStrings;
+};
+
 /**
  * Public contact form (Client Component).
  *
  * Minimal by design — name, email, message + an optional phone. POSTs JSON to
  * `/api/contact`, which stores a `contact-messages` row and emails the owner.
  *
- * Styling reuses the shared `.field` / `.btn` system from globals.css so it
- * matches the booking flow visually. Validation is intentionally light on the
- * client (the server re-validates with Zod authoritatively).
+ * Strings are passed as props from the parent server component so this
+ * component does not need NextIntlClientProvider context at all.
  */
-export function ContactForm() {
-  const t = useTranslations('contact.form');
-  const locale = useLocale();
-
+export function ContactForm({ locale, strings: t }: Props) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -86,14 +108,14 @@ export function ContactForm() {
   if (status === 'success') {
     return (
       <div className="contact-form-success" role="status">
-        <p className="contact-success-title">{t('successTitle')}</p>
-        <p className="contact-success-body">{t('successBody')}</p>
+        <p className="contact-success-title">{t.successTitle}</p>
+        <p className="contact-success-body">{t.successBody}</p>
         <button
           type="button"
           className="btn btn-ghost btn-sm"
           onClick={() => setStatus('idle')}
         >
-          {t('sendAnother')}
+          {t.sendAnother}
         </button>
       </div>
     );
@@ -103,63 +125,63 @@ export function ContactForm() {
     <form className="contact-form" onSubmit={handleSubmit} noValidate>
       <div className="field-grid">
         <div className="field full">
-          <label htmlFor="contact-name">{t('nameLabel')}</label>
+          <label htmlFor="contact-name">{t.nameLabel}</label>
           <input
             id="contact-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={t('namePlaceholder')}
+            placeholder={t.namePlaceholder}
             autoComplete="name"
           />
           {errors.name ? (
             <span role="alert" style={errStyle}>
-              {t('errors.name')}
+              {t.errors.name}
             </span>
           ) : null}
         </div>
 
         <div className="field">
-          <label htmlFor="contact-email">{t('emailLabel')}</label>
+          <label htmlFor="contact-email">{t.emailLabel}</label>
           <input
             id="contact-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={t('emailPlaceholder')}
+            placeholder={t.emailPlaceholder}
             autoComplete="email"
           />
           {errors.email ? (
             <span role="alert" style={errStyle}>
-              {t('errors.email')}
+              {t.errors.email}
             </span>
           ) : null}
         </div>
 
         <div className="field">
-          <label htmlFor="contact-phone">{t('phoneLabel')}</label>
+          <label htmlFor="contact-phone">{t.phoneLabel}</label>
           <input
             id="contact-phone"
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder={t('phonePlaceholder')}
+            placeholder={t.phonePlaceholder}
             autoComplete="tel"
           />
         </div>
 
         <div className="field full">
-          <label htmlFor="contact-message">{t('messageLabel')}</label>
+          <label htmlFor="contact-message">{t.messageLabel}</label>
           <textarea
             id="contact-message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder={t('messagePlaceholder')}
+            placeholder={t.messagePlaceholder}
             rows={5}
           />
           {errors.message ? (
             <span role="alert" style={errStyle}>
-              {t('errors.message')}
+              {t.errors.message}
             </span>
           ) : null}
         </div>
@@ -167,7 +189,7 @@ export function ContactForm() {
 
       {status === 'error' ? (
         <p role="alert" className="contact-form-error">
-          {t('errors.unexpected')}
+          {t.errors.unexpected}
         </p>
       ) : null}
 
@@ -176,7 +198,7 @@ export function ContactForm() {
         className="btn btn-primary btn-lg contact-submit"
         disabled={status === 'submitting'}
       >
-        {status === 'submitting' ? t('sending') : t('submit')}
+        {status === 'submitting' ? t.sending : t.submit}
       </button>
     </form>
   );
