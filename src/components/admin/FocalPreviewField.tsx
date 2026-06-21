@@ -58,7 +58,7 @@ export const FocalPreviewField: React.FC = () => {
 
   return (
     <div className="field-type" data-testid="focal-preview">
-      <label className="field-label">Vista previa del encuadre</label>
+      <div className="field-label">Vista previa del encuadre</div>
       <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--theme-elevation-500)' }}>
         Así se recorta esta imagen en los distintos formatos del sitio según el punto focal.
       </p>
