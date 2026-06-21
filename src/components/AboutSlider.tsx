@@ -3,10 +3,15 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import type { ResolvedImage } from '../lib/media';
+
 type Props = {
-  /** Resolved image URLs, in display order. Caller guarantees length >= 2. */
-  images: string[];
-  /** Shared alt text for the editorial frame. */
+  /**
+   * Resolved cover images (url + object-position + alt), in display order.
+   * Caller guarantees length >= 2. Each slide frames by its own focal point.
+   */
+  images: ResolvedImage[];
+  /** Shared alt text for the editorial frame (used by the active slide). */
   alt: string;
   /** Auto-rotation interval in ms. */
   intervalMs?: number;
@@ -91,19 +96,19 @@ export function AboutSlider({ images, alt, intervalMs = 5000 }: Props) {
         dragStartX.current = null;
       }}
     >
-      {images.map((src, i) => (
+      {images.map((image, i) => (
         <div
-          key={src}
+          key={image.url}
           className="editorial-slide"
           aria-hidden={i !== index}
           style={{ opacity: i === index ? 1 : 0 }}
         >
           <Image
-            src={src}
+            src={image.url}
             alt={i === index ? alt : ''}
             fill
             sizes="(max-width: 900px) 100vw, 50vw"
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: 'cover', objectPosition: image.objectPosition }}
             priority={i === 0}
             draggable={false}
           />

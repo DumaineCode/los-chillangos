@@ -14,6 +14,7 @@ import { RefreshRouteOnSave } from '../../src/components/RefreshRouteOnSave';
 import { HighlightSeasonal } from '../../src/components/seasonal/HighlightSeasonal';
 import { TourCard } from '../../src/components/TourCard';
 import { getPayload } from '../../src/lib/payload';
+import { resolveMediaImage, type ResolvedImage } from '../../src/lib/media';
 import { getActiveSeasonalTour } from '../../src/lib/seasonal/getActiveSeasonalTour';
 import type { Media, MediaVideo } from '../../src/payload-types';
 
@@ -189,10 +190,11 @@ export default async function HomePage({ params }: Props) {
   const heroCtaGhostHref = hero?.ctaGhostHref?.trim() || '#about';
 
   // Gallery first (slider), single `image` as fallback for legacy content.
-  const aboutGalleryUrls = (about?.images ?? [])
-    .map((entry) => resolveMediaUrl(entry.image))
-    .filter((url): url is string => url !== null);
-  const aboutImageUrl = aboutGalleryUrls[0] ?? resolveMediaUrl(about?.image);
+  // Resolved to focal-point-aware images so each slide frames by its focal point.
+  const aboutImages = (about?.images ?? [])
+    .map((entry) => resolveMediaImage(entry.image))
+    .filter((image): image is ResolvedImage => image !== null);
+  const aboutImage = aboutImages[0] ?? resolveMediaImage(about?.image);
   const testimonialItems = (testimonial?.items ?? []).map((item) => ({
     quote: item.quote,
     name: item.name,
@@ -366,19 +368,19 @@ export default async function HomePage({ params }: Props) {
       <section className="section" id="about" style={{ background: 'var(--bg-warm)' }}>
         <div className="container">
           <div className="editorial">
-            {aboutGalleryUrls.length > 1 ? (
+            {aboutImages.length > 1 ? (
               <AboutSlider
-                images={aboutGalleryUrls}
+                images={aboutImages}
                 alt={about?.imageLabel || about?.title || 'Los Chillangos'}
               />
-            ) : aboutImageUrl ? (
+            ) : aboutImage ? (
               <div className="editorial-img" style={{ position: 'relative', overflow: 'hidden' }}>
                 <Image
-                  src={aboutImageUrl}
+                  src={aboutImage.url}
                   alt={about?.imageLabel || about?.title || 'Los Chillangos'}
                   fill
                   sizes="(max-width: 900px) 100vw, 50vw"
-                  style={{ objectFit: 'cover' }}
+                  style={{ objectFit: 'cover', objectPosition: aboutImage.objectPosition }}
                 />
               </div>
             ) : (
