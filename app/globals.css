@@ -1626,7 +1626,7 @@ body:has(.hero-cine) { padding-top: 0; }
   border: 1px solid var(--line-strong);
   border-radius: 8px;
   overflow: hidden;
-  background: var(--cream);
+  background: var(--bg);
 }
 .cal-head {
   display: flex;
@@ -1666,7 +1666,7 @@ body:has(.hero-cine) { padding-top: 0; }
   font-size: 14px;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  background: var(--cream);
+  background: var(--bg);
   position: relative;
   transition: background 120ms;
 }
@@ -1736,7 +1736,7 @@ body:has(.hero-cine) { padding-top: 0; }
   text-align: center;
   font-size: 14px;
   transition: all 120ms;
-  background: var(--cream);
+  background: var(--bg);
 }
 .timeslot:hover { border-color: var(--ink); }
 .timeslot.selected { background: var(--ink); color: var(--cream); border-color: var(--ink); }
