@@ -422,6 +422,7 @@ export interface Extra {
    * Customer-facing name of the extra (e.g. "Private tour").
    */
   name: string;
+  title?: string | null;
   /**
    * Whole-dollar USD price. Global — applies to every tour that offers this extra.
    */
@@ -806,6 +807,7 @@ export interface ToursSelect<T extends boolean = true> {
  */
 export interface ExtrasSelect<T extends boolean = true> {
   name?: T;
+  title?: T;
   price?: T;
   priceType?: T;
   disclaimer?: T;

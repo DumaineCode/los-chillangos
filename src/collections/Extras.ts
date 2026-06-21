@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload';
 
 import { revalidateExtrasAfterChange, revalidateExtrasAfterDelete } from '../hooks/revalidateExtras';
+import { populateExtraTitle } from './extrasTitle';
 import { NAV_GROUPS } from '../admin/navGroups';
 
 /**
@@ -38,7 +39,12 @@ export const Extras: CollectionConfig = {
     plural: { en: 'Extras', es: 'Extras' },
   },
   admin: {
-    useAsTitle: 'name',
+    // `useAsTitle` points at the NON-localized `title` field, NOT the localized
+    // `name`. A localized title is resolved per-locale when Payload builds
+    // relationship options, which made each extra appear twice (es + en) in the
+    // Tours → extras `hasMany` dropdown. `title` holds one value per row, so the
+    // dropdown lists each extra exactly once. See `./extrasTitle.ts`.
+    useAsTitle: 'title',
     group: NAV_GROUPS.site,
     defaultColumns: ['name', 'price', 'priceType', 'active', 'updatedAt'],
   },
@@ -64,6 +70,24 @@ export const Extras: CollectionConfig = {
           en: 'Customer-facing name of the extra (e.g. "Private tour").',
           es: 'Nombre del extra que ve el cliente (ej.: "Tour privado").',
         },
+      },
+    },
+    {
+      // NON-localized admin display title, derived from the localized `name`.
+      // This is the field `admin.useAsTitle` reads so the Tours → extras
+      // relationship dropdown lists each extra ONCE instead of once per locale.
+      // Additive + non-destructive: `name` stays localized/required and remains
+      // the customer-facing value. Populated on every write via the
+      // `beforeChange` hook in `./extrasTitle.ts`.
+      name: 'title',
+      type: 'text',
+      hooks: {
+        beforeChange: [populateExtraTitle],
+      },
+      admin: {
+        hidden: true,
+        readOnly: true,
+        disableListColumn: true,
       },
     },
     {
