@@ -25,12 +25,21 @@ export interface BookingConfirmationLabels {
   total: string;
 }
 
+/** A single selected extra, itemized in the confirmation email. */
+export interface BookingConfirmationExtra {
+  name: string;
+  /** Pre-formatted amount, e.g. "+$140.00". */
+  amountLabel: string;
+}
+
 export interface BookingConfirmationFacts {
   reference: string;
   tourTitle: string;
   dateLabel: string;
   timeLabel: string;
   guestsLabel: string;
+  /** Selected extras, itemized between guests and the total. Empty when none. */
+  extras?: BookingConfirmationExtra[];
   totalLabel: string;
 }
 
@@ -175,6 +184,9 @@ export function BookingConfirmation({
         <DetailRow label={labels.date} value={facts.dateLabel} />
         <DetailRow label={labels.time} value={facts.timeLabel} />
         <DetailRow label={labels.guests} value={facts.guestsLabel} />
+        {(facts.extras ?? []).map((extra, i) => (
+          <DetailRow key={i} label={extra.name} value={extra.amountLabel} />
+        ))}
         <DetailRow label={labels.total} value={facts.totalLabel} />
       </Section>
 
@@ -235,6 +247,7 @@ BookingConfirmation.PreviewProps = {
     dateLabel: 'Saturday, March 14, 2026',
     timeLabel: '9:00 AM',
     guestsLabel: '2 adults · 1 teen',
+    extras: [{ name: 'Private tour', amountLabel: '+$140.00' }],
     totalLabel: '$225.00',
   },
   contact: {

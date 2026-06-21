@@ -64,6 +64,8 @@ interface BookingEmailData {
   dateLabel: string;
   timeLabel: string;
   guestsLabel: string;
+  /** Itemized selected extras with pre-formatted amounts (e.g. "+$140.00"). */
+  extras: Array<{ name: string; amountLabel: string }>;
   totalLabel: string;
   customer: { name: string; firstName: string; email: string; whatsapp: string | null; country: string | null };
   copy: EmailCopy;
@@ -85,6 +87,7 @@ interface BookingDoc {
   time?: string | null;
   adults?: number | null;
   teens?: number | null;
+  selectedExtras?: Array<{ name?: string | null; computedAmount?: number | null }> | null;
   totalAmount?: number | null;
   currency?: string | null;
   customer?: {
@@ -129,6 +132,12 @@ async function loadBookingEmailData(bookingId: number): Promise<BookingEmailData
     dateLabel: booking.date ? formatBookingDate(booking.date, locale) : '',
     timeLabel: booking.time ? formatTime(booking.time, locale) : '',
     guestsLabel: strings.guests(adults, teens),
+    extras: (booking.selectedExtras ?? [])
+      .filter((e): e is { name?: string | null; computedAmount?: number | null } => Boolean(e))
+      .map((e) => ({
+        name: e.name?.trim() || (locale === 'es' ? 'Extra' : 'Extra'),
+        amountLabel: `+${formatMoney(e.computedAmount ?? 0, currency, locale)}`,
+      })),
     totalLabel: formatMoney(booking.totalAmount ?? 0, currency, locale),
     customer: {
       name: fullName,
@@ -276,6 +285,7 @@ async function sendConfirmation(data: BookingEmailData): Promise<void> {
       dateLabel: data.dateLabel,
       timeLabel: data.timeLabel,
       guestsLabel: data.guestsLabel,
+      extras: data.extras,
       totalLabel: data.totalLabel,
     },
     logoUrl: data.logoUrl,

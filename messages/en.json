@@ -272,7 +272,6 @@
         "adultHint": "Full price · 13+",
         "teenLabel": "Teens",
         "teenHint": "Ages 12–17",
-      "addonsTitle": "Add-ons",
       "extrasTitle": "Extras",
       "extrasNone": "No extras available for this tour.",
       "extraInfoAria": "More information about {name}"
@@ -305,9 +304,7 @@
       "riders": "Riders",
       "adults": "{count, plural, one {# adult} other {# adults}}",
       "teens": "{count, plural, one {# teen} other {# teens}}",
-      "privatize": "Private tour",
       "subtotal": "Subtotal",
-      "addon": "Add-ons",
       "total": "Estimated total",
       "totalNote": "Final price confirmed on WhatsApp"
     },
@@ -319,12 +316,10 @@
         "date": "Date",
         "time": "Time",
         "people": "People",
-        "privatize": "Add-on",
         "total": "Estimated total",
         "email": "Email",
         "whatsapp": "WhatsApp"
       },
-      "privatizeValue": "Private tour (+USD 140)",
       "footer": "Sent from loschillangos.com",
       "subject": "New booking request — {tour}"
     },
