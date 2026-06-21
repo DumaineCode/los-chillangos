@@ -128,12 +128,6 @@ export default async function TourDetailPage({ params }: Props) {
               <strong>{tour.languages}</strong>
             </div>
           ) : null}
-          {tour.level ? (
-            <div>
-              {t('level')}
-              <strong>{tour.level}</strong>
-            </div>
-          ) : null}
         </div>
         {galleryTiles.length > 0 ? (
           <div className="gallery-grid" data-count={galleryTiles.length}>

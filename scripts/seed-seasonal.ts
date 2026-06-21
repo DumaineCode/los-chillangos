@@ -115,7 +115,6 @@ async function main(): Promise<void> {
           'Huamantla stays awake: 18 km of sawdust-and-flower carpets and a midnight procession for the Virgin.',
         languages: 'EN · ES',
         groupSize: 'Up to 14',
-        level: 'Easy',
         meetingPoint: 'CDMX — pickup point TBD',
         // SEASONAL TOURS ARE WINDOW-DRIVEN, NOT WEEKDAY-DRIVEN.
         // For seasonal tours, bookable dates come from `seasonal.seasonWindow`
@@ -157,7 +156,6 @@ async function main(): Promise<void> {
         shortDescription:
           'Huamantla se desvela: 18 km de tapetes de aserrín y flores y una procesión de medianoche para la Virgen.',
         groupSize: 'Hasta 14',
-        level: 'Fácil',
         meetingPoint: 'CDMX — punto de encuentro por confirmar',
         includes: (created.includes ?? []).map((item, i) => ({
           id: item.id,

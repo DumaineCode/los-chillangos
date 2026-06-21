@@ -67,7 +67,6 @@ interface I18nFooter {
 interface I18nDetail {
   groupVal: string;
   langVal: string;
-  levelVal: string;
   meetVal: string;
   aboutP1: string;
   aboutP2: string;
@@ -271,7 +270,6 @@ async function seedTours(
         meetingPoint: isFlagship ? detailEN.meetVal : undefined,
         meetingPointText: isFlagship ? detailEN.meetText : undefined,
         groupSize: isFlagship ? detailEN.groupVal : undefined,
-        level: isFlagship ? detailEN.levelVal : undefined,
         itinerary: isFlagship
           ? detailEN.itin.map((stop) => ({
               time: stop.t,
@@ -302,7 +300,6 @@ async function seedTours(
         meetingPoint: isFlagship ? detailES.meetVal : undefined,
         meetingPointText: isFlagship ? detailES.meetText : undefined,
         groupSize: isFlagship ? detailES.groupVal : undefined,
-        level: isFlagship ? detailES.levelVal : undefined,
         itinerary: isFlagship
           ? detailES.itin.map((stop) => ({
               time: stop.t,

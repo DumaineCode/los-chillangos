@@ -210,10 +210,6 @@ export interface Tour {
    */
   languages?: string | null;
   /**
-   * Difficulty label, e.g. "Easy" / "Fácil".
-   */
-  level?: string | null;
-  /**
    * E.g. "Up to 8" / "Hasta 8".
    */
   groupSize?: string | null;
@@ -645,7 +641,6 @@ export interface ToursSelect<T extends boolean = true> {
   tag?: T;
   tagColor?: T;
   languages?: T;
-  level?: T;
   groupSize?: T;
   photoDescription?: T;
   heroImage?: T;

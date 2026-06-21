@@ -287,18 +287,6 @@ export const Tours: CollectionConfig = {
               },
             },
             {
-              name: 'level',
-              type: 'text',
-              localized: true,
-              label: { en: 'Level', es: 'Nivel' },
-              admin: {
-                description: {
-                  en: 'Difficulty label, e.g. "Easy" / "Fácil".',
-                  es: 'Nivel de dificultad, ej.: "Fácil".',
-                },
-              },
-            },
-            {
               // Display-only marketing label. Real capacity lives in `timeSlots[].capacity`.
               name: 'groupSize',
               type: 'text',
