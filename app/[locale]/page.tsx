@@ -269,6 +269,14 @@ export default async function HomePage({ params }: Props) {
             <p className="section-sub">{tCatalog('sub')}</p>
           </div>
           <CatalogFilter filters={filters} cards={cards} />
+
+          <div className="catalog-notfound">
+            <h3 className="catalog-notfound-title">{tCatalog('notFound.title')}</h3>
+            <p className="catalog-notfound-sub">{tCatalog('notFound.sub')}</p>
+            <a href="#contact" className="btn btn-primary">
+              {tCatalog('notFound.cta')}
+            </a>
+          </div>
         </div>
       </section>
 

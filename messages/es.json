@@ -85,6 +85,11 @@
       "walking": "Caminata",
       "daytrip": "Excursión",
       "new": "Nuevo"
+    },
+    "notFound": {
+      "title": "¿No encuentras el tour que buscas?",
+      "sub": "Cuéntanos qué tienes en mente y armamos una ruta a tu medida.",
+      "cta": "Contáctanos"
     }
   },
   "editorial": {

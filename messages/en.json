@@ -85,6 +85,11 @@
       "walking": "Walking",
       "daytrip": "Day trip",
       "new": "New"
+    },
+    "notFound": {
+      "title": "Can't find the tour you're looking for?",
+      "sub": "Tell us what you have in mind and we'll build a route around it.",
+      "cta": "Contact us"
     }
   },
   "editorial": {

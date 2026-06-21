@@ -2233,3 +2233,26 @@ body:has(.hero-cine) { padding-top: 0; }
     gap: 40px;
   }
 }
+
+.catalog-notfound {
+  margin-top: 48px;
+  padding: 48px 32px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-warm);
+  text-align: center;
+}
+.catalog-notfound-title {
+  margin: 0 0 8px;
+}
+.catalog-notfound-sub {
+  margin: 0 auto 24px;
+  max-width: 46ch;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 768px) {
+  .catalog-notfound {
+    padding: 36px 20px;
+  }
+}
