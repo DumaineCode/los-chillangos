@@ -346,10 +346,12 @@ body:has(.hero-cine) { padding-top: 0; }
   display: block;
   width: 100%;
   height: 1.5px;
-  background: var(--ink-soft);
+  /* Pure black on light theme, pure white on dark — max contrast in both. */
+  background: #000000;
   border-radius: 2px;
   transition: transform 200ms ease, opacity 160ms ease;
 }
+[data-theme="dark"] .nav-burger-bar { background: #FFFFFF; }
 .nav.over-hero .nav-burger { border-color: rgba(255, 243, 214, 0.4); }
 .nav.over-hero .nav-burger-bar { background: rgba(255, 243, 214, 0.85); }
 /* Animate to an X when the menu is open. */
@@ -364,7 +366,8 @@ body:has(.hero-cine) { padding-top: 0; }
   backdrop-filter: none;
   border-bottom-color: transparent;
 }
-.nav.nav-menu-open .nav-burger-bar { background: var(--ink-soft); }
+.nav.nav-menu-open .nav-burger-bar { background: #000000; }
+[data-theme="dark"] .nav.nav-menu-open .nav-burger-bar { background: #FFFFFF; }
 .nav.nav-menu-open .nav-burger { border-color: var(--line-strong); }
 
 /* Full-screen mobile menu overlay */
