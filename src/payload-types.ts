@@ -497,9 +497,9 @@ export interface Booking {
    */
   pricePerPerson: number;
   /**
-   * Snapshot of the privatize flat fee at booking time (matches the legacy +USD 140 constant; not enforced here).
+   * Legacy snapshot of the old +USD 140 privatize fee. Historical bookings only — new bookings use Extras.
    */
-  privatizeFee: number;
+  privatizeFee?: number | null;
   /**
    * Frozen snapshot of the extras chosen at booking time. Read-only — set by the checkout flow.
    */

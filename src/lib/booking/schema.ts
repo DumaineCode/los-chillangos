@@ -65,14 +65,16 @@ export function stepDateSchema(
 }
 
 /**
- * Step 2 — How many people + privatize add-on.
+ * Step 2 — How many people + optional extras.
  *
  * Capacity is dynamic per slot (Sub-etapa B). The factory takes the chosen
  * slot's capacity and enforces:
  *   - adults: integer, 1..capacity
  *   - teens: integer, 0..capacity
  *   - adults + teens <= capacity
- *   - privatize: boolean (price preview only — flat fee snapshotted at write)
+ *   - selectedExtras: array of { extraId, priceType } (yes/no per extra; no
+ *     quantity). Defaults to []. The privatize boolean was removed — extras
+ *     are now the only add-on path.
  *
  * TODO: when next-intl error rendering grows placeholder support, pass
  * `{capacity}` into the localized `errors.maxGroupSlot` message instead of
@@ -88,7 +90,14 @@ export function stepPeopleSchema(ctx: { slotCapacity: number }) {
         .min(1, 'errors.minAdults')
         .max(cap, 'errors.maxGroupSlot'),
       teens: z.number().int().min(0).max(cap, 'errors.maxGroupSlot'),
-      privatize: z.boolean(),
+      selectedExtras: z
+        .array(
+          z.object({
+            extraId: z.number().int().positive(),
+            priceType: z.enum(['total', 'perPerson']),
+          })
+        )
+        .default([]),
     })
     .refine((d) => d.adults + d.teens <= cap, {
       message: 'errors.maxGroupSlot',

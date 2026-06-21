@@ -246,10 +246,13 @@ export const Bookings: CollectionConfig = {
       },
     },
     {
+      // LEGACY/HISTORICAL ONLY — see `privatizeFee`. No active code reads or
+      // writes this; "private tour" is now an Extra. Kept for old rows.
       name: 'privatize',
       type: 'checkbox',
       defaultValue: false,
-      label: { en: 'Private booking', es: 'Reserva privada' },
+      label: { en: 'Private booking (legacy)', es: 'Reserva privada (histórico)' },
+      admin: { readOnly: true },
     },
     {
       name: 'pricePerPerson',
@@ -265,16 +268,20 @@ export const Bookings: CollectionConfig = {
       },
     },
     {
+      // LEGACY/HISTORICAL ONLY. Kept so pre-extras bookings retain their stored
+      // fee. No longer `required` and no active code path writes it — new
+      // bookings charge "Tour privado" (and every add-on) through the unified
+      // `selectedExtras` snapshot below. Historical rows keep their value.
       name: 'privatizeFee',
       type: 'number',
-      required: true,
       min: 0,
       defaultValue: 0,
-      label: { en: 'Private booking fee', es: 'Cargo por reserva privada' },
+      label: { en: 'Private booking fee (legacy)', es: 'Cargo por reserva privada (histórico)' },
       admin: {
+        readOnly: true,
         description: {
-          en: 'Snapshot of the privatize flat fee at booking time (matches the legacy +USD 140 constant; not enforced here).',
-          es: 'Foto fija del cargo por tour privado al momento de reservar (equivale al +USD 140 anterior; aquí no se aplica automáticamente).',
+          en: 'Legacy snapshot of the old +USD 140 privatize fee. Historical bookings only — new bookings use Extras.',
+          es: 'Histórico del antiguo cargo de +USD 140 por tour privado. Solo reservas antiguas — las nuevas usan Extras.',
         },
       },
     },

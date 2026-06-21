@@ -1,3 +1,4 @@
+import type { RequiredDataFromCollectionSlug } from 'payload';
 import { NextResponse } from 'next/server';
 
 import {
@@ -11,8 +12,12 @@ import {
 } from '../../../../src/lib/booking/availability';
 import { countSeatsTaken } from '../../../../src/lib/booking/capacity';
 import { checkoutPayloadSchema } from '../../../../src/lib/booking/checkoutPayload';
-import { PRIVATIZE_FLAT } from '../../../../src/lib/booking/pricing';
 import { generateBookingReference } from '../../../../src/lib/booking/reference';
+import {
+  type ResolvableExtra,
+  buildStripeLineItems,
+  resolveSelectedExtras,
+} from '../../../../src/lib/booking/stripeLineItems';
 import { computeBookingTotals } from '../../../../src/lib/booking/totals';
 import { getPayload } from '../../../../src/lib/payload';
 import { stripe } from '../../../../src/lib/stripe/client';
@@ -58,8 +63,10 @@ export async function POST(request: Request): Promise<Response> {
 
   // 2. Load tour
   const payload = await getPayload();
+  // depth:1 resolves the `extras` relationship so the server can re-resolve
+  // each selected extra's authoritative price/name (never trusting the client).
   const tour = await payload
-    .findByID({ collection: 'tours', id: data.tourId, depth: 0, overrideAccess: true })
+    .findByID({ collection: 'tours', id: data.tourId, depth: 1, overrideAccess: true })
     .catch(() => null);
   if (!tour) return jsonNoStore({ error: 'tour-not-found' }, 404);
 
@@ -113,17 +120,35 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  // 4. Snapshot pricing
+  // 4. Snapshot pricing.
+  //
+  // Re-resolve the selected extras from what the tour ACTUALLY offers — the
+  // client only sends extraIds, never prices. `resolveSelectedExtras` looks
+  // each id up in the tour's resolved `extras`, drops unknown/inactive ones,
+  // and computes each amount against the real pax. Totals are derived from the
+  // resolved snapshot so the wizard preview, the persisted row and Stripe all
+  // agree (parity guard in pricing.test.ts).
   const tourPrice = (tour as { price?: number }).price ?? 0;
   const pricePerPerson = tourPrice;
-  const privatizeFee = PRIVATIZE_FLAT;
   const currency = 'USD';
+
+  const offeredExtras: ResolvableExtra[] = (
+    (tour as { extras?: unknown[] }).extras ?? []
+  ).filter((e): e is ResolvableExtra => typeof e === 'object' && e !== null && 'id' in e);
+
+  const selectedExtras = resolveSelectedExtras(
+    data.selectedExtras,
+    offeredExtras,
+    data.adults + data.teens
+  );
+
   const { totalPersons, totalAmount } = computeBookingTotals({
     adults: data.adults,
     teens: data.teens,
     pricePerPerson,
-    privatize: data.privatize,
-    privatizeFee,
+    // Map the resolved snapshot (unitPrice) onto the shared pricing contract
+    // ({ price, priceType }) so the total uses the SAME math as the wizard.
+    selectedExtras: selectedExtras.map((e) => ({ price: e.unitPrice, priceType: e.priceType })),
   });
 
   // 5. Create the booking row in pending state.
@@ -144,38 +169,41 @@ export async function POST(request: Request): Promise<Response> {
   );
   const reference = generateBookingReference();
 
+  // Typed explicitly so Payload's create overload resolves to the non-draft
+  // branch (the new `selectedExtras` array otherwise makes inference ambiguous).
+  const bookingData: RequiredDataFromCollectionSlug<'bookings'> = {
+    reference,
+    tour: data.tourId,
+    date: dateAnchor.toISOString(),
+    time: data.time,
+    adults: data.adults,
+    teens: data.teens,
+    totalPersons,
+    pricePerPerson,
+    selectedExtras,
+    currency,
+    totalAmount,
+    customer: {
+      name: data.customer.name,
+      email: data.customer.email,
+      whatsapp: data.customer.whatsapp || undefined,
+      country: data.customer.country,
+      locale: data.customer.locale,
+    },
+    status: 'pending',
+    holdExpiresAt: holdExpiresAt.toISOString(),
+    stripeCheckoutSessionId: null,
+    stripePaymentIntentId: null,
+    paidAt: null,
+    notes: null,
+  };
+
   let booking: { id: number; reference?: string };
   try {
     const created = await payload.create({
       collection: 'bookings',
       overrideAccess: true,
-      data: {
-        reference,
-        tour: data.tourId,
-        date: dateAnchor.toISOString(),
-        time: data.time,
-        adults: data.adults,
-        teens: data.teens,
-        totalPersons,
-        privatize: data.privatize,
-        pricePerPerson,
-        privatizeFee,
-        currency,
-        totalAmount,
-        customer: {
-          name: data.customer.name,
-          email: data.customer.email,
-          whatsapp: data.customer.whatsapp || undefined,
-          country: data.customer.country,
-          locale: data.customer.locale,
-        },
-        status: 'pending',
-        holdExpiresAt: holdExpiresAt.toISOString(),
-        stripeCheckoutSessionId: null,
-        stripePaymentIntentId: null,
-        paidAt: null,
-        notes: null,
-      },
+      data: bookingData,
     });
     booking = created as { id: number; reference?: string };
   } catch (err) {
@@ -186,8 +214,20 @@ export async function POST(request: Request): Promise<Response> {
   // 6. Create the Stripe Checkout Session
   const siteUrl = getSiteUrl(request);
   const productName = `${(tour as { title?: string }).title ?? 'Tour'} — ${data.date} ${data.time}`;
-  const productDescription = `${totalPersons} person(s)${data.privatize ? ' · Private departure' : ''}`;
+  const productDescription = `${totalPersons} person(s)`;
   const tourSlug = (tour as { slug?: string }).slug ?? '';
+
+  // One Stripe line per resolved extra + a derived base line. The builder
+  // guarantees Σ(line cents) === round(totalAmount × 100) — no 1-cent drift,
+  // no privatize line ever emitted.
+  const lineItems = buildStripeLineItems({
+    baseProductName: productName,
+    baseDescription: productDescription,
+    currency,
+    totalAmount,
+    selectedExtras,
+    metadata: { tourSlug, bookingReference: reference },
+  });
 
   let session: { id: string; url: string | null };
   try {
@@ -196,23 +236,7 @@ export async function POST(request: Request): Promise<Response> {
         mode: 'payment',
         payment_method_types: ['card'],
         customer_email: data.customer.email,
-        line_items: [
-          {
-            quantity: 1,
-            price_data: {
-              currency: currency.toLowerCase(),
-              unit_amount: Math.round(totalAmount * 100),
-              product_data: {
-                name: productName,
-                description: productDescription,
-                metadata: {
-                  tourSlug,
-                  bookingReference: reference,
-                },
-              },
-            },
-          },
-        ],
+        line_items: lineItems,
         metadata: {
           bookingId: String(booking.id),
           bookingReference: reference,

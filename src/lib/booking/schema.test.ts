@@ -122,19 +122,38 @@ describe('stepDateSchema (seasonal window)', () => {
 describe('stepPeopleSchema (factory)', () => {
   it('accepts valid input within slot capacity', () => {
     const schema = stepPeopleSchema({ slotCapacity: 8 });
-    const result = schema.safeParse({ adults: 2, teens: 1, privatize: false });
+    const result = schema.safeParse({ adults: 2, teens: 1, selectedExtras: [] });
     expect(result.success).toBe(true);
   });
 
   it('accepts a single solo adult', () => {
     const schema = stepPeopleSchema({ slotCapacity: 8 });
-    const result = schema.safeParse({ adults: 1, teens: 0, privatize: true });
+    const result = schema.safeParse({ adults: 1, teens: 0, selectedExtras: [] });
+    expect(result.success).toBe(true);
+  });
+
+  it('defaults selectedExtras to an empty array when omitted', () => {
+    const schema = stepPeopleSchema({ slotCapacity: 8 });
+    const result = schema.safeParse({ adults: 2, teens: 1 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.selectedExtras).toEqual([]);
+    }
+  });
+
+  it('accepts a yes/no extra selection ({ extraId, priceType })', () => {
+    const schema = stepPeopleSchema({ slotCapacity: 8 });
+    const result = schema.safeParse({
+      adults: 2,
+      teens: 0,
+      selectedExtras: [{ extraId: 3, priceType: 'total' }],
+    });
     expect(result.success).toBe(true);
   });
 
   it('rejects adults=0 with errors.minAdults', () => {
     const schema = stepPeopleSchema({ slotCapacity: 8 });
-    const result = schema.safeParse({ adults: 0, teens: 1, privatize: false });
+    const result = schema.safeParse({ adults: 0, teens: 1, selectedExtras: [] });
     expect(result.success).toBe(false);
     if (!result.success) {
       const messages = result.error.issues.map((i) => i.message);
@@ -144,7 +163,7 @@ describe('stepPeopleSchema (factory)', () => {
 
   it('rejects when adults + teens > slotCapacity with errors.maxGroupSlot', () => {
     const schema = stepPeopleSchema({ slotCapacity: 4 });
-    const result = schema.safeParse({ adults: 3, teens: 2, privatize: false });
+    const result = schema.safeParse({ adults: 3, teens: 2, selectedExtras: [] });
     expect(result.success).toBe(false);
     if (!result.success) {
       const messages = result.error.issues.map((i) => i.message);
@@ -154,7 +173,7 @@ describe('stepPeopleSchema (factory)', () => {
 
   it('rejects adults > slotCapacity', () => {
     const schema = stepPeopleSchema({ slotCapacity: 4 });
-    const result = schema.safeParse({ adults: 5, teens: 0, privatize: false });
+    const result = schema.safeParse({ adults: 5, teens: 0, selectedExtras: [] });
     expect(result.success).toBe(false);
     if (!result.success) {
       const messages = result.error.issues.map((i) => i.message);
@@ -164,7 +183,7 @@ describe('stepPeopleSchema (factory)', () => {
 
   it('accepts exactly slotCapacity', () => {
     const schema = stepPeopleSchema({ slotCapacity: 6 });
-    const result = schema.safeParse({ adults: 4, teens: 2, privatize: false });
+    const result = schema.safeParse({ adults: 4, teens: 2, selectedExtras: [] });
     expect(result.success).toBe(true);
   });
 });

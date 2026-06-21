@@ -81,7 +81,7 @@ function makeBody(overrides: Record<string, unknown> = {}): string {
     time: '09:00',
     adults: 2,
     teens: 0,
-    privatize: false,
+    selectedExtras: [],
     customer: {
       name: 'Hana K',
       email: 'hana@example.com',
@@ -305,6 +305,104 @@ describe('POST /api/booking/checkout', () => {
       data: { stripeCheckoutSessionId: string };
     };
     expect(updateCall.data.stripeCheckoutSessionId).toBe('cs_test_session_1');
+  });
+
+  it('resolves selected extras server-side: emits base + extra lines, persists snapshot, Σ cents === total', async () => {
+    // Tour offers "Tour privado" (140, total) and a perPerson transfer (20).
+    mockPayload.findByID.mockResolvedValueOnce(
+      makeTour({
+        extras: [
+          { id: 7, name: 'Tour privado', price: 140, priceType: 'total', active: true },
+          { id: 9, name: 'Airport transfer', price: 20, priceType: 'perPerson', active: true },
+        ],
+      })
+    );
+    mockPayload.find.mockResolvedValueOnce({ docs: [] }); // no seats taken
+    mockPayload.create.mockResolvedValueOnce({ id: 120, reference: 'LC-EXTRAS01' });
+    mockCreateSession.mockResolvedValueOnce({
+      id: 'cs_test_extras',
+      url: 'https://checkout.stripe.com/c/pay/cs_test_extras',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    // adults 2 + teens 1 = pax 3. Client sends only extraIds (no prices).
+    const res = await POST(
+      makeRequest(
+        makeBody({
+          adults: 2,
+          teens: 1,
+          selectedExtras: [
+            { extraId: 7, priceType: 'total' },
+            { extraId: 9, priceType: 'perPerson' },
+          ],
+        })
+      )
+    );
+    expect(res.status).toBe(200);
+
+    // base 89×3 = 267 + 140 (Tour privado once) + 60 (20×3) = 467
+    const expectedTotal = 89 * 3 + 140 + 20 * 3;
+
+    // Booking row persisted the resolved snapshot (authoritative prices, not client).
+    const createCall = mockPayload.create.mock.calls[0]?.[0] as {
+      data: { totalAmount: number; selectedExtras: Array<Record<string, unknown>> };
+    };
+    expect(createCall.data.totalAmount).toBe(expectedTotal);
+    expect(createCall.data.selectedExtras).toEqual([
+      { extraId: 7, name: 'Tour privado', unitPrice: 140, priceType: 'total', computedAmount: 140 },
+      {
+        extraId: 9,
+        name: 'Airport transfer',
+        unitPrice: 20,
+        priceType: 'perPerson',
+        computedAmount: 60,
+      },
+    ]);
+
+    // Stripe: base + 2 extra lines = 3 line items; Σ cents === total cents.
+    const sessionParams = mockCreateSession.mock.calls[0]?.[0] as {
+      line_items: Array<{ quantity: number; price_data: { unit_amount: number } }>;
+    };
+    expect(sessionParams.line_items).toHaveLength(3);
+    const sumCents = sessionParams.line_items.reduce(
+      (s, i) => s + i.price_data.unit_amount * i.quantity,
+      0
+    );
+    expect(sumCents).toBe(Math.round(expectedTotal * 100));
+  });
+
+  it('ignores a client-supplied extra price (never trusts the client amount)', async () => {
+    mockPayload.findByID.mockResolvedValueOnce(
+      makeTour({
+        extras: [{ id: 7, name: 'Tour privado', price: 140, priceType: 'total', active: true }],
+      })
+    );
+    mockPayload.find.mockResolvedValueOnce({ docs: [] });
+    mockPayload.create.mockResolvedValueOnce({ id: 121, reference: 'LC-TAMPER01' });
+    mockCreateSession.mockResolvedValueOnce({
+      id: 'cs_test_tamper',
+      url: 'https://checkout.stripe.com/c/pay/cs_test_tamper',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    // Client smuggles price: 1. The route re-resolves to the real 140.
+    const res = await POST(
+      makeRequest(
+        makeBody({
+          adults: 2,
+          teens: 0,
+          selectedExtras: [{ extraId: 7, priceType: 'total', price: 1 }],
+        })
+      )
+    );
+    expect(res.status).toBe(200);
+
+    const createCall = mockPayload.create.mock.calls[0]?.[0] as {
+      data: { totalAmount: number; selectedExtras: Array<{ unitPrice: number }> };
+    };
+    // 89×2 + 140 (resolved, NOT the smuggled 1) = 318
+    expect(createCall.data.totalAmount).toBe(89 * 2 + 140);
+    expect(createCall.data.selectedExtras[0]?.unitPrice).toBe(140);
   });
 
   it('persists holdExpiresAt at now + HOLD_TTL_MINUTES (decoupled from Stripe session expiry)', async () => {
