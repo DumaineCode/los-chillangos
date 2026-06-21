@@ -1449,12 +1449,18 @@ body:has(.hero-cine) { padding-top: 0; }
   text-transform: uppercase;
   color: var(--ink-muted);
 }
-.field input, .field select {
+.field input, .field select, .field textarea {
   border: none;
   background: transparent;
   outline: none;
   font-size: 15px;
   width: 100%;
+  resize: vertical;
+}
+.field input::placeholder,
+.field select::placeholder,
+.field textarea::placeholder {
+  color: var(--ink-muted);
 }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
