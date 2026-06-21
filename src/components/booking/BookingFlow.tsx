@@ -27,6 +27,19 @@ type BookingTour = {
   seasonal?: {
     seasonWindow?: { start?: string | null; end?: string | null } | null;
   } | null;
+  // Active extras assigned to this tour, resolved + projected by
+  // app/[locale]/book/page.tsx. Consumed by StepPeople (yes/no selection) and
+  // fed into the pricing contract. Optional/additive — older callers omit it.
+  extras?: ReadonlyArray<WizardExtra>;
+};
+
+/** Shape of an extra as consumed by the booking wizard. */
+export type WizardExtra = {
+  id: number;
+  name: string;
+  price: number;
+  priceType: 'total' | 'perPerson';
+  disclaimer: string;
 };
 
 type Props = {

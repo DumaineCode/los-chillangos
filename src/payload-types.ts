@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     tours: Tour;
+    extras: Extra;
     bookings: Booking;
     'contact-messages': ContactMessage;
     users: User;
@@ -81,6 +82,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     tours: ToursSelect<false> | ToursSelect<true>;
+    extras: ExtrasSelect<false> | ExtrasSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     'contact-messages': ContactMessagesSelect<false> | ContactMessagesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -299,6 +301,10 @@ export interface Tour {
       }[]
     | null;
   /**
+   * Which extras a customer can add when booking this tour.
+   */
+  extras?: (number | Extra)[] | null;
+  /**
    * Seasonal event content. Only used when "Is seasonal" is checked.
    */
   seasonal?: {
@@ -408,6 +414,35 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "extras".
+ */
+export interface Extra {
+  id: number;
+  /**
+   * Customer-facing name of the extra (e.g. "Private tour").
+   */
+  name: string;
+  /**
+   * Whole-dollar USD price. Global — applies to every tour that offers this extra.
+   */
+  price: number;
+  /**
+   * Flat = charged once regardless of headcount. Per person = price × (adults + teens).
+   */
+  priceType: 'total' | 'perPerson';
+  /**
+   * Fine print shown in the ⓘ tooltip next to the extra on the tour page.
+   */
+  disclaimer?: string | null;
+  /**
+   * Only active extras are offered in the booking wizard.
+   */
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "mediaVideo".
  */
 export interface MediaVideo {
@@ -465,6 +500,19 @@ export interface Booking {
    * Snapshot of the privatize flat fee at booking time (matches the legacy +USD 140 constant; not enforced here).
    */
   privatizeFee: number;
+  /**
+   * Frozen snapshot of the extras chosen at booking time. Read-only — set by the checkout flow.
+   */
+  selectedExtras?:
+    | {
+        extraId: number;
+        name: string;
+        unitPrice: number;
+        priceType: 'total' | 'perPerson';
+        computedAmount: number;
+        id?: string | null;
+      }[]
+    | null;
   currency: string;
   /**
    * Cached total. Stripe charges this amount.
@@ -579,6 +627,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tours';
         value: number | Tour;
+      } | null)
+    | ({
+        relationTo: 'extras';
+        value: number | Extra;
       } | null)
     | ({
         relationTo: 'bookings';
@@ -708,6 +760,7 @@ export interface ToursSelect<T extends boolean = true> {
         capacity?: T;
         id?: T;
       };
+  extras?: T;
   seasonal?:
     | T
     | {
@@ -749,6 +802,19 @@ export interface ToursSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "extras_select".
+ */
+export interface ExtrasSelect<T extends boolean = true> {
+  name?: T;
+  price?: T;
+  priceType?: T;
+  disclaimer?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "bookings_select".
  */
 export interface BookingsSelect<T extends boolean = true> {
@@ -762,6 +828,16 @@ export interface BookingsSelect<T extends boolean = true> {
   privatize?: T;
   pricePerPerson?: T;
   privatizeFee?: T;
+  selectedExtras?:
+    | T
+    | {
+        extraId?: T;
+        name?: T;
+        unitPrice?: T;
+        priceType?: T;
+        computedAmount?: T;
+        id?: T;
+      };
   currency?: T;
   totalAmount?: T;
   customer?:

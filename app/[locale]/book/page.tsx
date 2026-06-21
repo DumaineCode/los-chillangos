@@ -78,6 +78,19 @@ export default async function BookPage({ params, searchParams }: Props) {
         price: tour.price,
         availableDays: tour.availableDays ?? [],
         timeSlots: (tour.timeSlots ?? []).map((s) => ({ time: s.time, capacity: s.capacity })),
+        // Active extras assigned to this tour (resolved at depth:1). Numeric
+        // relationship IDs (unresolved) are filtered out — only fully-populated,
+        // active extra objects are offered in the wizard.
+        extras: (tour.extras ?? [])
+          .filter((e): e is Extract<typeof e, { id: number }> => typeof e === 'object' && e !== null)
+          .filter((e) => e.active !== false)
+          .map((e) => ({
+            id: e.id,
+            name: e.name,
+            price: e.price,
+            priceType: e.priceType,
+            disclaimer: e.disclaimer ?? '',
+          })),
         // Seasonal gating fields. WITHOUT these the calendar silently falls
         // back to the weekday model and shows the wrong open days (the server
         // still rejects out-of-window dates, but the UX would mislead).
@@ -121,7 +134,9 @@ async function fetchTourForBooking(
         and: [{ slug: { equals: slugFromQuery } }, { _status: { equals: 'published' } }],
       },
       limit: 1,
-      depth: 0,
+      // depth:1 resolves the `extras` relationship so the wizard can read each
+      // assigned extra's name/price/priceType/disclaimer.
+      depth: 1,
     });
     if (docs[0]) return docs[0];
   }
@@ -132,7 +147,7 @@ async function fetchTourForBooking(
     fallbackLocale: 'en',
     where: { _status: { equals: 'published' } },
     limit: 1,
-    depth: 0,
+    depth: 1,
   });
   return docs[0] ?? null;
 }

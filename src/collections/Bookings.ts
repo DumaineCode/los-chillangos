@@ -249,6 +249,65 @@ export const Bookings: CollectionConfig = {
       },
     },
     {
+      // Snapshot of the extras the customer selected AT booking time. Like
+      // `pricePerPerson`, these are frozen copies (not foreign keys) so a later
+      // price/name edit on the Extras collection never rewrites a historical
+      // charge. Optional + additive: legacy rows (pre-extras) simply have an
+      // empty array, and the active pricing path reads this to recompute totals.
+      name: 'selectedExtras',
+      type: 'array',
+      label: { en: 'Selected extras', es: 'Extras seleccionados' },
+      labels: {
+        singular: { en: 'Selected extra', es: 'Extra seleccionado' },
+        plural: { en: 'Selected extras', es: 'Extras seleccionados' },
+      },
+      admin: {
+        readOnly: true,
+        description: {
+          en: 'Frozen snapshot of the extras chosen at booking time. Read-only — set by the checkout flow.',
+          es: 'Copia fija de los extras elegidos al momento de reservar. Solo lectura — la define el flujo de pago.',
+        },
+      },
+      fields: [
+        {
+          name: 'extraId',
+          type: 'number',
+          required: true,
+          label: { en: 'Extra ID', es: 'ID del extra' },
+        },
+        {
+          name: 'name',
+          type: 'text',
+          required: true,
+          label: { en: 'Name', es: 'Nombre' },
+        },
+        {
+          name: 'unitPrice',
+          type: 'number',
+          required: true,
+          min: 0,
+          label: { en: 'Unit price (USD)', es: 'Precio unitario (USD)' },
+        },
+        {
+          name: 'priceType',
+          type: 'select',
+          required: true,
+          label: { en: 'Price type', es: 'Tipo de precio' },
+          options: [
+            { label: { en: 'Flat', es: 'Fijo' }, value: 'total' },
+            { label: { en: 'Per person', es: 'Por persona' }, value: 'perPerson' },
+          ],
+        },
+        {
+          name: 'computedAmount',
+          type: 'number',
+          required: true,
+          min: 0,
+          label: { en: 'Computed amount (USD)', es: 'Importe calculado (USD)' },
+        },
+      ],
+    },
+    {
       name: 'currency',
       type: 'text',
       required: true,

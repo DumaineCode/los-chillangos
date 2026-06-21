@@ -620,6 +620,33 @@ export const Tours: CollectionConfig = {
           ],
         },
         {
+          label: { en: 'Extras', es: 'Extras' },
+          description: {
+            en: 'Optional add-ons offered for this tour at booking time. Manage the extras themselves under Website → Extras.',
+            es: 'Servicios opcionales que se ofrecen para este tour al reservar. Los extras se administran en Sitio web → Extras.',
+          },
+          fields: [
+            {
+              // Per-tour activation of global extras. NON-localized: the same
+              // extra row serves both locales (its name/disclaimer are localized
+              // on the Extras collection itself). Resolved at depth:2 on the
+              // tour fetch so the booking wizard and tour page can read the
+              // extra's name, price, priceType and disclaimer.
+              name: 'extras',
+              type: 'relationship',
+              relationTo: 'extras',
+              hasMany: true,
+              label: { en: 'Extras', es: 'Extras' },
+              admin: {
+                description: {
+                  en: 'Which extras a customer can add when booking this tour.',
+                  es: 'Qué extras puede agregar un cliente al reservar este tour.',
+                },
+              },
+            },
+          ],
+        },
+        {
           label: { en: 'Seasonal', es: 'Temporada' },
           // Seasonal-only tab: shown only when `isSeasonal` is checked. The
           // `seasonal` group below is a NAMED group (keeps the `seasonal.*` data
