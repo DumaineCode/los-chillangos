@@ -1009,55 +1009,63 @@ body:has(.hero-cine) { padding-top: 0; }
   margin: 0 0 16px;
 }
 
-/* === Services row === */
-.services {
+/* === Services strip (inside #tours) ===
+   Distinct from .tour-card on purpose: warm fill + larger radius + terra
+   accent + no price/duration → reads "we also do this", not "a bookable tour". */
+.services-strip {
+  /* #services anchor lives here; keep the header clear of the sticky nav. */
+  scroll-margin-top: 96px;
+}
+.strip-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
-.service {
-  background: var(--cream);
+.strip-card {
+  background: var(--bg-warm);
   border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 28px;
+  border-radius: 12px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  min-height: 240px;
+  gap: 12px;
 }
-.service-icon {
+.strip-card-icon {
   width: 40px; height: 40px;
   border: 1px solid var(--line-strong);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 20px;
+  color: var(--terra);
 }
-.service h4 {
+.strip-card-title {
   font-family: var(--serif);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 400;
   line-height: 1.1;
   margin: 0;
   letter-spacing: -0.01em;
 }
-.service p {
+.strip-card-desc {
   font-size: 14px;
   color: var(--ink-soft);
   margin: 0;
   flex: 1;
 }
-.service-link {
+.strip-card-link {
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: var(--terra);
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  transition: color 200ms ease;
+}
+.strip-card-link:hover {
+  color: var(--ink);
 }
 
 /* === Testimonials === */
@@ -1801,7 +1809,7 @@ body:has(.hero-cine) { padding-top: 0; }
   .values { grid-template-columns: 1fr 1fr; }
   .value-cell { border-right: none; padding: 24px 0; border-top: 1px solid var(--line); }
   .editorial { grid-template-columns: 1fr; gap: 32px; }
-  .services { grid-template-columns: 1fr; }
+  .strip-cards { grid-template-columns: 1fr; }
   .team { grid-template-columns: 1fr 1fr 1fr; gap: 24px 12px; }
   .team-photo { width: clamp(78px, 26vw, 120px); height: clamp(78px, 26vw, 120px); margin-bottom: 12px; }
   .team-name { font-size: 16px; }

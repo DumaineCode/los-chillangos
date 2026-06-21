@@ -17,6 +17,57 @@ import { getPayload } from '../../src/lib/payload';
 import { getActiveSeasonalTour } from '../../src/lib/seasonal/getActiveSeasonalTour';
 import type { Media, MediaVideo } from '../../src/payload-types';
 
+// Inline service icons, hoisted to module scope so the static JSX is created
+// once instead of on every render (rendering-hoist-jsx). Indexed `[i % 3]` to
+// mirror the previous decorative glyph cycle, but as accessible, no-emoji SVGs.
+// 0 → route/transfer, 1 → guide/person, 2 → custom/sparkle.
+const STRIP_ICONS: ReactNode[] = [
+  <svg
+    key="route"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M7 17 17 7" />
+    <path d="M8 7h9v9" />
+  </svg>,
+  <svg
+    key="guide"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="8" r="3.5" />
+    <path d="M5 20a7 7 0 0 1 14 0" />
+  </svg>,
+  <svg
+    key="custom"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M12 3v18M3 12h18M6 6l12 12M18 6 6 18" />
+  </svg>,
+];
+
 // CMS-driven content. We intentionally OMIT generateStaticParams so Next does
 // NOT prerender these pages at build time (the database isn't reachable from
 // the Docker builder). The first request generates the page on demand and ISR
@@ -270,6 +321,37 @@ export default async function HomePage({ params }: Props) {
           </div>
           <CatalogFilter filters={filters} cards={cards} />
 
+          {/* Additional services — a card strip inside #tours, reading as
+              "we also do this" (no price/duration, inquiry-only). Null-safe:
+              renders nothing when there are no service items. */}
+          {servicesItems.length > 0 && (
+            <div className="services-strip" id="services" data-testid="services-strip">
+              <div className="section-head" style={{ marginTop: 56 }}>
+                <div>
+                  <div className="eyebrow" style={{ marginBottom: 16 }}>
+                    {services?.eyebrow}
+                  </div>
+                  <h2 className="section-title">{services?.title}</h2>
+                </div>
+                <p className="section-sub">{services?.sub}</p>
+              </div>
+              <div className="strip-cards">
+                {servicesItems.map((s, i) => (
+                  <div className="strip-card" key={i} data-testid="strip-card">
+                    <span className="strip-card-icon" aria-hidden="true">
+                      {STRIP_ICONS[i % 3]}
+                    </span>
+                    <h3 className="strip-card-title">{s.t}</h3>
+                    <p className="strip-card-desc">{s.d}</p>
+                    <a href="#contact" className="strip-card-link">
+                      {services?.inquireCta} →
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="catalog-notfound">
             <h3 className="catalog-notfound-title">{tCatalog('notFound.title')}</h3>
             <p className="catalog-notfound-sub">{tCatalog('notFound.sub')}</p>
@@ -377,38 +459,13 @@ export default async function HomePage({ params }: Props) {
         </div>
       </section>
 
-      {/* Services */}
-      <section className="section" id="services" style={{ paddingTop: 0 }}>
-        <div className="container">
-          <div className="section-head">
-            <div>
-              <div className="eyebrow" style={{ marginBottom: 16 }}>
-                {services?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 04
-              </div>
-              <h2 className="section-title">{services?.title}</h2>
-            </div>
-            <p className="section-sub">{services?.sub}</p>
-          </div>
-          <div className="services">
-            {servicesItems.map((s, i) => (
-              <div className="service" key={i}>
-                <div className="service-icon">{['↗', '◐', '✦'][i % 3]}</div>
-                <h4>{s.t}</h4>
-                <p>{s.d}</p>
-                <a className="service-link">{services?.inquireCta}</a>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
       <section className="section" id="faq" style={{ paddingTop: 0 }}>
         <div className="container-tight">
           <div className="section-head">
             <div>
               <div className="eyebrow" style={{ marginBottom: 16 }}>
-                {faq?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 05
+                {faq?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 04
               </div>
               <h2 className="section-title">{faq?.title}</h2>
             </div>
@@ -424,7 +481,7 @@ export default async function HomePage({ params }: Props) {
             <div className="section-head">
               <div>
                 <div className="eyebrow" style={{ marginBottom: 16 }}>
-                  {team?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 06
+                  {team?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 05
                 </div>
                 <h2 className="section-title">{team?.title}</h2>
               </div>
