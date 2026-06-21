@@ -11,6 +11,7 @@ import { TourMap } from '../../../../src/components/TourMap';
 import { RouteMap } from '../../../../src/components/maps/RouteMap';
 import { SeasonalTourLayout } from '../../../../src/components/seasonal/SeasonalTourLayout';
 import { Tooltip } from '../../../../src/components/ui/Tooltip';
+import { formatExtraPrice } from '../../../../src/lib/booking/extraPriceLabel';
 import { resolveMediaImage } from '../../../../src/lib/media';
 import { getPayload } from '../../../../src/lib/payload';
 import { shouldRenderSeasonal } from '../../../../src/lib/seasonal/shouldRenderSeasonal';
@@ -218,6 +219,13 @@ export default async function TourDetailPage({ params }: Props) {
                       style={{ display: 'flex', alignItems: 'center', gap: 4 }}
                     >
                       <span>{extra.name}</span>
+                      <span style={{ color: 'var(--ink-muted)', fontSize: 13 }}>
+                        {formatExtraPrice({
+                          price: extra.price,
+                          priceType: extra.priceType,
+                          perPersonSuffix: tCommon('perPersonShort'),
+                        })}
+                      </span>
                       {extra.disclaimer ? (
                         <Tooltip
                           content={extra.disclaimer}
