@@ -47,7 +47,6 @@ export function StepPeople({
   return (
     <div data-testid="booking-step-2">
       <h2>{t('title')}</h2>
-      <p className="lede">{t('lede')}</p>
 
       <div className="stepper-grid">
         <div className="stepper-row">
