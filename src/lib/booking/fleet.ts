@@ -171,10 +171,7 @@ export function evaluateBikeAvailability({
 // ─────────────────────────────────────────────────────────────────────────
 
 /** Minimal tour shape the fleet layer needs (satisfies getTimeSlotsForTour). */
-export type FleetTour = Pick<Tour, 'id' | 'timeSlots'> & {
-  usesBikes?: boolean | null;
-  durationMinutes?: number | null;
-};
+export type FleetTour = Pick<Tour, 'id' | 'timeSlots' | 'usesBikes' | 'durationMinutes'>;
 
 /** The whole day's bike picture: policy + every existing bike occurrence. */
 export type BikeFleetState = { cfg: FleetConfig; occurrences: BikeOccurrence[] };

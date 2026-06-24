@@ -285,6 +285,14 @@ export interface Tour {
    */
   availableDays?: ('0' | '1' | '2' | '3' | '4' | '5' | '6')[] | null;
   /**
+   * Check if this tour uses the shared e-bike fleet. Bike tours reserve bikes by capacity and need a recharge buffer between rides. Requires a duration below.
+   */
+  usesBikes?: boolean | null;
+  /**
+   * Exact ride length in minutes (e.g. 120 for 2h). Required for bike tours — used for fleet windows and the recharge buffer.
+   */
+  durationMinutes?: number | null;
+  /**
    * Departure times the tour runs and how many seats each one has. The booking flow reads this per-tour — no global default applies anymore.
    */
   timeSlots?:
@@ -754,6 +762,8 @@ export interface ToursSelect<T extends boolean = true> {
         id?: T;
       };
   availableDays?: T;
+  usesBikes?: T;
+  durationMinutes?: T;
   timeSlots?:
     | T
     | {
@@ -1414,6 +1424,14 @@ export interface BookingSetting {
    * How many days before the tour a customer can cancel for free. Shown in the booking sidebar.
    */
   freeCancellationDays: number;
+  /**
+   * How many bikes exist in total. Overlapping bike tours share this fleet — a slot is blocked when their combined capacity would exceed it.
+   */
+  totalBikes: number;
+  /**
+   * Minutes the bikes need to recharge after a tour ends before the next bike tour can start. Default 120 (2h).
+   */
+  bufferMinutes: number;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1933,6 +1951,8 @@ export interface EmailContentSelect<T extends boolean = true> {
  */
 export interface BookingSettingsSelect<T extends boolean = true> {
   freeCancellationDays?: T;
+  totalBikes?: T;
+  bufferMinutes?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

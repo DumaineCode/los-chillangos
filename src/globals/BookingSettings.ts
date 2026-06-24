@@ -42,5 +42,44 @@ export const BookingSettings: GlobalConfig = {
         },
       },
     },
+    {
+      // Size of the shared e-bike fleet. Overlapping bike tours reserve bikes
+      // by full slot cupo; the booking flow blocks a slot once Σ capacities of
+      // overlapping bike tours would exceed this number. Admin-editable.
+      name: 'totalBikes',
+      type: 'number',
+      required: true,
+      defaultValue: 8,
+      min: 1,
+      label: {
+        en: 'Total bikes (fleet size)',
+        es: 'Total de bicicletas (tamaño de flota)',
+      },
+      admin: {
+        description: {
+          en: 'How many bikes exist in total. Overlapping bike tours share this fleet — a slot is blocked when their combined capacity would exceed it.',
+          es: 'Cuántas bicicletas hay en total. Los tours en bici que se solapan comparten esta flota — un horario se bloquea cuando la suma de sus cupos la supera.',
+        },
+      },
+    },
+    {
+      // Recharge cooldown after a bike tour ENDS before another may start.
+      // Measured from end-of-ride (start + durationMinutes), not from start.
+      name: 'bufferMinutes',
+      type: 'number',
+      required: true,
+      defaultValue: 120,
+      min: 0,
+      label: {
+        en: 'Recharge buffer (minutes)',
+        es: 'Tiempo de recarga (minutos)',
+      },
+      admin: {
+        description: {
+          en: 'Minutes the bikes need to recharge after a tour ends before the next bike tour can start. Default 120 (2h).',
+          es: 'Minutos que las bicis necesitan para recargar después de que termina un tour antes de que pueda iniciar el siguiente. Por defecto 120 (2h).',
+        },
+      },
+    },
   ],
 };

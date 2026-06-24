@@ -570,6 +570,47 @@ export const Tours: CollectionConfig = {
               ],
             },
             {
+              // Marks a tour as consuming the shared e-bike fleet. EXPLICIT
+              // opt-in — we do NOT proxy this via `category === 'ebike'` so the
+              // client controls exactly which tours hit the fleet/cooldown rules.
+              // Defaults to false: pre-existing and non-bike tours stay exempt.
+              name: 'usesBikes',
+              type: 'checkbox',
+              defaultValue: false,
+              label: { en: 'Uses bikes', es: 'Usa bicicletas' },
+              admin: {
+                description: {
+                  en: 'Check if this tour uses the shared e-bike fleet. Bike tours reserve bikes by capacity and need a recharge buffer between rides. Requires a duration below.',
+                  es: 'Marca si este tour usa la flota de e-bikes compartida. Los tours en bici reservan bicis por cupo y necesitan un tiempo de recarga entre salidas. Requiere una duración abajo.',
+                },
+              },
+            },
+            {
+              // Real ride length in minutes. Drives the bike usage window
+              // (start → start+durationMinutes) and the recharge cooldown.
+              // Distinct from the display-only `duration` text field, which is
+              // unparseable ("3.5h"). REQUIRED only for bike tours — a legacy
+              // bike tour without it is blocked at eval time (fail-safe), never
+              // silently allowed.
+              name: 'durationMinutes',
+              type: 'number',
+              min: 1,
+              label: { en: 'Duration (minutes)', es: 'Duración (minutos)' },
+              admin: {
+                description: {
+                  en: 'Exact ride length in minutes (e.g. 120 for 2h). Required for bike tours — used for fleet windows and the recharge buffer.',
+                  es: 'Duración exacta del recorrido en minutos (ej.: 120 para 2h). Obligatoria para tours en bici — se usa para las ventanas de flota y el tiempo de recarga.',
+                },
+                condition: (_, siblingData) => Boolean(siblingData?.usesBikes),
+              },
+              validate: (value: number | null | undefined, { siblingData }: { siblingData?: { usesBikes?: boolean | null } }) => {
+                if (siblingData?.usesBikes && (value === null || value === undefined)) {
+                  return 'Required for bike tours';
+                }
+                return true;
+              },
+            },
+            {
               name: 'timeSlots',
               type: 'array',
               labels: {
