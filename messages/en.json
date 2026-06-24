@@ -338,6 +338,10 @@
       "noSeatsLeft": "Sorry, this departure just filled up.",
       "cutoffPassed": "Too late to book this departure.",
       "unknownSlot": "That time slot is no longer available.",
+      "bikeUnavailable": "No bikes are available for this time slot.",
+      "bikeFleet": "All bikes are reserved at that time.",
+      "bikeCooldown": "The bikes are recharging. Please pick a later time.",
+      "bikeUnevaluatable": "This bike tour can't be booked online right now. Please contact us to arrange it.",
       "tourNotPublished": "This tour is not currently available for booking.",
       "tourNotFound": "We couldn't find that tour. Please pick another.",
       "unexpected": "Something went wrong. Please try again."

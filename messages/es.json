@@ -338,6 +338,10 @@
       "noSeatsLeft": "Esta salida se acaba de llenar.",
       "cutoffPassed": "Es muy tarde para reservar esta salida.",
       "unknownSlot": "Ese horario ya no está disponible.",
+      "bikeUnavailable": "No hay bicicletas disponibles para este horario.",
+      "bikeFleet": "Todas las bicicletas están reservadas en ese horario.",
+      "bikeCooldown": "Las bicicletas se están recargando. Elegí un horario más tarde.",
+      "bikeUnevaluatable": "Este tour en bici no se puede reservar en línea por ahora. Escribinos para coordinar.",
       "tourNotPublished": "Este tour no está disponible para reservar.",
       "tourNotFound": "No encontramos ese tour. Elegí otro.",
       "unexpected": "Algo salió mal. Probá de nuevo."

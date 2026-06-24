@@ -2,6 +2,16 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { getDayAvailability } from '../../../../src/lib/booking/capacity';
+import {
+  type BikeOccurrence,
+  evaluateBikeAvailability,
+  getBikeFleetState,
+} from '../../../../src/lib/booking/fleet';
+import {
+  type YMD,
+  getTimeSlotsForTour,
+  getYMDInTourTZ,
+} from '../../../../src/lib/booking/availability';
 import { getPayload } from '../../../../src/lib/payload';
 import type { Tour } from '../../../../src/payload-types';
 
@@ -56,7 +66,65 @@ export async function GET(request: Request): Promise<Response> {
   const anchor = new Date(`${date}T12:00:00Z`);
 
   const slots = await getDayAvailability({ payload, tour, date: anchor });
-  return jsonNoStore({ slots });
+
+  // Bike tours carry an ADVISORY fleet/cooldown flag per slot so the client can
+  // grey out unbookable times. Non-bike tours are exempt and the flag is always
+  // false. We fetch the day's fleet state ONCE (2 reads) and run the SAME pure
+  // evaluator the checkout POST uses via `evaluateBikeSlot`, so the advisory can
+  // never disagree with the authoritative gate.
+  if (tour.usesBikes === true) {
+    const flagged = await flagBikeSlots({ payload, tour, anchor, slots });
+    return jsonNoStore({ slots: flagged });
+  }
+
+  return jsonNoStore({
+    slots: slots.map((s) => ({ ...s, bikeBlocked: false, bikeReason: null })),
+  });
+}
+
+type AdvisorySlot = { time: string };
+
+/**
+ * Annotate each slot of a bike tour with `bikeBlocked` + `bikeReason`. Loads
+ * the day's fleet state once, then for every slot builds the candidate
+ * occurrence, self-excludes that (tour, time) from the others, and runs the
+ * pure verdict. Slots are kept in the payload (advisory, not removed).
+ */
+async function flagBikeSlots<T extends AdvisorySlot>({
+  payload,
+  tour,
+  anchor,
+  slots,
+}: {
+  payload: Awaited<ReturnType<typeof getPayload>>;
+  tour: Tour;
+  anchor: Date;
+  slots: T[];
+}): Promise<Array<T & { bikeBlocked: boolean; bikeReason: string | null }>> {
+  const ymd: YMD = getYMDInTourTZ(anchor);
+  const { cfg, occurrences } = await getBikeFleetState({ payload, date: anchor });
+  const capacityByTime = new Map(
+    getTimeSlotsForTour({ timeSlots: tour.timeSlots }).map((s) => [s.time, s.capacity])
+  );
+  const duration = typeof tour.durationMinutes === 'number' ? tour.durationMinutes : Number.NaN;
+
+  return slots.map((slot) => {
+    const candidate: BikeOccurrence = {
+      tourId: tour.id,
+      time: slot.time,
+      durationMinutes: duration,
+      capacity: capacityByTime.get(slot.time) ?? 0,
+    };
+    const others = occurrences.filter(
+      (o) => !(o.tourId === candidate.tourId && o.time === candidate.time)
+    );
+    const verdict = evaluateBikeAvailability({ candidate, others, cfg, ymd });
+    return {
+      ...slot,
+      bikeBlocked: !verdict.ok,
+      bikeReason: verdict.ok ? null : verdict.reason,
+    };
+  });
 }
 
 function jsonNoStore(body: unknown, status = 200): Response {

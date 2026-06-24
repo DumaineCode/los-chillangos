@@ -11,6 +11,7 @@ import {
   isSameDayCutoffPassed,
 } from '../../../../src/lib/booking/availability';
 import { countSeatsTaken } from '../../../../src/lib/booking/capacity';
+import { evaluateBikeSlot } from '../../../../src/lib/booking/fleet';
 import { checkoutPayloadSchema } from '../../../../src/lib/booking/checkoutPayload';
 import { generateBookingReference } from '../../../../src/lib/booking/reference';
 import {
@@ -118,6 +119,23 @@ export async function POST(request: Request): Promise<Response> {
       { error: 'no-seats-left', remaining: Math.max(0, slot.capacity - taken) },
       422
     );
+  }
+
+  // 3b. Authoritative bike-fleet gate. Non-bike tours are exempt (the shared
+  // evaluator returns ok without a DB read). For bike tours it enforces the
+  // finite-fleet and recharge-cooldown rules using the SAME evaluator the
+  // availability GET route calls, so the advisory the client saw can never
+  // drift from what we enforce here. A bike tour missing a positive duration
+  // fails safe as `unevaluatable` — never silently allowed.
+  const bikeVerdict = await evaluateBikeSlot({
+    payload,
+    tour: tour as Parameters<typeof evaluateBikeSlot>[0]['tour'],
+    date: dateAnchor,
+    time: data.time,
+    now,
+  });
+  if (!bikeVerdict.ok) {
+    return jsonNoStore({ error: 'bike-unavailable', reason: bikeVerdict.reason }, 422);
   }
 
   // 4. Snapshot pricing.

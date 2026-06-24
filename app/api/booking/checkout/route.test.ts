@@ -37,11 +37,13 @@ vi.mock('../../../../src/lib/booking/sweep', () => ({
 const mockPayload: {
   findByID: ReturnType<typeof vi.fn>;
   find: ReturnType<typeof vi.fn>;
+  findGlobal: ReturnType<typeof vi.fn>;
   create: ReturnType<typeof vi.fn>;
   update: ReturnType<typeof vi.fn>;
 } = {
   findByID: vi.fn(),
   find: vi.fn(async () => ({ docs: [] })),
+  findGlobal: vi.fn(async () => ({ totalBikes: 8, bufferMinutes: 120 })),
   create: vi.fn(),
   update: vi.fn(async () => ({ doc: { id: 1 } })),
 };
@@ -107,6 +109,8 @@ beforeEach(() => {
   mockPayload.findByID.mockReset();
   mockPayload.find.mockReset();
   mockPayload.find.mockResolvedValue({ docs: [] });
+  mockPayload.findGlobal.mockReset();
+  mockPayload.findGlobal.mockResolvedValue({ totalBikes: 8, bufferMinutes: 120 });
   mockPayload.create.mockReset();
   mockPayload.update.mockReset();
   mockPayload.update.mockResolvedValue({ doc: { id: 1 } });
@@ -431,6 +435,46 @@ describe('POST /api/booking/checkout', () => {
     const sessionParams = stripeArgs?.[0] as { expires_at: number };
     const holdSeconds = Math.floor(new Date(expectedHold).getTime() / 1000);
     expect(sessionParams.expires_at).toBeGreaterThan(holdSeconds);
+  });
+
+  it('returns 422 bike-unavailable when an overlapping booking fills the bike fleet', async () => {
+    // Candidate bike tour (cupo 8) at 09:00. An existing paid bike booking on
+    // the SAME day fills the full fleet at 09:00 → authoritative fleet gate
+    // rejects BEFORE the booking row is ever created.
+    const candidateTour = makeTour({
+      id: 2,
+      usesBikes: true,
+      durationMinutes: 120,
+      timeSlots: [{ time: '09:00', capacity: 8 }],
+    });
+    mockPayload.findByID.mockResolvedValueOnce(candidateTour);
+
+    // `find` is hit by countSeatsTaken (bookings, no time arg dispatch) AND by
+    // getBikeFleetState (tours + bookings). Dispatch by collection so the fleet
+    // read sees the full-fleet neighbour while capacity sees no same-slot seats.
+    mockPayload.find.mockImplementation(async (args: { collection: string; where?: unknown }) => {
+      if (args.collection === 'tours') {
+        return {
+          docs: [
+            { id: 1, usesBikes: true, durationMinutes: 120, timeSlots: [{ time: '09:00', capacity: 8 }] },
+            { id: 2, usesBikes: true, durationMinutes: 120, timeSlots: [{ time: '09:00', capacity: 8 }] },
+          ],
+        };
+      }
+      // bookings: the existing full-fleet booking is tour 1 (a DIFFERENT tour),
+      // so it does not collide with the candidate's per-slot capacity count but
+      // DOES occupy the shared fleet at 09:00.
+      return { docs: [{ tour: 1, time: '09:00', date: '2030-06-12T15:00:00.000Z' }] };
+    });
+
+    const res = await POST(makeRequest(makeBody({ tourId: 2, adults: 2, teens: 0 })));
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as { error: string; reason: string };
+    expect(body.error).toBe('bike-unavailable');
+    expect(body.reason).toBe('fleet');
+
+    // The gate fires BEFORE any booking row is created.
+    expect(mockPayload.create).not.toHaveBeenCalled();
   });
 
   it('returns 502 + cancels the booking when Stripe SDK throws', async () => {
