@@ -32,7 +32,7 @@ export const SAME_DAY_CUTOFF_HOURS = 2;
 /** CDMX has not observed DST since 2022 — fixed offset UTC-6 effectively. */
 export const TOUR_TIMEZONE = 'America/Mexico_City';
 
-type YMD = { year: number; month: number; day: number };
+export type YMD = { year: number; month: number; day: number };
 
 /**
  * Return the Y/M/D of `now` interpreted in CDMX. `month` is 1-12 (not 0-indexed)
@@ -275,7 +275,7 @@ const WEEKDAY_INDEX: Record<string, number> = {
   Sat: 6,
 };
 
-function getYMDInTourTZ(date: Date): YMD {
+export function getYMDInTourTZ(date: Date): YMD {
   const parts = cdmxYMDFormatter.formatToParts(date);
   let year = 0;
   let month = 0;
@@ -305,7 +305,7 @@ function compareYMD(a: YMD, b: YMD): number {
  * derive it via `Intl` so we don't hardcode UTC-6 (even though CDMX has been
  * UTC-6 year-round since 2022, this stays correct if Mexico ever changes).
  */
-function ymdHHMMToCDMXInstant(ymd: YMD, timeHHMM: string): Date {
+export function ymdHHMMToCDMXInstant(ymd: YMD, timeHHMM: string): Date {
   const [hhRaw, mmRaw] = timeHHMM.split(':');
   const hh = Number.parseInt(hhRaw ?? '0', 10) || 0;
   const mm = Number.parseInt(mmRaw ?? '0', 10) || 0;
