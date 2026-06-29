@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Link } from '../../../../i18n/navigation';
 import { type Locale } from '../../../../i18n/routing';
+import { InquiryCta } from '../../../../src/components/rentals/InquiryCta';
 import { RefreshRouteOnSave } from '../../../../src/components/RefreshRouteOnSave';
 import { resolveMediaImage } from '../../../../src/lib/media';
 import { getPayload } from '../../../../src/lib/payload';
@@ -147,11 +148,38 @@ export default async function RentalDetailPage({ params }: Props) {
               </div>
             </div>
             {/*
-              Inquiry CTA slot — wired in Slice 3 (rentals-inquiry-cta seam).
-              Intentionally left empty here: no contact form, no /api/contact
-              call, no contactMessage schema. Slice 2 is render-only.
+              Inquiry CTA slot (rentals-inquiry-cta seam, R7). The CTA POSTs to
+              /api/contact carrying the bike slug as `rental`. The detail page
+              displays accessories but exposes no selection UI, so no accessory
+              ids are referenced here — the swappable Phase B seam stays minimal.
             */}
-            <div data-testid="inquiry-cta-slot" />
+            <div data-testid="inquiry-cta-slot">
+              <InquiryCta
+                locale={locale}
+                rental={slug}
+                accessories={[]}
+                strings={{
+                  heading: t('inquiry.heading'),
+                  seededMessage: t('inquiry.seededMessage', { bikeName: rental.name }),
+                  nameLabel: t('inquiry.nameLabel'),
+                  namePlaceholder: t('inquiry.namePlaceholder'),
+                  emailLabel: t('inquiry.emailLabel'),
+                  emailPlaceholder: t('inquiry.emailPlaceholder'),
+                  messageLabel: t('inquiry.messageLabel'),
+                  submit: t('inquiry.submit'),
+                  sending: t('inquiry.sending'),
+                  successTitle: t('inquiry.successTitle'),
+                  successBody: t('inquiry.successBody'),
+                  sendAnother: t('inquiry.sendAnother'),
+                  errors: {
+                    name: t('inquiry.errors.name'),
+                    email: t('inquiry.errors.email'),
+                    message: t('inquiry.errors.message'),
+                    unexpected: t('inquiry.errors.unexpected'),
+                  },
+                }}
+              />
+            </div>
           </aside>
         </div>
       </section>

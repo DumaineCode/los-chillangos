@@ -395,6 +395,26 @@
       "metaNotFound": "Rental not found",
       "accessoryPhotoAlt": "Photo of {name}"
     },
+    "inquiry": {
+      "heading": "Request a quote",
+      "seededMessage": "I'm interested in renting the {bikeName} bike.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Your name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "messageLabel": "Your message",
+      "submit": "Send inquiry",
+      "sending": "Sending…",
+      "successTitle": "Inquiry sent!",
+      "successBody": "Thanks for reaching out. We'll get back to you about this bike soon.",
+      "sendAnother": "Send another inquiry",
+      "errors": {
+        "name": "Tell us your name.",
+        "email": "That email doesn't look right.",
+        "message": "Please write a slightly longer message.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
     "home": {
       "eyebrow": "Bike rentals",
       "title": "Rather ride on your own?",
