@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     tours: Tour;
+    rentals: Rental;
     extras: Extra;
     bookings: Booking;
     'contact-messages': ContactMessage;
@@ -82,6 +83,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     tours: ToursSelect<false> | ToursSelect<true>;
+    rentals: RentalsSelect<false> | RentalsSelect<true>;
     extras: ExtrasSelect<false> | ExtrasSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     'contact-messages': ContactMessagesSelect<false> | ContactMessagesSelect<true>;
@@ -474,6 +476,60 @@ export interface MediaVideo {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rentals".
+ */
+export interface Rental {
+  id: number;
+  /**
+   * Auto-generated from the name. Only change it if you know what you are doing — it changes the rental web address.
+   */
+  slug?: string | null;
+  /**
+   * The bike model name as it appears across the site.
+   */
+  name: string;
+  /**
+   * Detail-page copy describing the bike.
+   */
+  description?: string | null;
+  /**
+   * Key features of the bike (e.g. motor, range, frame size).
+   */
+  characteristics?: string | null;
+  /**
+   * Informative price shown as-is, e.g. "$150/day". No calculation is applied.
+   */
+  price?: string | null;
+  /**
+   * Main image shown on the rental card and at the top of the rental page.
+   */
+  heroImage?: (number | null) | Media;
+  gallery?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Rentable accessories (helmet, lock, child seat). Display-only — no booking math.
+   */
+  accessories?:
+    | {
+        name: string;
+        photo?: (number | null) | Media;
+        /**
+         * Optional informative price shown as-is, e.g. "$50/day".
+         */
+        price?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "bookings".
  */
 export interface Booking {
@@ -636,6 +692,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tours';
         value: number | Tour;
+      } | null)
+    | ({
+        relationTo: 'rentals';
+        value: number | Rental;
       } | null)
     | ({
         relationTo: 'extras';
@@ -806,6 +866,35 @@ export interface ToursSelect<T extends boolean = true> {
             };
         eventLocation?: T;
         tagline?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rentals_select".
+ */
+export interface RentalsSelect<T extends boolean = true> {
+  slug?: T;
+  name?: T;
+  description?: T;
+  characteristics?: T;
+  price?: T;
+  heroImage?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
+  accessories?:
+    | T
+    | {
+        name?: T;
+        photo?: T;
+        price?: T;
+        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;
