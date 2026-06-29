@@ -31,6 +31,13 @@ export async function POST(request: Request): Promise<Response> {
   const data = parsed.data;
   const phone = data.phone && data.phone.length > 0 ? data.phone : null;
 
+  // Rentals inquiry seam (R7): persist the referenced bike slug and a readable
+  // join of the accessory references when the InquiryCta submitted them. Both
+  // are optional — the existing ContactForm omits them and stays unaffected.
+  const rental = data.rental && data.rental.length > 0 ? data.rental : undefined;
+  const accessories =
+    data.accessories && data.accessories.length > 0 ? data.accessories.join(', ') : undefined;
+
   const payload = await getPayload();
 
   let messageId: number;
@@ -43,6 +50,8 @@ export async function POST(request: Request): Promise<Response> {
         email: data.email,
         phone: phone ?? undefined,
         message: data.message,
+        rental,
+        accessories,
         status: 'new',
       },
     });

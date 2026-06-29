@@ -76,6 +76,36 @@ export const ContactMessages: CollectionConfig = {
       label: { en: 'Message', es: 'Mensaje' },
     },
     {
+      // Read-only record of the rental (bike slug) an inquiry referenced.
+      // Populated by the /api/contact route from the InquiryCta submission;
+      // the owner reads it but never edits it (rentals-inquiry-cta seam, R7).
+      name: 'rental',
+      type: 'text',
+      label: { en: 'Rental (bike)', es: 'Renta (bicicleta)' },
+      admin: {
+        readOnly: true,
+        description: {
+          en: 'Bike slug this inquiry referenced. Only present for rental inquiries.',
+          es: 'Slug de la bicicleta a la que se refiere esta consulta. Solo aparece en consultas de renta.',
+        },
+      },
+    },
+    {
+      // Read-only, human-readable join of the accessory references submitted
+      // with a rental inquiry. Stored as text for admin readability per the
+      // resolved design default (no booking-engine coupling).
+      name: 'accessories',
+      type: 'text',
+      label: { en: 'Accessories', es: 'Accesorios' },
+      admin: {
+        readOnly: true,
+        description: {
+          en: 'Accessories referenced in this inquiry. Only present for rental inquiries.',
+          es: 'Accesorios referidos en esta consulta. Solo aparece en consultas de renta.',
+        },
+      },
+    },
+    {
       name: 'status',
       type: 'select',
       required: true,

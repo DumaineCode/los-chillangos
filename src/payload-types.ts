@@ -633,6 +633,14 @@ export interface ContactMessage {
   phone?: string | null;
   message: string;
   /**
+   * Bike slug this inquiry referenced. Only present for rental inquiries.
+   */
+  rental?: string | null;
+  /**
+   * Accessories referenced in this inquiry. Only present for rental inquiries.
+   */
+  accessories?: string | null;
+  /**
    * Mark messages as you handle them.
    */
   status: 'new' | 'read' | 'replied' | 'archived';
@@ -968,6 +976,8 @@ export interface ContactMessagesSelect<T extends boolean = true> {
   email?: T;
   phone?: T;
   message?: T;
+  rental?: T;
+  accessories?: T;
   status?: T;
   updatedAt?: T;
   createdAt?: T;
