@@ -1311,6 +1311,24 @@ export interface Landing {
      */
     featuredSeasonalTour?: (number | null) | Tour;
   };
+  rentals?: {
+    /**
+     * Small label above the block, e.g. "Bike rentals".
+     */
+    eyebrow?: string | null;
+    /**
+     * Block heading, e.g. "Rather ride on your own?".
+     */
+    title?: string | null;
+    /**
+     * Short copy under the heading.
+     */
+    sub?: string | null;
+    /**
+     * Label on the button that links to the rentals catalog, e.g. "Browse rentals →".
+     */
+    ctaLabel?: string | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1921,6 +1939,14 @@ export interface LandingSelect<T extends boolean = true> {
         enabled?: T;
         eyebrow?: T;
         featuredSeasonalTour?: T;
+      };
+  rentals?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        ctaLabel?: T;
       };
   updatedAt?: T;
   createdAt?: T;

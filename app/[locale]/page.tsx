@@ -116,6 +116,10 @@ export default async function HomePage({ params }: Props) {
 
   // `catalog` filter labels stay in next-intl (UI controls, not marketing copy).
   const tCatalog = await getTranslations({ locale, namespace: 'catalog' });
+  // Rentals home block: editable copy lives in the Landing `rentals` tab, but
+  // until the client fills it we fall back to localized i18n defaults so the
+  // block (and its CTA) is always meaningful.
+  const tRentals = await getTranslations({ locale, namespace: 'rentals' });
 
   const payload = await getPayload();
 
@@ -153,6 +157,7 @@ export default async function HomePage({ params }: Props) {
   const services = landing?.services;
   const team = landing?.team;
   const faq = landing?.faq;
+  const rentalsBlock = landing?.rentals;
 
   const tours = toursResult.docs;
 
@@ -365,6 +370,30 @@ export default async function HomePage({ params }: Props) {
               {tCatalog('notFound.cta')}
             </a>
           </div>
+        </div>
+      </section>
+
+      {/* Featured rentals — links to the standalone /rentals catalog. Copy comes
+          from the Landing `rentals` named tab; the CTA destination is the fixed
+          localized /rentals route (next-intl Link applies the locale prefix). */}
+      <section className="section" id="rentals-home" data-testid="rentals-home-block">
+        <div className="container">
+          <div className="section-head">
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 16 }}>
+                {rentalsBlock?.eyebrow || tRentals('home.eyebrow')}
+              </div>
+              <h2 className="section-title">{rentalsBlock?.title || tRentals('home.title')}</h2>
+            </div>
+            <p className="section-sub">{rentalsBlock?.sub || tRentals('home.sub')}</p>
+          </div>
+          <Link
+            href="/rentals"
+            className="btn btn-primary btn-lg"
+            data-testid="rentals-home-cta"
+          >
+            {rentalsBlock?.ctaLabel || tRentals('home.cta')}
+          </Link>
         </div>
       </section>
 

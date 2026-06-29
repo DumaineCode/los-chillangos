@@ -686,6 +686,66 @@ export const Landing: GlobalConfig = {
             },
           ],
         },
+        // ── Rentals ──────────────────────────────────────────────────────
+        // Featured bike-rentals home block. Mirrors the other marketing tabs
+        // (eyebrow/title/sub + CTA label, all localized). Like the seasonal tab
+        // it relates to a collection conceptually, but the CTA destination is
+        // the fixed `/rentals` catalog route — so there is no per-row relation,
+        // just localized copy + a link the home page renders.
+        {
+          name: 'rentals',
+          label: { en: 'Bike rentals', es: 'Renta de bicicletas' },
+          fields: [
+            {
+              name: 'eyebrow',
+              type: 'text',
+              localized: true,
+              label: { en: 'Eyebrow', es: 'Antetítulo' },
+              admin: {
+                description: {
+                  en: 'Small label above the block, e.g. "Bike rentals".',
+                  es: 'Etiqueta pequeña sobre el bloque, ej.: "Renta de bicicletas".',
+                },
+              },
+            },
+            {
+              name: 'title',
+              type: 'text',
+              localized: true,
+              label: { en: 'Title', es: 'Título' },
+              admin: {
+                description: {
+                  en: 'Block heading, e.g. "Rather ride on your own?".',
+                  es: 'Título del bloque, ej.: "¿Prefieres rodar por tu cuenta?".',
+                },
+              },
+            },
+            {
+              name: 'sub',
+              type: 'textarea',
+              localized: true,
+              label: { en: 'Subheading', es: 'Subtítulo' },
+              admin: {
+                description: {
+                  en: 'Short copy under the heading.',
+                  es: 'Texto corto debajo del título.',
+                },
+              },
+            },
+            {
+              name: 'ctaLabel',
+              type: 'text',
+              localized: true,
+              label: { en: 'Button label', es: 'Texto del botón' },
+              admin: {
+                description: {
+                  en: 'Label on the button that links to the rentals catalog, e.g. "Browse rentals →".',
+                  es: 'Texto del botón que enlaza al catálogo de rentas, ej.: "Ver rentas →".',
+                },
+              },
+            },
+          ],
+        },
       ],
     },
   ],
