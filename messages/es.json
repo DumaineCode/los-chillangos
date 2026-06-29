@@ -373,5 +373,33 @@
     "slotSeatsLabel": "lugares",
     "slotSoldOut": "Agotado",
     "slotTooLate": "Muy tarde"
+  },
+  "rentals": {
+    "card": {
+      "view": "VER →"
+    },
+    "catalog": {
+      "metaTitle": "Renta de bicicletas — Los Chillangos",
+      "metaDescription": "Renta una bicicleta en la CDMX. Conoce nuestros modelos, mira qué incluye cada uno y solicita una cotización.",
+      "eyebrow": "La flota",
+      "title": "Recorre la ciudad en bici.",
+      "sub": "Elige un modelo. Nosotros nos encargamos del resto.",
+      "empty": "No hay bicicletas disponibles por ahora. Vuelve pronto o escríbenos directamente."
+    },
+    "detail": {
+      "back": "Inicio",
+      "breadcrumb": "Rentas",
+      "sectionCharacteristics": "Características",
+      "sectionAccessories": "Accesorios",
+      "priceLabel": "Precio",
+      "metaNotFound": "Renta no encontrada",
+      "accessoryPhotoAlt": "Foto de {name}"
+    },
+    "home": {
+      "eyebrow": "Renta de bicicletas",
+      "title": "¿Prefieres rodar por tu cuenta?",
+      "sub": "Renta una de nuestras bicicletas y explora a tu propio ritmo.",
+      "cta": "Ver rentas →"
+    }
   }
 }

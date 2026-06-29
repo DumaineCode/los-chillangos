@@ -373,5 +373,33 @@
     "slotSeatsLabel": "seats",
     "slotSoldOut": "Sold out",
     "slotTooLate": "Too late"
+  },
+  "rentals": {
+    "card": {
+      "view": "VIEW →"
+    },
+    "catalog": {
+      "metaTitle": "Bike rentals — Los Chillangos",
+      "metaDescription": "Rent a bike in CDMX. Browse our models, see what each ride includes, and request a quote.",
+      "eyebrow": "The fleet",
+      "title": "Rent the city by bike.",
+      "sub": "Pick a model. We handle the rest.",
+      "empty": "No bikes are available right now. Check back soon or message us directly."
+    },
+    "detail": {
+      "back": "Home",
+      "breadcrumb": "Rentals",
+      "sectionCharacteristics": "Characteristics",
+      "sectionAccessories": "Accessories",
+      "priceLabel": "Price",
+      "metaNotFound": "Rental not found",
+      "accessoryPhotoAlt": "Photo of {name}"
+    },
+    "home": {
+      "eyebrow": "Bike rentals",
+      "title": "Rather ride on your own?",
+      "sub": "Rent one of our bikes and explore at your own pace.",
+      "cta": "Browse rentals →"
+    }
   }
 }
