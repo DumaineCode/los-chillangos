@@ -25,6 +25,19 @@ export const Footer: GlobalConfig = {
   },
   fields: [
     {
+      // Structural (NOT localized): one shared wall photo across locales.
+      name: 'backgroundImage',
+      type: 'upload',
+      relationTo: 'media',
+      label: { en: 'Background image', es: 'Imagen de fondo' },
+      admin: {
+        description: {
+          en: 'Wall photo behind the footer. Until one is uploaded, the interim bundled mural displays; a dark overlay keeps the text readable.',
+          es: 'Foto de pared detrás del pie de página. Mientras no se suba una, se muestra el mural provisional; una capa oscura mantiene el texto legible.',
+        },
+      },
+    },
+    {
       name: 'tease',
       type: 'text',
       localized: true,

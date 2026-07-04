@@ -1423,6 +1423,10 @@ export interface ContactInfo {
 export interface Footer {
   id: number;
   /**
+   * Wall photo behind the footer. Until one is uploaded, the interim bundled mural displays; a dark overlay keeps the text readable.
+   */
+  backgroundImage?: (number | null) | Media;
+  /**
    * Main tease line, e.g. "Come ride with us.".
    */
   tease?: string | null;
@@ -2029,6 +2033,7 @@ export interface ContactInfoSelect<T extends boolean = true> {
  * via the `definition` "footer_select".
  */
 export interface FooterSelect<T extends boolean = true> {
+  backgroundImage?: T;
   tease?: T;
   teaseEm?: T;
   cta?: T;
