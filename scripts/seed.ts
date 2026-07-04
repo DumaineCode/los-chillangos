@@ -699,6 +699,38 @@ async function seedContentGlobals(
     data: { geoLabel: msgEn.footer.geoLabel },
   });
   console.log('[seed] global "footer" geoLabel upserted.');
+
+  // --- Landing.hero (visual refresh: rentals/plan CTAs + quote) ---
+  // Partial upsert on the consolidated `landing` global: only the new hero
+  // fields are written; headline, media and the original CTA pair are kept.
+  // Hrefs and the author (a proper name) are non-localized → en pass only.
+  // The Frida Kahlo quote is a seeded default the owner can replace in /admin.
+  await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'en',
+    data: {
+      hero: {
+        ctaRentals: 'Rent a bike',
+        ctaRentalsHref: '/rentals',
+        ctaPlan: 'Plan your own trip',
+        ctaPlanHref: '#contact',
+        quote: 'Feet, what do I need you for when I have wings to fly?',
+        quoteAuthor: 'Frida Kahlo',
+      },
+    },
+  });
+  await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'es',
+    data: {
+      hero: {
+        ctaRentals: 'Renta una bici',
+        ctaPlan: 'Arma tu propio viaje',
+        quote: 'Pies, ¿para qué los quiero si tengo alas para volar?',
+      },
+    },
+  });
+  console.log('[seed] global "landing" hero CTAs + quote upserted (en + es).');
 }
 
 // ---- Main ----
