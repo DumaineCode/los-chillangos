@@ -141,6 +141,85 @@ export const Landing: GlobalConfig = {
                 },
               },
             },
+            // ── Rentals button (label + link) ────────────────────────────
+            // Visual refresh: the hero grows to 4 CTAs. The two new buttons
+            // render ONLY when their label is filled, so existing rows keep
+            // showing exactly the original 2 CTAs until the owner (or seed)
+            // provides copy.
+            {
+              name: 'ctaRentals',
+              type: 'text',
+              localized: true,
+              label: { en: 'Rentals button — label', es: 'Botón de rentas — texto' },
+              admin: {
+                description: {
+                  en: 'Optional. Shown only when filled, e.g. "Rent a bike". Links to the rentals catalog.',
+                  es: 'Opcional. Se muestra solo si tiene texto, ej.: "Renta una bici". Enlaza al catálogo de rentas.',
+                },
+              },
+            },
+            {
+              name: 'ctaRentalsHref',
+              type: 'text',
+              defaultValue: '/rentals',
+              label: { en: 'Rentals button — link', es: 'Botón de rentas — destino' },
+              admin: {
+                description: {
+                  en: 'Where the rentals button takes the visitor. Default: "/rentals".',
+                  es: 'A dónde lleva el botón de rentas. Predeterminado: "/rentals".',
+                },
+              },
+            },
+            // ── Plan-your-own-trip button (label + link) ─────────────────
+            {
+              name: 'ctaPlan',
+              type: 'text',
+              localized: true,
+              label: { en: 'Plan-your-trip button — label', es: 'Botón de viaje a medida — texto' },
+              admin: {
+                description: {
+                  en: 'Optional. Shown only when filled, e.g. "Plan your own trip". Links to the contact section.',
+                  es: 'Opcional. Se muestra solo si tiene texto, ej.: "Arma tu propio viaje". Enlaza a la sección de contacto.',
+                },
+              },
+            },
+            {
+              name: 'ctaPlanHref',
+              type: 'text',
+              defaultValue: '#contact',
+              label: { en: 'Plan-your-trip button — link', es: 'Botón de viaje a medida — destino' },
+              admin: {
+                description: {
+                  en: 'Where the plan-your-trip button takes the visitor. Default: "#contact".',
+                  es: 'A dónde lleva el botón de viaje a medida. Predeterminado: "#contact".',
+                },
+              },
+            },
+            // ── Quote ────────────────────────────────────────────────────
+            {
+              name: 'quote',
+              type: 'textarea',
+              localized: true,
+              label: { en: 'Quote', es: 'Cita' },
+              admin: {
+                description: {
+                  en: 'Optional famous quote shown in the hero. Leave empty to hide the quote block.',
+                  es: 'Cita célebre opcional que se muestra en la portada. Déjala vacía para ocultar el bloque.',
+                },
+              },
+            },
+            {
+              // NOT localized: a proper name is identical in both languages.
+              name: 'quoteAuthor',
+              type: 'text',
+              label: { en: 'Quote — author', es: 'Cita — autor' },
+              admin: {
+                description: {
+                  en: 'Attribution shown under the quote, e.g. "Frida Kahlo".',
+                  es: 'Atribución que se muestra bajo la cita, ej.: "Frida Kahlo".',
+                },
+              },
+            },
             // ── Background media ─────────────────────────────────────────
             {
               // Structural (NOT localized): chooses the hero background medium.

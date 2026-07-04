@@ -1140,6 +1140,30 @@ export interface Landing {
      */
     ctaGhostHref?: string | null;
     /**
+     * Optional. Shown only when filled, e.g. "Rent a bike". Links to the rentals catalog.
+     */
+    ctaRentals?: string | null;
+    /**
+     * Where the rentals button takes the visitor. Default: "/rentals".
+     */
+    ctaRentalsHref?: string | null;
+    /**
+     * Optional. Shown only when filled, e.g. "Plan your own trip". Links to the contact section.
+     */
+    ctaPlan?: string | null;
+    /**
+     * Where the plan-your-trip button takes the visitor. Default: "#contact".
+     */
+    ctaPlanHref?: string | null;
+    /**
+     * Optional famous quote shown in the hero. Leave empty to hide the quote block.
+     */
+    quote?: string | null;
+    /**
+     * Attribution shown under the quote, e.g. "Frida Kahlo".
+     */
+    quoteAuthor?: string | null;
+    /**
      * Choose the hero background medium.
      */
     mediaType?: ('image' | 'video') | null;
@@ -1845,6 +1869,12 @@ export interface LandingSelect<T extends boolean = true> {
         ctaPrimaryHref?: T;
         ctaGhost?: T;
         ctaGhostHref?: T;
+        ctaRentals?: T;
+        ctaRentalsHref?: T;
+        ctaPlan?: T;
+        ctaPlanHref?: T;
+        quote?: T;
+        quoteAuthor?: T;
         mediaType?: T;
         heroImage?: T;
         heroVideo?: T;
