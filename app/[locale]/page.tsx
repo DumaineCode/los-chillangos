@@ -288,20 +288,20 @@ export default async function HomePage({ params }: Props) {
               </figure>
             ) : null}
             <div className="hero-cine-ctas fade-in" style={{ animationDelay: '0.4s' }}>
-              <HeroCta href={heroCtaPrimaryHref} className="btn btn-primary btn-lg">
+              <HeroCta href={heroCtaPrimaryHref} className="btn btn-primary btn-xl">
                 {heroCtaPrimary} →
               </HeroCta>
               {heroCtaRentals ? (
-                <HeroCta href={heroCtaRentalsHref} className="btn btn-primary btn-lg">
+                <HeroCta href={heroCtaRentalsHref} className="btn btn-primary btn-xl">
                   {heroCtaRentals}
                 </HeroCta>
               ) : null}
               {heroCtaPlan ? (
-                <HeroCta href={heroCtaPlanHref} className="btn btn-ghost btn-lg">
+                <HeroCta href={heroCtaPlanHref} className="btn btn-ghost btn-xl">
                   {heroCtaPlan}
                 </HeroCta>
               ) : null}
-              <HeroCta href={heroCtaGhostHref} className="btn btn-ghost btn-lg">
+              <HeroCta href={heroCtaGhostHref} className="btn btn-ghost btn-xl">
                 {heroCtaGhost}
               </HeroCta>
             </div>
