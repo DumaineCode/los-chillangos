@@ -48,6 +48,22 @@ export const radius = {
  * Visual polish lands HERE, once — all templates inherit. Keep everything as
  * inline-style objects (react-email convention); no CSS classes, no custom
  * properties, email-client-safe values only.
+ *
+ * Intentional visual deltas vs. the pre-primitive per-template styles
+ * (unification polish, NOT behavior-preserving 1:1 extraction):
+ * - heading: margin unified to `0 0 8px` (Booking was `0 0 12px`,
+ *   Owner/Contact `0 0 4px`); Owner/Contact also step 24px → 26px and gain
+ *   `lineHeight: 32px`.
+ * - subtle: gains `lineHeight: 21px`; bottom margin 20px → 24px.
+ * - card: gains a hairline `1px solid colors.line` border (none before);
+ *   margin unified to `0 0 24px` (Booking was `8px 0 24px`, Owner/Contact
+ *   `0 0 20px`).
+ * - cardTitle: bottom margin 6px → 4px.
+ * - rowValue: Booking steps 16px → 15px (matches Owner/Contact).
+ * - button: background navy → pink (brand primary accent); text cream
+ *   (#FFF3D6) → white; padding `12px 22px` → `12px 24px`.
+ * - paragraph, rowLabel, badge, sectionTitle, bullet, signature, message:
+ *   extracted 1:1, unchanged.
  */
 export const styles = {
   /** Serif display heading (guest greeting / notification title). */
