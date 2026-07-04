@@ -143,7 +143,10 @@ describe('restyled chrome and primitives in rendered HTML', () => {
     ['contact notification', () => <ContactNotification {...ContactNotification.PreviewProps} />],
   ] as const)('the %s header band carries the pink brand accent', async (_name, tpl) => {
     const html = await render(tpl());
-    expect(html).toContain(colors.pink);
+    // Pin the accent BAND itself (border-bottom on the header), not just any
+    // pink in the document — the admin buttons are also pink, so a bare
+    // toContain(colors.pink) would keep passing if the band were removed.
+    expect(html).toContain(`border-bottom:4px solid ${colors.pink}`);
   });
 
   it('styles the owner admin button with the pink primary accent', async () => {
