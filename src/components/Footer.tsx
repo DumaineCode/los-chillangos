@@ -26,7 +26,8 @@ const INTERIM_WALL_ALT = 'Los Chillangos mural — Calle Chilanga, CDMX';
  */
 function resolveFooterWall(cmsImage: ResolvedImage | null): ResolvedImage | null {
   if (cmsImage) return cmsImage;
-  const interimExists = existsSync(join(process.cwd(), 'public', 'brand', 'calle-mural.png'));
+  // Derive the FS path from the URL constant so the two can never diverge.
+  const interimExists = existsSync(join(process.cwd(), 'public', INTERIM_WALL_SRC));
   if (interimExists) {
     return { url: INTERIM_WALL_SRC, objectPosition: '50% 50%', alt: INTERIM_WALL_ALT };
   }
