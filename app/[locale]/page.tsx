@@ -197,6 +197,17 @@ export default async function HomePage({ params }: Props) {
   // anchors so existing rows that pre-date the field render exactly as before.
   const heroCtaPrimaryHref = hero?.ctaPrimaryHref?.trim() || '#tours';
   const heroCtaGhostHref = hero?.ctaGhostHref?.trim() || '#about';
+  // Visual refresh: two NEW CTAs (rentals, plan-your-own-trip) render only
+  // when their label has content — existing rows that pre-date the fields keep
+  // the original 2-CTA hero untouched. Href defaults are code-side because
+  // Payload defaultValues only apply to rows saved after the field ships.
+  const heroCtaRentals = hero?.ctaRentals?.trim() ?? '';
+  const heroCtaPlan = hero?.ctaPlan?.trim() ?? '';
+  const heroCtaRentalsHref = hero?.ctaRentalsHref?.trim() || '/rentals';
+  const heroCtaPlanHref = hero?.ctaPlanHref?.trim() || '#contact';
+  // Quote block: no quote → no DOM (zero layout shift for existing rows).
+  const heroQuote = hero?.quote?.trim() ?? '';
+  const heroQuoteAuthor = hero?.quoteAuthor?.trim() ?? '';
 
   // Gallery first (slider), single `image` as fallback for legacy content.
   // Resolved to focal-point-aware images so each slide frames by its focal point.
@@ -270,10 +281,26 @@ export default async function HomePage({ params }: Props) {
           </div>
 
           <div className="hero-cine-bot">
+            {heroQuote ? (
+              <figure className="hero-cine-quote fade-in" style={{ animationDelay: '0.3s' }}>
+                <blockquote>{heroQuote}</blockquote>
+                {heroQuoteAuthor ? <figcaption>{heroQuoteAuthor}</figcaption> : null}
+              </figure>
+            ) : null}
             <div className="hero-cine-ctas fade-in" style={{ animationDelay: '0.4s' }}>
               <HeroCta href={heroCtaPrimaryHref} className="btn btn-primary btn-lg">
                 {heroCtaPrimary} →
               </HeroCta>
+              {heroCtaRentals ? (
+                <HeroCta href={heroCtaRentalsHref} className="btn btn-primary btn-lg">
+                  {heroCtaRentals}
+                </HeroCta>
+              ) : null}
+              {heroCtaPlan ? (
+                <HeroCta href={heroCtaPlanHref} className="btn btn-ghost btn-lg">
+                  {heroCtaPlan}
+                </HeroCta>
+              ) : null}
               <HeroCta href={heroCtaGhostHref} className="btn btn-ghost btn-lg">
                 {heroCtaGhost}
               </HeroCta>

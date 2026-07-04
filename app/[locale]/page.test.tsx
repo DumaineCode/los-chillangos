@@ -44,10 +44,15 @@ vi.mock('next-intl/server', () => ({
     }),
 }));
 
-// Locale-aware Link (used by TourCard) → plain anchor.
+// Locale-aware Link → plain anchor, tagged with `data-locale-link` so tests can
+// assert which hero CTAs route through next-intl (locale prefix) vs plain <a>.
 vi.mock('../../i18n/navigation', () => ({
   Link: ({ href, children, ...rest }: ComponentProps<'a'> & { href: unknown }) => (
-    <a href={typeof href === 'string' ? href : JSON.stringify(href)} {...rest}>
+    <a
+      href={typeof href === 'string' ? href : JSON.stringify(href)}
+      data-locale-link=""
+      {...rest}
+    >
       {children}
     </a>
   ),
@@ -93,9 +98,11 @@ const DEFAULT_SERVICES: ServiceItem[] = [
   { title: 'Custom Routes', description: 'We design the tour around you.' },
 ];
 
-function buildLanding(serviceItems: ServiceItem[] | undefined | null) {
+type HeroOverrides = Record<string, string | undefined>;
+
+function buildLanding(serviceItems: ServiceItem[] | undefined | null, hero: HeroOverrides = {}) {
   return {
-    hero: { h1a: 'Ride', h1b: 'the', h1c: 'real', h1d: ' CDMX' },
+    hero: { h1a: 'Ride', h1b: 'the', h1c: 'real', h1d: ' CDMX', ...hero },
     marquee: { text: 'marquee' },
     values: {
       eyebrow: 'Values',
@@ -140,9 +147,12 @@ function makeTour() {
 // No default parameter here: a bare default can't distinguish an explicit
 // `undefined` (absent services group) from "no argument" — JS substitutes the
 // default for an explicit `undefined`. Callers always pass the value they mean.
-async function renderHome(serviceItems: ServiceItem[] | undefined | null) {
+async function renderHome(
+  serviceItems: ServiceItem[] | undefined | null,
+  hero: HeroOverrides = {}
+) {
   findGlobalMock.mockImplementation(({ slug }: { slug: string }) => {
-    if (slug === 'landing') return Promise.resolve(buildLanding(serviceItems));
+    if (slug === 'landing') return Promise.resolve(buildLanding(serviceItems, hero));
     return Promise.resolve(null);
   });
   findMock.mockResolvedValue({ docs: [makeTour()] });
@@ -265,5 +275,137 @@ describe('HomePage — services strip', () => {
     expect(container.querySelector('[data-testid="services-strip"]')).toBeNull();
     expect(container.querySelector('#services')).toBeNull();
     expect(container.querySelector('#tours')).not.toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Visual refresh — hero CTAs (2 → 4) + quote block.
+//
+// The two NEW CTAs (rentals, plan-your-own-trip) render only when their label
+// is non-empty, so pre-refresh CMS rows keep the original 2-CTA hero. Internal
+// routes (/rentals) go through the locale-aware Link; anchors (#tours,
+// #contact) stay plain <a>. The quote block renders only when `quote` has
+// content and always carries its attribution.
+// ---------------------------------------------------------------------------
+
+const FULL_HERO: HeroOverrides = {
+  ctaPrimary: 'See tours',
+  ctaGhost: 'How we work',
+  ctaRentals: 'Rent a bike',
+  ctaPlan: 'Plan your own trip',
+};
+
+describe('HomePage — hero CTAs (visual refresh)', () => {
+  it('renders 4 CTAs in spec order when the new labels are populated', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, FULL_HERO);
+
+    const ctas = container.querySelectorAll('.hero-cine-ctas a');
+    expect(ctas).toHaveLength(4);
+
+    const labels = Array.from(ctas).map((a) => a.textContent?.replace('→', '').trim());
+    expect(labels).toEqual(['See tours', 'Rent a bike', 'Plan your own trip', 'How we work']);
+  });
+
+  it('applies code-side default hrefs for the new CTAs (/rentals, #contact)', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, FULL_HERO);
+
+    const ctas = Array.from(container.querySelectorAll('.hero-cine-ctas a'));
+    const byLabel = (label: string) => ctas.find((a) => a.textContent?.includes(label));
+
+    expect(byLabel('See tours')?.getAttribute('href')).toBe('#tours');
+    expect(byLabel('Rent a bike')?.getAttribute('href')).toBe('/rentals');
+    expect(byLabel('Plan your own trip')?.getAttribute('href')).toBe('#contact');
+  });
+
+  it('honors CMS-provided hrefs over the code-side defaults', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, {
+      ...FULL_HERO,
+      ctaRentalsHref: '/rentals?bike=city',
+      ctaPlanHref: 'https://wa.me/5255',
+    });
+
+    const ctas = Array.from(container.querySelectorAll('.hero-cine-ctas a'));
+    const byLabel = (label: string) => ctas.find((a) => a.textContent?.includes(label));
+
+    expect(byLabel('Rent a bike')?.getAttribute('href')).toBe('/rentals?bike=city');
+    expect(byLabel('Plan your own trip')?.getAttribute('href')).toBe('https://wa.me/5255');
+  });
+
+  it('routes /rentals through the locale-aware Link but keeps anchors plain', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, FULL_HERO);
+
+    const ctas = Array.from(container.querySelectorAll('.hero-cine-ctas a'));
+    const byLabel = (label: string) => ctas.find((a) => a.textContent?.includes(label));
+
+    // Internal route → mocked next-intl Link (marked with data-locale-link).
+    expect(byLabel('Rent a bike')?.hasAttribute('data-locale-link')).toBe(true);
+    // Anchors → plain <a>, NOT localized.
+    expect(byLabel('See tours')?.hasAttribute('data-locale-link')).toBe(false);
+    expect(byLabel('Plan your own trip')?.hasAttribute('data-locale-link')).toBe(false);
+  });
+
+  it('renders only the original 2 CTAs when the new labels are unset (existing rows)', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, {
+      ctaPrimary: 'See tours',
+      ctaGhost: 'How we work',
+    });
+
+    const ctas = container.querySelectorAll('.hero-cine-ctas a');
+    expect(ctas).toHaveLength(2);
+    expect(ctas[0].textContent).toContain('See tours');
+    expect(ctas[1].textContent).toContain('How we work');
+  });
+
+  it('treats whitespace-only new labels as empty (no blank buttons)', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, {
+      ctaPrimary: 'See tours',
+      ctaGhost: 'How we work',
+      ctaRentals: '   ',
+      ctaPlan: '',
+    });
+
+    expect(container.querySelectorAll('.hero-cine-ctas a')).toHaveLength(2);
+  });
+});
+
+describe('HomePage — hero quote (visual refresh)', () => {
+  const QUOTE = 'Feet, what do I need you for when I have wings to fly?';
+
+  it('renders the quote with its attribution inside the hero bottom block', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, {
+      ...FULL_HERO,
+      quote: QUOTE,
+      quoteAuthor: 'Frida Kahlo',
+    });
+
+    const figure = container.querySelector('.hero-cine-bot figure.hero-cine-quote');
+    expect(figure).not.toBeNull();
+
+    const blockquote = figure!.querySelector('blockquote');
+    expect(blockquote).not.toBeNull();
+    expect(blockquote!.textContent).toContain(QUOTE);
+
+    // Attribution always shows when a quote shows.
+    const caption = figure!.querySelector('figcaption');
+    expect(caption).not.toBeNull();
+    expect(caption!.textContent).toContain('Frida Kahlo');
+  });
+
+  it('renders no quote block when the quote field is empty', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, {
+      ...FULL_HERO,
+      quote: '',
+      quoteAuthor: 'Frida Kahlo',
+    });
+
+    expect(container.querySelector('.hero-cine-quote')).toBeNull();
+    // The hero itself is unaffected — CTAs still render.
+    expect(container.querySelectorAll('.hero-cine-ctas a')).toHaveLength(4);
+  });
+
+  it('renders no quote block when the quote field is absent (existing rows)', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, FULL_HERO);
+
+    expect(container.querySelector('.hero-cine-quote')).toBeNull();
   });
 });
