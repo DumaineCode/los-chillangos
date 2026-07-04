@@ -1252,9 +1252,27 @@ body:has(.hero-cine) { padding-top: 0; }
 
 /* === Footer === */
 .footer {
+  position: relative;
+  /* Flat base — ultimate fallback when no wall image renders. */
   background: #000000;
   color: var(--cream-fixed);
   padding: 80px 0 32px;
+}
+/* Wall photo layer (next/image fill) behind the dark overlay.
+   object-fit/position live inline on the Image (repo focal convention). */
+.footer-wall {
+  z-index: 0;
+}
+/* Dark scrim keeping footer text readable over any wall photo. */
+.footer-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.72));
+  z-index: 0;
+}
+.footer > .container {
+  position: relative;
+  z-index: 1;
 }
 .footer-headline {
   font-family: var(--serif);

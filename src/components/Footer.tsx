@@ -1,5 +1,11 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+import Image from 'next/image';
+
 import { Link } from '../../i18n/navigation';
 import type { Locale } from '../../i18n/routing';
+import { resolveMediaImage, type ResolvedImage } from '../lib/media';
 import { getPayload } from '../lib/payload';
 import type { Media } from '../payload-types';
 import { Logo } from './Logo';
@@ -7,6 +13,24 @@ import { Logo } from './Logo';
 function resolveMediaUrl(value: number | Media | null | undefined): string | null {
   if (!value || typeof value === 'number') return null;
   return value.url ?? null;
+}
+
+/** Interim wall photo bundled with the repo until the owner uploads one. */
+const INTERIM_WALL_SRC = '/brand/calle-mural.png';
+const INTERIM_WALL_ALT = 'Los Chillangos mural — Calle Chilanga, CDMX';
+
+/**
+ * Wall background fallback chain: CMS `backgroundImage` upload → interim
+ * bundled mural (only while the asset actually ships in `public/`) → null,
+ * which leaves the flat `#000` CSS base — never a broken image.
+ */
+function resolveFooterWall(cmsImage: ResolvedImage | null): ResolvedImage | null {
+  if (cmsImage) return cmsImage;
+  const interimExists = existsSync(join(process.cwd(), 'public', 'brand', 'calle-mural.png'));
+  if (interimExists) {
+    return { url: INTERIM_WALL_SRC, objectPosition: '50% 50%', alt: INTERIM_WALL_ALT };
+  }
+  return null;
 }
 
 type Props = {
@@ -42,9 +66,23 @@ export async function Footer({ locale }: Props) {
   // primary (light) one, then to the bundled PNG inside <Logo>.
   const footerLogoSrc = resolveMediaUrl(branding?.logoDark) ?? resolveMediaUrl(branding?.logoLight);
   const footerLogoAlt = branding?.logoAltText ?? 'Los Chillangos';
+  const wall = resolveFooterWall(resolveMediaImage(footer?.backgroundImage));
 
   return (
     <footer className="footer">
+      {wall ? (
+        <>
+          <Image
+            className="footer-wall"
+            src={wall.url}
+            alt={wall.alt}
+            fill
+            sizes="100vw"
+            style={{ objectFit: 'cover', objectPosition: wall.objectPosition }}
+          />
+          <div className="footer-overlay" aria-hidden="true" />
+        </>
+      ) : null}
       <div className="container">
         <h2 className="footer-headline">
           {footer?.tease}
