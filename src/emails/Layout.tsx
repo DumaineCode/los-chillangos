@@ -13,7 +13,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 
-import { colors, fonts } from './theme';
+import { colors, fonts, radius, spacing } from './theme';
 
 export interface EmailContact {
   whatsapp?: string | null;
@@ -40,13 +40,13 @@ const main: React.CSSProperties = {
   backgroundColor: colors.bg,
   fontFamily: fonts.sans,
   margin: 0,
-  padding: '32px 12px',
+  padding: `${spacing.xl} 12px`,
 };
 
 const container: React.CSSProperties = {
   backgroundColor: colors.white,
   border: `1px solid ${colors.line}`,
-  borderRadius: '16px',
+  borderRadius: radius.lg,
   margin: '0 auto',
   maxWidth: '600px',
   overflow: 'hidden',
@@ -54,26 +54,28 @@ const container: React.CSSProperties = {
 
 const header: React.CSSProperties = {
   backgroundColor: colors.navy,
-  padding: '28px 32px',
+  // Rosa Mexicano accent band separating the brand header from the content.
+  borderBottom: `4px solid ${colors.pink}`,
+  padding: `${spacing.xl} ${spacing.xl} 28px`,
   textAlign: 'center',
 };
 
 const wordmark: React.CSSProperties = {
   color: colors.cream,
-  fontFamily: fonts.sans,
-  fontSize: '20px',
-  fontWeight: 700,
-  letterSpacing: '0.18em',
+  fontFamily: fonts.serif,
+  fontSize: '26px',
+  fontWeight: 400,
+  letterSpacing: '0.14em',
   margin: 0,
   textTransform: 'uppercase',
 };
 
 const content: React.CSSProperties = {
-  padding: '32px',
+  padding: spacing.xl,
 };
 
 const footer: React.CSSProperties = {
-  padding: '0 32px 32px',
+  padding: `0 ${spacing.xl} ${spacing.xl}`,
 };
 
 const footerText: React.CSSProperties = {
