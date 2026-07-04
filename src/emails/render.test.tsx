@@ -7,6 +7,13 @@ import { OwnerNotification } from './OwnerNotification';
 import { EMAIL_STRINGS } from './strings';
 import { colors, fonts, radius, spacing, styles } from './theme';
 
+/** Inline style block of the nearest `<a>` tag preceding the given text. */
+function anchorBefore(html: string, text: string): string {
+  const textAt = html.indexOf(text);
+  expect(textAt).toBeGreaterThan(-1);
+  return html.slice(html.lastIndexOf('<a', textAt), textAt);
+}
+
 /**
  * Real-render smoke tests. The orchestrator tests mock `render`, so these are
  * the only place the templates are actually rendered to HTML — they catch JSX
@@ -139,4 +146,13 @@ describe('restyled chrome and primitives in rendered HTML', () => {
     expect(html).toContain(colors.pink);
   });
 
+  it('styles the owner admin button with the pink primary accent', async () => {
+    const html = await render(<OwnerNotification {...OwnerNotification.PreviewProps} />);
+    expect(anchorBefore(html, 'Open in admin')).toContain(colors.pink);
+  });
+
+  it('styles the contact admin button with the pink primary accent', async () => {
+    const html = await render(<ContactNotification {...ContactNotification.PreviewProps} />);
+    expect(anchorBefore(html, 'Open in admin')).toContain(colors.pink);
+  });
 });

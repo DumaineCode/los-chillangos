@@ -2,7 +2,7 @@ import { Heading, Section, Text } from '@react-email/components';
 import * as React from 'react';
 
 import { Layout, type EmailContact } from './Layout';
-import { colors, fonts } from './theme';
+import { styles } from './theme';
 
 export interface BookingConfirmationCopy {
   greeting: string;
@@ -53,90 +53,6 @@ export interface BookingConfirmationProps {
   footnote?: string | null;
 }
 
-const greetingStyle: React.CSSProperties = {
-  color: colors.ink,
-  fontFamily: fonts.serif,
-  fontSize: '26px',
-  lineHeight: '32px',
-  margin: '0 0 12px',
-};
-
-const paragraph: React.CSSProperties = {
-  color: colors.inkSoft,
-  fontFamily: fonts.sans,
-  fontSize: '15px',
-  lineHeight: '24px',
-  margin: '0 0 16px',
-};
-
-const card: React.CSSProperties = {
-  backgroundColor: colors.cream,
-  borderRadius: '12px',
-  padding: '8px 20px',
-  margin: '8px 0 24px',
-};
-
-const cardTitle: React.CSSProperties = {
-  color: colors.navy,
-  fontFamily: fonts.sans,
-  fontSize: '12px',
-  fontWeight: 700,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  margin: '14px 0 6px',
-};
-
-const rowLabel: React.CSSProperties = {
-  color: colors.inkMuted,
-  fontFamily: fonts.sans,
-  fontSize: '12px',
-  letterSpacing: '0.04em',
-  margin: '12px 0 0',
-  textTransform: 'uppercase',
-};
-
-const rowValue: React.CSSProperties = {
-  color: colors.ink,
-  fontFamily: fonts.sans,
-  fontSize: '16px',
-  fontWeight: 600,
-  margin: '2px 0 12px',
-};
-
-const referenceValue: React.CSSProperties = {
-  ...rowValue,
-  color: colors.pinkDeep,
-  fontWeight: 700,
-  letterSpacing: '0.06em',
-};
-
-const sectionTitle: React.CSSProperties = {
-  color: colors.navy,
-  fontFamily: fonts.sans,
-  fontSize: '13px',
-  fontWeight: 700,
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase',
-  margin: '24px 0 8px',
-};
-
-const bullet: React.CSSProperties = {
-  color: colors.inkSoft,
-  fontFamily: fonts.sans,
-  fontSize: '15px',
-  lineHeight: '22px',
-  margin: '0 0 6px',
-  paddingLeft: '18px',
-  textIndent: '-18px',
-};
-
-const signatureStyle: React.CSSProperties = {
-  color: colors.ink,
-  fontFamily: fonts.serif,
-  fontSize: '18px',
-  margin: '20px 0 0',
-};
-
 function DetailRow({
   label,
   value,
@@ -148,8 +64,8 @@ function DetailRow({
 }): React.ReactElement {
   return (
     <>
-      <Text style={rowLabel}>{label}</Text>
-      <Text style={valueStyle ?? rowValue}>{value}</Text>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={valueStyle ?? styles.rowValue}>{value}</Text>
     </>
   );
 }
@@ -170,15 +86,15 @@ export function BookingConfirmation({
       contact={contact}
       footnote={footnote}
     >
-      <Heading style={greetingStyle}>{copy.greeting}</Heading>
-      <Text style={paragraph}>{copy.intro}</Text>
+      <Heading style={styles.heading}>{copy.greeting}</Heading>
+      <Text style={styles.paragraph}>{copy.intro}</Text>
 
-      <Section style={card}>
-        <Text style={cardTitle}>{labels.detailsTitle}</Text>
+      <Section style={styles.card}>
+        <Text style={styles.cardTitle}>{labels.detailsTitle}</Text>
         <DetailRow
           label={labels.reference}
           value={facts.reference}
-          valueStyle={referenceValue}
+          valueStyle={styles.badge}
         />
         <DetailRow label={labels.tour} value={facts.tourTitle} />
         <DetailRow label={labels.date} value={facts.dateLabel} />
@@ -192,9 +108,9 @@ export function BookingConfirmation({
 
       {copy.goodToKnow.length > 0 ? (
         <>
-          <Text style={sectionTitle}>{labels.goodToKnowTitle}</Text>
+          <Text style={styles.sectionTitle}>{labels.goodToKnowTitle}</Text>
           {copy.goodToKnow.map((line, i) => (
-            <Text key={i} style={bullet}>
+            <Text key={i} style={styles.bullet}>
               {'•  '}
               {line}
             </Text>
@@ -204,13 +120,13 @@ export function BookingConfirmation({
 
       {copy.meetingPoint ? (
         <>
-          <Text style={sectionTitle}>{labels.meetingPointTitle}</Text>
-          <Text style={paragraph}>{copy.meetingPoint}</Text>
+          <Text style={styles.sectionTitle}>{labels.meetingPointTitle}</Text>
+          <Text style={styles.paragraph}>{copy.meetingPoint}</Text>
         </>
       ) : null}
 
-      {copy.closing ? <Text style={paragraph}>{copy.closing}</Text> : null}
-      {copy.signature ? <Text style={signatureStyle}>{copy.signature}</Text> : null}
+      {copy.closing ? <Text style={styles.paragraph}>{copy.closing}</Text> : null}
+      {copy.signature ? <Text style={styles.signature}>{copy.signature}</Text> : null}
     </Layout>
   );
 }

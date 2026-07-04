@@ -2,7 +2,7 @@ import { Button, Heading, Section, Text } from '@react-email/components';
 import * as React from 'react';
 
 import { Layout } from './Layout';
-import { colors, fonts } from './theme';
+import { styles } from './theme';
 
 export interface OwnerNotificationProps {
   reference: string;
@@ -22,60 +22,11 @@ export interface OwnerNotificationProps {
   adminUrl?: string | null;
 }
 
-const heading: React.CSSProperties = {
-  color: colors.ink,
-  fontFamily: fonts.serif,
-  fontSize: '24px',
-  margin: '0 0 4px',
-};
-
-const subtle: React.CSSProperties = {
-  color: colors.inkMuted,
-  fontFamily: fonts.sans,
-  fontSize: '14px',
-  margin: '0 0 20px',
-};
-
-const card: React.CSSProperties = {
-  backgroundColor: colors.cream,
-  borderRadius: '12px',
-  padding: '8px 20px',
-  margin: '0 0 20px',
-};
-
-const rowLabel: React.CSSProperties = {
-  color: colors.inkMuted,
-  fontFamily: fonts.sans,
-  fontSize: '12px',
-  letterSpacing: '0.04em',
-  margin: '12px 0 0',
-  textTransform: 'uppercase',
-};
-
-const rowValue: React.CSSProperties = {
-  color: colors.ink,
-  fontFamily: fonts.sans,
-  fontSize: '15px',
-  fontWeight: 600,
-  margin: '2px 0 12px',
-};
-
-const button: React.CSSProperties = {
-  backgroundColor: colors.navy,
-  borderRadius: '10px',
-  color: colors.cream,
-  fontFamily: fonts.sans,
-  fontSize: '14px',
-  fontWeight: 700,
-  padding: '12px 22px',
-  textDecoration: 'none',
-};
-
 function Row({ label, value }: { label: string; value: string }): React.ReactElement {
   return (
     <>
-      <Text style={rowLabel}>{label}</Text>
-      <Text style={rowValue}>{value}</Text>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue}>{value}</Text>
     </>
   );
 }
@@ -92,10 +43,10 @@ export function OwnerNotification({
 }: OwnerNotificationProps): React.ReactElement {
   return (
     <Layout previewText={`New paid booking — ${reference} · ${tourTitle}`}>
-      <Heading style={heading}>New paid booking</Heading>
-      <Text style={subtle}>A guest just completed payment. Details below.</Text>
+      <Heading style={styles.heading}>New paid booking</Heading>
+      <Text style={styles.subtle}>A guest just completed payment. Details below.</Text>
 
-      <Section style={card}>
+      <Section style={styles.card}>
         <Row label="Reference" value={reference} />
         <Row label="Tour" value={tourTitle} />
         <Row label="Date" value={dateLabel} />
@@ -104,7 +55,7 @@ export function OwnerNotification({
         <Row label="Total paid" value={totalLabel} />
       </Section>
 
-      <Section style={card}>
+      <Section style={styles.card}>
         <Row label="Customer" value={customer.name} />
         <Row label="Email" value={customer.email} />
         {customer.whatsapp ? <Row label="WhatsApp" value={customer.whatsapp} /> : null}
@@ -114,7 +65,7 @@ export function OwnerNotification({
 
       {adminUrl ? (
         <Section style={{ textAlign: 'center', margin: '8px 0 4px' }}>
-          <Button href={adminUrl} style={button}>
+          <Button href={adminUrl} style={styles.button}>
             Open in admin
           </Button>
         </Section>

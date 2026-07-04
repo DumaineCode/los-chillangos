@@ -2,7 +2,7 @@ import { Button, Heading, Section, Text } from '@react-email/components';
 import * as React from 'react';
 
 import { Layout } from './Layout';
-import { colors, fonts } from './theme';
+import { styles } from './theme';
 
 export interface ContactNotificationProps {
   name: string;
@@ -14,69 +14,11 @@ export interface ContactNotificationProps {
   adminUrl?: string | null;
 }
 
-const heading: React.CSSProperties = {
-  color: colors.ink,
-  fontFamily: fonts.serif,
-  fontSize: '24px',
-  margin: '0 0 4px',
-};
-
-const subtle: React.CSSProperties = {
-  color: colors.inkMuted,
-  fontFamily: fonts.sans,
-  fontSize: '14px',
-  margin: '0 0 20px',
-};
-
-const card: React.CSSProperties = {
-  backgroundColor: colors.cream,
-  borderRadius: '12px',
-  padding: '8px 20px',
-  margin: '0 0 20px',
-};
-
-const rowLabel: React.CSSProperties = {
-  color: colors.inkMuted,
-  fontFamily: fonts.sans,
-  fontSize: '12px',
-  letterSpacing: '0.04em',
-  margin: '12px 0 0',
-  textTransform: 'uppercase',
-};
-
-const rowValue: React.CSSProperties = {
-  color: colors.ink,
-  fontFamily: fonts.sans,
-  fontSize: '15px',
-  fontWeight: 600,
-  margin: '2px 0 12px',
-};
-
-const messageText: React.CSSProperties = {
-  color: colors.ink,
-  fontFamily: fonts.sans,
-  fontSize: '15px',
-  lineHeight: '24px',
-  margin: '2px 0 12px',
-  whiteSpace: 'pre-wrap',
-};
-
-const button: React.CSSProperties = {
-  backgroundColor: colors.navy,
-  borderRadius: '10px',
-  color: colors.cream,
-  fontFamily: fonts.sans,
-  fontSize: '14px',
-  fontWeight: 700,
-  padding: '12px 22px',
-  textDecoration: 'none',
-};
-
 function Row({ label, value }: { label: string; value: string }): React.ReactElement {
   return (
     <>
-      <Text style={rowLabel}>{label}</Text>
-      <Text style={rowValue}>{value}</Text>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue}>{value}</Text>
     </>
   );
 }
@@ -91,24 +33,24 @@ export function ContactNotification({
 }: ContactNotificationProps): React.ReactElement {
   return (
     <Layout previewText={`New contact message — ${name}`}>
-      <Heading style={heading}>New contact message</Heading>
-      <Text style={subtle}>Someone reached out through the contact form.</Text>
+      <Heading style={styles.heading}>New contact message</Heading>
+      <Text style={styles.subtle}>Someone reached out through the contact form.</Text>
 
-      <Section style={card}>
+      <Section style={styles.card}>
         <Row label="Name" value={name} />
         <Row label="Email" value={email} />
         {phone ? <Row label="Phone" value={phone} /> : null}
         <Row label="Language" value={locale.toUpperCase()} />
       </Section>
 
-      <Section style={card}>
-        <Text style={rowLabel}>Message</Text>
-        <Text style={messageText}>{message}</Text>
+      <Section style={styles.card}>
+        <Text style={styles.rowLabel}>Message</Text>
+        <Text style={styles.message}>{message}</Text>
       </Section>
 
       {adminUrl ? (
         <Section style={{ textAlign: 'center', margin: '8px 0 4px' }}>
-          <Button href={adminUrl} style={button}>
+          <Button href={adminUrl} style={styles.button}>
             Open in admin
           </Button>
         </Section>
