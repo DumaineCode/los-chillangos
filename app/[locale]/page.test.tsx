@@ -285,7 +285,7 @@ describe('HomePage — services strip', () => {
 // is non-empty, so pre-refresh CMS rows keep the original 2-CTA hero. Internal
 // routes (/rentals) go through the locale-aware Link; anchors (#tours,
 // #contact) stay plain <a>. The quote block renders only when `quote` has
-// content and always carries its attribution.
+// content; its attribution renders only when `quoteAuthor` is non-empty.
 // ---------------------------------------------------------------------------
 
 const FULL_HERO: HeroOverrides = {
@@ -294,6 +294,12 @@ const FULL_HERO: HeroOverrides = {
   ctaRentals: 'Rent a bike',
   ctaPlan: 'Plan your own trip',
 };
+
+/** Finds a hero CTA anchor by its visible label. */
+const getCtaByLabel = (container: HTMLElement, label: string) =>
+  Array.from(container.querySelectorAll('.hero-cine-ctas a')).find((a) =>
+    a.textContent?.includes(label),
+  );
 
 describe('HomePage — hero CTAs (visual refresh)', () => {
   it('renders 4 CTAs in spec order when the new labels are populated', async () => {
@@ -309,12 +315,9 @@ describe('HomePage — hero CTAs (visual refresh)', () => {
   it('applies code-side default hrefs for the new CTAs (/rentals, #contact)', async () => {
     const { container } = await renderHome(DEFAULT_SERVICES, FULL_HERO);
 
-    const ctas = Array.from(container.querySelectorAll('.hero-cine-ctas a'));
-    const byLabel = (label: string) => ctas.find((a) => a.textContent?.includes(label));
-
-    expect(byLabel('See tours')?.getAttribute('href')).toBe('#tours');
-    expect(byLabel('Rent a bike')?.getAttribute('href')).toBe('/rentals');
-    expect(byLabel('Plan your own trip')?.getAttribute('href')).toBe('#contact');
+    expect(getCtaByLabel(container, 'See tours')?.getAttribute('href')).toBe('#tours');
+    expect(getCtaByLabel(container, 'Rent a bike')?.getAttribute('href')).toBe('/rentals');
+    expect(getCtaByLabel(container, 'Plan your own trip')?.getAttribute('href')).toBe('#contact');
   });
 
   it('honors CMS-provided hrefs over the code-side defaults', async () => {
@@ -324,24 +327,18 @@ describe('HomePage — hero CTAs (visual refresh)', () => {
       ctaPlanHref: 'https://wa.me/5255',
     });
 
-    const ctas = Array.from(container.querySelectorAll('.hero-cine-ctas a'));
-    const byLabel = (label: string) => ctas.find((a) => a.textContent?.includes(label));
-
-    expect(byLabel('Rent a bike')?.getAttribute('href')).toBe('/rentals?bike=city');
-    expect(byLabel('Plan your own trip')?.getAttribute('href')).toBe('https://wa.me/5255');
+    expect(getCtaByLabel(container, 'Rent a bike')?.getAttribute('href')).toBe('/rentals?bike=city');
+    expect(getCtaByLabel(container, 'Plan your own trip')?.getAttribute('href')).toBe('https://wa.me/5255');
   });
 
   it('routes /rentals through the locale-aware Link but keeps anchors plain', async () => {
     const { container } = await renderHome(DEFAULT_SERVICES, FULL_HERO);
 
-    const ctas = Array.from(container.querySelectorAll('.hero-cine-ctas a'));
-    const byLabel = (label: string) => ctas.find((a) => a.textContent?.includes(label));
-
     // Internal route → mocked next-intl Link (marked with data-locale-link).
-    expect(byLabel('Rent a bike')?.hasAttribute('data-locale-link')).toBe(true);
+    expect(getCtaByLabel(container, 'Rent a bike')?.hasAttribute('data-locale-link')).toBe(true);
     // Anchors → plain <a>, NOT localized.
-    expect(byLabel('See tours')?.hasAttribute('data-locale-link')).toBe(false);
-    expect(byLabel('Plan your own trip')?.hasAttribute('data-locale-link')).toBe(false);
+    expect(getCtaByLabel(container, 'See tours')?.hasAttribute('data-locale-link')).toBe(false);
+    expect(getCtaByLabel(container, 'Plan your own trip')?.hasAttribute('data-locale-link')).toBe(false);
   });
 
   it('renders only the original 2 CTAs when the new labels are unset (existing rows)', async () => {
@@ -385,10 +382,24 @@ describe('HomePage — hero quote (visual refresh)', () => {
     expect(blockquote).not.toBeNull();
     expect(blockquote!.textContent).toContain(QUOTE);
 
-    // Attribution always shows when a quote shows.
+    // Attribution renders because quoteAuthor is populated.
     const caption = figure!.querySelector('figcaption');
     expect(caption).not.toBeNull();
     expect(caption!.textContent).toContain('Frida Kahlo');
+  });
+
+  it('renders the quote without attribution when quoteAuthor is empty', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, {
+      ...FULL_HERO,
+      quote: QUOTE,
+      quoteAuthor: '',
+    });
+
+    const figure = container.querySelector('.hero-cine-bot figure.hero-cine-quote');
+    expect(figure).not.toBeNull();
+    expect(figure!.querySelector('blockquote')!.textContent).toContain(QUOTE);
+    // No empty figcaption element when the author field is blank.
+    expect(figure!.querySelector('figcaption')).toBeNull();
   });
 
   it('renders no quote block when the quote field is empty', async () => {
