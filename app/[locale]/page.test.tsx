@@ -445,3 +445,53 @@ describe('HomePage — hero quote as primary heading (inversion)', () => {
     expect(container.querySelectorAll('.hero-cine-ctas a')).toHaveLength(4);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Hero quote pink accent — owner marks part of the quote with *asterisks* and
+// that run renders in the brand pink (`--terra`) via <span class="hero-accent">.
+// The markup is parsed into REAL React nodes (no dangerouslySetInnerHTML), so
+// the asterisk markers are NEVER visible and all text is auto-escaped.
+// ---------------------------------------------------------------------------
+
+describe('HomePage — hero quote pink accent markup', () => {
+  it('renders *marked* runs as <span.hero-accent> inside the <h1>, markers stripped', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, {
+      ...FULL_HERO,
+      quote: 'La vida es *corta*',
+    });
+
+    const h1 = container.querySelector('h1.hero-cine-headline')!;
+    const accents = h1.querySelectorAll('span.hero-accent');
+    expect(accents).toHaveLength(1);
+    expect(accents[0]!.textContent).toBe('corta');
+
+    // The full readable text is intact and the asterisk markers are gone.
+    expect(h1.textContent).toBe('La vida es corta');
+    expect(h1.textContent).not.toContain('*');
+  });
+
+  it('renders multiple *marked* runs as separate accent spans', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, {
+      ...FULL_HERO,
+      quote: 'Vive *hoy*, no *mañana*',
+    });
+
+    const h1 = container.querySelector('h1.hero-cine-headline')!;
+    const accents = h1.querySelectorAll('span.hero-accent');
+    expect([...accents].map((el) => el.textContent)).toEqual(['hoy', 'mañana']);
+    expect(h1.textContent).toBe('Vive hoy, no mañana');
+    expect(h1.textContent).not.toContain('*');
+  });
+
+  it('renders NO accent span and the full quote text when there are no asterisks', async () => {
+    const QUOTE = 'Ride the real CDMX';
+    const { container } = await renderHome(DEFAULT_SERVICES, {
+      ...FULL_HERO,
+      quote: QUOTE,
+    });
+
+    const h1 = container.querySelector('h1.hero-cine-headline')!;
+    expect(h1.querySelector('span.hero-accent')).toBeNull();
+    expect(h1.textContent).toBe(QUOTE);
+  });
+});

@@ -14,6 +14,7 @@ import { RefreshRouteOnSave } from '../../src/components/RefreshRouteOnSave';
 import { HighlightSeasonal } from '../../src/components/seasonal/HighlightSeasonal';
 import { TourCard } from '../../src/components/TourCard';
 import { getPayload } from '../../src/lib/payload';
+import { parseQuoteAccents } from '../../src/lib/hero/parseQuoteAccents';
 import { resolveMediaImage, type ResolvedImage } from '../../src/lib/media';
 import { getActiveSeasonalTour } from '../../src/lib/seasonal/getActiveSeasonalTour';
 import type { Media, MediaVideo } from '../../src/payload-types';
@@ -270,7 +271,18 @@ export default async function HomePage({ params }: Props) {
                 Empty/legacy-dirty quote falls back to the brand name so the
                 <h1> is never rendered empty (a11y). */}
             <h1 className="hero-cine-headline hero-cine-quote-h1">
-              {heroQuote || 'Los Chillangos'}
+              {/* The owner marks accent runs with *asterisks*; we parse that
+                  into REAL React nodes (never dangerouslySetInnerHTML) so every
+                  character is auto-escaped and the markers stay invisible. */}
+              {parseQuoteAccents(heroQuote || 'Los Chillangos').map((segment, i) =>
+                segment.accent ? (
+                  <span key={i} className="hero-accent">
+                    {segment.text}
+                  </span>
+                ) : (
+                  segment.text
+                )
+              )}
             </h1>
             {/* Author is optional attribution, a sibling of the heading (never
                 inside it), rendered only when populated. */}

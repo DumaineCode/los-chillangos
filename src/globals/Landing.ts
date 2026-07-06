@@ -78,8 +78,8 @@ export const Landing: GlobalConfig = {
               label: { en: 'Hero heading (quote)', es: 'Título principal (cita)' },
               admin: {
                 description: {
-                  en: 'The big primary hero heading. Shown as the main <h1>, e.g. a famous quote.',
-                  es: 'El título principal grande de la portada. Se muestra como el <h1>, ej.: una cita célebre.',
+                  en: 'The big primary hero heading. Shown as the main <h1>, e.g. a famous quote. Wrap text in *asterisks* to highlight it in pink, e.g. "La vida es *corta*".',
+                  es: 'El título principal grande de la portada. Se muestra como el <h1>, ej.: una cita célebre. Envuelve texto en *asteriscos* para resaltarlo en rosa, ej.: "La vida es *corta*".',
                 },
               },
             },

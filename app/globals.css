@@ -596,6 +596,12 @@ body:has(.hero-cine) { padding-top: 0; }
   line-height: 1.02;
   text-wrap: balance;
 }
+/* Owner-authored *asterisk* runs inside the quote render in the brand pink.
+   The whole quote is already italic via .hero-cine-quote-h1, so we only tint
+   the accent here — no double italic. Reuses the --terra token, never a hex. */
+.hero-accent {
+  color: var(--terra);
+}
 
 /* Author attribution beneath the quote heading (mono, uppercase, muted) —
    inherits the old figcaption treatment, now on a sibling <p>. */

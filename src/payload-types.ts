@@ -1123,7 +1123,7 @@ export interface Landing {
   id: number;
   hero: {
     /**
-     * The big primary hero heading. Shown as the main <h1>, e.g. a famous quote.
+     * The big primary hero heading. Shown as the main <h1>, e.g. a famous quote. Wrap text in *asterisks* to highlight it in pink, e.g. "La vida es *corta*".
      */
     quote: string;
     /**
