@@ -89,10 +89,9 @@ type LandingOpts = {
 function buildLanding(opts: LandingOpts) {
   return {
     hero: {
-      h1a: 'Ride',
-      h1b: 'the',
-      h1c: 'real',
-      h1d: ' CDMX',
+      // Hero inversion: the required `quote` is the primary <h1>. Supply it so
+      // the heading renders; h1a–d no longer exist on the schema.
+      quote: 'Ride the real CDMX',
       mediaType: opts.mediaType ?? 'image',
       heroImage: opts.heroImage ?? null,
       heroVideo: opts.heroVideo ?? null,

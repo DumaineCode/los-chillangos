@@ -102,7 +102,9 @@ type HeroOverrides = Record<string, string | undefined>;
 
 function buildLanding(serviceItems: ServiceItem[] | undefined | null, hero: HeroOverrides = {}) {
   return {
-    hero: { h1a: 'Ride', h1b: 'the', h1c: 'real', h1d: ' CDMX', ...hero },
+    // Hero inversion: the required `quote` is now the primary <h1>, so the mock
+    // always supplies a quote. h1a–d are gone from the schema.
+    hero: { quote: 'Ride the real CDMX', ...hero },
     marquee: { text: 'marquee' },
     values: {
       eyebrow: 'Values',
@@ -365,58 +367,81 @@ describe('HomePage — hero CTAs (visual refresh)', () => {
   });
 });
 
-describe('HomePage — hero quote (visual refresh)', () => {
+// ---------------------------------------------------------------------------
+// Hero inversion — the quote IS the primary <h1>.
+//
+// The required `quote` renders as the single page <h1 class="hero-cine-headline">
+// (heading text, NOT a <blockquote>). The author is optional attribution: a
+// sibling <p class="hero-cine-attrib">, never nested in the heading. Because
+// `quote` is required and the render guards against dirty/legacy empties with a
+// 'Los Chillangos' fallback, the page ALWAYS has exactly one non-empty <h1>.
+// ---------------------------------------------------------------------------
+
+describe('HomePage — hero quote as primary heading (inversion)', () => {
   const QUOTE = 'Feet, what do I need you for when I have wings to fly?';
 
-  it('renders the quote with its attribution inside the hero bottom block', async () => {
+  it('renders the quote as the single primary <h1.hero-cine-headline>', async () => {
+    const { container } = await renderHome(DEFAULT_SERVICES, {
+      ...FULL_HERO,
+      quote: QUOTE,
+    });
+
+    const h1 = container.querySelector('h1.hero-cine-headline');
+    expect(h1).not.toBeNull();
+    expect(h1!.textContent).toContain(QUOTE);
+
+    // Exactly ONE <h1> on the page — the quote is the heading, nothing else.
+    expect(container.querySelectorAll('h1')).toHaveLength(1);
+
+    // The quote is heading TEXT, not a nested blockquote/figure structure.
+    expect(container.querySelector('figure.hero-cine-quote')).toBeNull();
+    expect(h1!.querySelector('blockquote')).toBeNull();
+  });
+
+  it('renders the author as an optional <p.hero-cine-attrib> sibling when present', async () => {
     const { container } = await renderHome(DEFAULT_SERVICES, {
       ...FULL_HERO,
       quote: QUOTE,
       quoteAuthor: 'Frida Kahlo',
     });
 
-    const figure = container.querySelector('.hero-cine-bot figure.hero-cine-quote');
-    expect(figure).not.toBeNull();
+    const attrib = container.querySelector('p.hero-cine-attrib');
+    expect(attrib).not.toBeNull();
+    expect(attrib!.textContent).toContain('Frida Kahlo');
 
-    const blockquote = figure!.querySelector('blockquote');
-    expect(blockquote).not.toBeNull();
-    expect(blockquote!.textContent).toContain(QUOTE);
-
-    // Attribution renders because quoteAuthor is populated.
-    const caption = figure!.querySelector('figcaption');
-    expect(caption).not.toBeNull();
-    expect(caption!.textContent).toContain('Frida Kahlo');
+    // Author is attribution OUTSIDE the heading — the <h1> holds only the quote.
+    const h1 = container.querySelector('h1.hero-cine-headline')!;
+    expect(h1.textContent).not.toContain('Frida Kahlo');
   });
 
-  it('renders the quote without attribution when quoteAuthor is empty', async () => {
+  it('omits the attribution but keeps the <h1> when quoteAuthor is empty', async () => {
     const { container } = await renderHome(DEFAULT_SERVICES, {
       ...FULL_HERO,
       quote: QUOTE,
       quoteAuthor: '',
     });
 
-    const figure = container.querySelector('.hero-cine-bot figure.hero-cine-quote');
-    expect(figure).not.toBeNull();
-    expect(figure!.querySelector('blockquote')!.textContent).toContain(QUOTE);
-    // No empty figcaption element when the author field is blank.
-    expect(figure!.querySelector('figcaption')).toBeNull();
+    // No empty attribution element when the author field is blank.
+    expect(container.querySelector('p.hero-cine-attrib')).toBeNull();
+    // The quote heading is still present and holds the quote text.
+    const h1 = container.querySelector('h1.hero-cine-headline');
+    expect(h1).not.toBeNull();
+    expect(h1!.textContent).toContain(QUOTE);
   });
 
-  it('renders no quote block when the quote field is empty', async () => {
+  it('falls back to the brand name in the <h1> when the quote is empty (never an empty heading)', async () => {
     const { container } = await renderHome(DEFAULT_SERVICES, {
       ...FULL_HERO,
-      quote: '',
+      quote: '   ',
       quoteAuthor: 'Frida Kahlo',
     });
 
-    expect(container.querySelector('.hero-cine-quote')).toBeNull();
+    const h1 = container.querySelector('h1.hero-cine-headline');
+    expect(h1).not.toBeNull();
+    // Empty/whitespace quote → brand fallback, so the <h1> is NEVER empty.
+    expect(h1!.textContent?.trim()).toBe('Los Chillangos');
+    expect(container.querySelectorAll('h1')).toHaveLength(1);
     // The hero itself is unaffected — CTAs still render.
     expect(container.querySelectorAll('.hero-cine-ctas a')).toHaveLength(4);
-  });
-
-  it('renders no quote block when the quote field is absent (existing rows)', async () => {
-    const { container } = await renderHome(DEFAULT_SERVICES, FULL_HERO);
-
-    expect(container.querySelector('.hero-cine-quote')).toBeNull();
   });
 });

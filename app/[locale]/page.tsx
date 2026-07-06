@@ -82,22 +82,13 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  const payload = await getPayload();
-  const landing = await payload
-    .findGlobal({
-      slug: 'landing',
-      locale: locale as Locale,
-      fallbackLocale: 'en',
-    })
-    .catch(() => null);
 
-  const hero = landing?.hero;
-  const title = [hero?.h1a, hero?.h1b, hero?.h1c, hero?.h1d].filter(Boolean).join(' ').trim();
-
+  // No per-page title override: the hero heading is now the editorial `quote`,
+  // which makes a poor <title>/OG title. Omitting `title` here lets the fixed
+  // brand default in `app/layout.tsx` win for both <title> and OG title, keeping
+  // SEO decoupled from marketing copy.
   return {
-    title: title || 'Los Chillangos',
     openGraph: {
-      title: title || 'Los Chillangos',
       type: 'website',
       locale,
     },
@@ -205,7 +196,9 @@ export default async function HomePage({ params }: Props) {
   const heroCtaPlan = hero?.ctaPlan?.trim() ?? '';
   const heroCtaRentalsHref = hero?.ctaRentalsHref?.trim() || '/rentals';
   const heroCtaPlanHref = hero?.ctaPlanHref?.trim() || '#contact';
-  // Quote block: no quote → no DOM (zero layout shift for existing rows).
+  // Hero heading: the required `quote` is the primary <h1>. Trim so a
+  // whitespace-only value is treated as empty and the brand fallback wins in
+  // the JSX (guarantees a non-empty single <h1>). Author is optional attribution.
   const heroQuote = hero?.quote?.trim() ?? '';
   const heroQuoteAuthor = hero?.quoteAuthor?.trim() ?? '';
 
@@ -272,21 +265,23 @@ export default async function HomePage({ params }: Props) {
         </div>
         <div className="container hero-cine-inner">
           <div className="hero-cine-mid">
-            <h1 className="hero-cine-headline">
-              {hero?.h1a} {hero?.h1b}
-              <br />
-              <em>{hero?.h1c}</em>
-              {hero?.h1d}
+            {/* The required `quote` is the primary hero heading — heading TEXT,
+                not a nested blockquote — so there is exactly one <h1> per page.
+                Empty/legacy-dirty quote falls back to the brand name so the
+                <h1> is never rendered empty (a11y). */}
+            <h1 className="hero-cine-headline hero-cine-quote-h1">
+              {heroQuote || 'Los Chillangos'}
             </h1>
+            {/* Author is optional attribution, a sibling of the heading (never
+                inside it), rendered only when populated. */}
+            {heroQuoteAuthor ? (
+              <p className="hero-cine-attrib fade-in" style={{ animationDelay: '0.3s' }}>
+                — {heroQuoteAuthor}
+              </p>
+            ) : null}
           </div>
 
           <div className="hero-cine-bot">
-            {heroQuote ? (
-              <figure className="hero-cine-quote fade-in" style={{ animationDelay: '0.3s' }}>
-                <blockquote>{heroQuote}</blockquote>
-                {heroQuoteAuthor ? <figcaption>{heroQuoteAuthor}</figcaption> : null}
-              </figure>
-            ) : null}
             <div className="hero-cine-ctas fade-in" style={{ animationDelay: '0.4s' }}>
               <HeroCta href={heroCtaPrimaryHref} className="btn btn-primary btn-xl">
                 {heroCtaPrimary} →
