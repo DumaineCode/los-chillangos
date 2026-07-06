@@ -1121,14 +1121,15 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface Landing {
   id: number;
-  hero?: {
-    h1a?: string | null;
-    h1b?: string | null;
+  hero: {
     /**
-     * This word renders in the brand accent color.
+     * The big primary hero heading. Shown as the main <h1>, e.g. a famous quote.
      */
-    h1c?: string | null;
-    h1d?: string | null;
+    quote: string;
+    /**
+     * Optional attribution shown under the heading, e.g. "Frida Kahlo".
+     */
+    quoteAuthor?: string | null;
     ctaPrimary?: string | null;
     /**
      * Where the primary button takes the visitor. Examples: "#tours" (section on the home page), "/book" (another page on your site), "https://wa.me/52...".
@@ -1155,14 +1156,6 @@ export interface Landing {
      * Where the plan-your-trip button takes the visitor. Default: "#contact".
      */
     ctaPlanHref?: string | null;
-    /**
-     * Optional famous quote shown in the hero. Leave empty to hide the quote block.
-     */
-    quote?: string | null;
-    /**
-     * Attribution shown under the quote, e.g. "Frida Kahlo".
-     */
-    quoteAuthor?: string | null;
     /**
      * Choose the hero background medium.
      */
@@ -1865,10 +1858,8 @@ export interface LandingSelect<T extends boolean = true> {
   hero?:
     | T
     | {
-        h1a?: T;
-        h1b?: T;
-        h1c?: T;
-        h1d?: T;
+        quote?: T;
+        quoteAuthor?: T;
         ctaPrimary?: T;
         ctaPrimaryHref?: T;
         ctaGhost?: T;
@@ -1877,8 +1868,6 @@ export interface LandingSelect<T extends boolean = true> {
         ctaRentalsHref?: T;
         ctaPlan?: T;
         ctaPlanHref?: T;
-        quote?: T;
-        quoteAuthor?: T;
         mediaType?: T;
         heroImage?: T;
         heroVideo?: T;

@@ -66,39 +66,34 @@ export const Landing: GlobalConfig = {
           name: 'hero',
           label: { en: 'Hero', es: 'Portada' },
           fields: [
-            // Title is split across four words because `h1c` renders inside
-            // <em> on the public hero (brand-color highlight). The 4-word split
-            // is deliberate: each word is its own line/break-point in the
-            // cinematic layout. Keep all four even if some are empty.
+            // ── Hero heading (the quote) ─────────────────────────────────
+            // The quote IS the primary hero heading (rendered as the single
+            // <h1>), so it leads the tab and is required. The author is
+            // optional attribution shown beneath it.
             {
-              name: 'h1a',
-              type: 'text',
+              name: 'quote',
+              type: 'textarea',
               localized: true,
-              label: { en: 'Headline word 1', es: 'Título — palabra 1' },
-            },
-            {
-              name: 'h1b',
-              type: 'text',
-              localized: true,
-              label: { en: 'Headline word 2', es: 'Título — palabra 2' },
-            },
-            {
-              name: 'h1c',
-              type: 'text',
-              localized: true,
-              label: { en: 'Headline word 3 (highlighted)', es: 'Título — palabra 3 (resaltada)' },
+              required: true,
+              label: { en: 'Hero heading (quote)', es: 'Título principal (cita)' },
               admin: {
                 description: {
-                  en: 'This word renders in the brand accent color.',
-                  es: 'Esta palabra se muestra en el color de marca.',
+                  en: 'The big primary hero heading. Shown as the main <h1>, e.g. a famous quote.',
+                  es: 'El título principal grande de la portada. Se muestra como el <h1>, ej.: una cita célebre.',
                 },
               },
             },
             {
-              name: 'h1d',
+              // NOT localized: a proper name is identical in both languages.
+              name: 'quoteAuthor',
               type: 'text',
-              localized: true,
-              label: { en: 'Headline word 4', es: 'Título — palabra 4' },
+              label: { en: 'Quote — author', es: 'Cita — autor' },
+              admin: {
+                description: {
+                  en: 'Optional attribution shown under the heading, e.g. "Frida Kahlo".',
+                  es: 'Atribución opcional que se muestra bajo el título, ej.: "Frida Kahlo".',
+                },
+              },
             },
             // ── Primary button (label + link) ────────────────────────────
             {
@@ -192,31 +187,6 @@ export const Landing: GlobalConfig = {
                 description: {
                   en: 'Where the plan-your-trip button takes the visitor. Default: "#contact".',
                   es: 'A dónde lleva el botón de viaje a medida. Predeterminado: "#contact".',
-                },
-              },
-            },
-            // ── Quote ────────────────────────────────────────────────────
-            {
-              name: 'quote',
-              type: 'textarea',
-              localized: true,
-              label: { en: 'Quote', es: 'Cita' },
-              admin: {
-                description: {
-                  en: 'Optional famous quote shown in the hero. Leave empty to hide the quote block.',
-                  es: 'Cita célebre opcional que se muestra en la portada. Déjala vacía para ocultar el bloque.',
-                },
-              },
-            },
-            {
-              // NOT localized: a proper name is identical in both languages.
-              name: 'quoteAuthor',
-              type: 'text',
-              label: { en: 'Quote — author', es: 'Cita — autor' },
-              admin: {
-                description: {
-                  en: 'Attribution shown under the quote, e.g. "Frida Kahlo".',
-                  es: 'Atribución que se muestra bajo la cita, ej.: "Frida Kahlo".',
                 },
               },
             },
