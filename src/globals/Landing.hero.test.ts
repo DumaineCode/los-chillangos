@@ -64,11 +64,28 @@ describe('Landing — hero tab CTA fields (visual refresh)', () => {
 });
 
 describe('Landing — hero tab quote fields (visual refresh)', () => {
-  it('exposes a localized quote textarea', () => {
+  it('exposes a REQUIRED localized quote textarea (the primary hero heading)', () => {
     const quote = heroFieldByName('quote');
     expect(quote, 'expected a "quote" field on the hero tab').toBeDefined();
     expect(quote && 'type' in quote && quote.type).toBe('textarea');
     expect(quote && 'localized' in quote && quote.localized, 'quote copy is localized').toBe(true);
+    // The quote is the primary <h1>, so it is required — the hero must always
+    // have a heading (the render also brand-fallbacks against dirty data).
+    expect(
+      quote && 'required' in quote && quote.required,
+      'quote is the primary heading and must be required'
+    ).toBe(true);
+  });
+
+  it('leads the hero tab with quote then quoteAuthor (obvious primary field)', () => {
+    const tab = getHeroTab();
+    const fields = 'fields' in tab ? tab.fields : [];
+    const names = fields.filter((f) => 'name' in f).map((f) => (f as { name: string }).name);
+    expect(names[0]).toBe('quote');
+    expect(names[1]).toBe('quoteAuthor');
+    // The split-headline fields are gone entirely.
+    expect(names).not.toContain('h1a');
+    expect(names).not.toContain('h1d');
   });
 
   it('exposes a NON-localized quoteAuthor text field (proper name)', () => {
