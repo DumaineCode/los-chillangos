@@ -3,25 +3,15 @@ import { describe, expect, it } from 'vitest';
 import { contactMessageSchema } from './contactMessage';
 
 // ---------------------------------------------------------------------------
-// contactMessageSchema (R7 — rentals-inquiry-cta seam).
+// contactMessageSchema — public contact form payload.
 //
-// Slice 3 extends the SHARED contact payload schema with two ADDITIVE OPTIONAL
-// fields so the rentals inquiry CTA can carry the bike reference through the
-// existing /api/contact → contact-messages seam:
-//   - rental:      optional string (the bike slug)
-//   - accessories: optional array of strings (accessory ids/names)
-//
-// The required fields (name min2, email, message min10, locale enum) stay
-// required and UNCHANGED. The existing ContactForm path — which omits rental
-// and accessories — MUST still validate (no regression). The new InquiryCta
-// path — which includes them — MUST validate too.
-//
-// The seam stays engine-free: NO pricing, availability, fleet, or Stripe
-// fields are accepted by the schema.
+// The contract is deliberately tiny: name (min2), email, message (min10) and
+// locale are required; phone is the single optional channel ('' accepted so the
+// client can send a stable shape). No rental/inquiry fields exist — rentals are
+// a CMS-driven price list on the home, not a per-bike inquiry.
 // ---------------------------------------------------------------------------
 
-// Mirrors exactly what the existing ContactForm sends today (no rental keys).
-const legacyContactPayload = {
+const contactPayload = {
   name: 'Ada Lovelace',
   email: 'ada@example.com',
   phone: '',
@@ -29,81 +19,50 @@ const legacyContactPayload = {
   locale: 'en' as const,
 };
 
-// Mirrors what the new InquiryCta sends (adds rental + accessories).
-const inquiryPayload = {
-  name: 'Grace Hopper',
-  email: 'grace@example.com',
-  message: "I'm interested in renting the Montaña E-Bike bike.",
-  locale: 'es' as const,
-  rental: 'montana-ebike',
-  accessories: ['helmet', 'lock'],
-};
-
-describe('contactMessageSchema — additive rental/accessories fields (R7)', () => {
-  it('still validates the existing ContactForm payload (no rental/accessories) — no regression', () => {
-    const parsed = contactMessageSchema.safeParse(legacyContactPayload);
+describe('contactMessageSchema', () => {
+  it('validates a well-formed contact payload', () => {
+    const parsed = contactMessageSchema.safeParse(contactPayload);
 
     expect(parsed.success).toBe(true);
     if (parsed.success) {
       expect(parsed.data.name).toBe('Ada Lovelace');
       expect(parsed.data.message).toBe('I would like to know more about your tours.');
-      // The optional fields are simply absent on the legacy path.
-      expect(parsed.data.rental).toBeUndefined();
-      expect(parsed.data.accessories).toBeUndefined();
+      expect(parsed.data.locale).toBe('en');
     }
   });
 
-  it('validates the new inquiry payload carrying rental slug + accessories', () => {
-    const parsed = contactMessageSchema.safeParse(inquiryPayload);
-
-    expect(parsed.success).toBe(true);
-    if (parsed.success) {
-      expect(parsed.data.rental).toBe('montana-ebike');
-      expect(parsed.data.accessories).toEqual(['helmet', 'lock']);
-      // Required fields are still parsed through.
-      expect(parsed.data.name).toBe('Grace Hopper');
-      expect(parsed.data.locale).toBe('es');
-    }
-  });
-
-  it('accepts rental without accessories (accessories is independently optional)', () => {
+  it('accepts a payload without a phone (optional channel)', () => {
     const parsed = contactMessageSchema.safeParse({
-      ...legacyContactPayload,
-      rental: 'city-cruiser',
+      name: contactPayload.name,
+      email: contactPayload.email,
+      message: contactPayload.message,
+      locale: contactPayload.locale,
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('enforces the required fields', () => {
+    expect(contactMessageSchema.safeParse({ ...contactPayload, name: 'A' }).success).toBe(false);
+    expect(
+      contactMessageSchema.safeParse({ ...contactPayload, email: 'not-an-email' }).success
+    ).toBe(false);
+    expect(
+      contactMessageSchema.safeParse({ ...contactPayload, message: 'too short' }).success
+    ).toBe(false);
+    expect(contactMessageSchema.safeParse({ ...contactPayload, locale: 'fr' }).success).toBe(false);
+  });
+
+  it('ignores unknown keys (e.g. legacy rental/accessories) — they are stripped', () => {
+    const parsed = contactMessageSchema.safeParse({
+      ...contactPayload,
+      rental: 'some-bike',
+      accessories: ['helmet'],
     });
 
     expect(parsed.success).toBe(true);
     if (parsed.success) {
-      expect(parsed.data.rental).toBe('city-cruiser');
-      expect(parsed.data.accessories).toBeUndefined();
+      expect('rental' in parsed.data).toBe(false);
+      expect('accessories' in parsed.data).toBe(false);
     }
-  });
-
-  it('still enforces the required fields — rental does NOT relax name/email/message', () => {
-    const tooShortName = contactMessageSchema.safeParse({ ...inquiryPayload, name: 'A' });
-    expect(tooShortName.success).toBe(false);
-
-    const badEmail = contactMessageSchema.safeParse({ ...inquiryPayload, email: 'not-an-email' });
-    expect(badEmail.success).toBe(false);
-
-    const shortMessage = contactMessageSchema.safeParse({ ...inquiryPayload, message: 'too short' });
-    expect(shortMessage.success).toBe(false);
-
-    const badLocale = contactMessageSchema.safeParse({ ...inquiryPayload, locale: 'fr' });
-    expect(badLocale.success).toBe(false);
-  });
-
-  it('rejects a wrong-typed accessories field (must be an array of strings)', () => {
-    const notArray = contactMessageSchema.safeParse({
-      ...inquiryPayload,
-      accessories: 'helmet',
-    });
-    expect(notArray.success).toBe(false);
-
-    const arrayOfNumbers = contactMessageSchema.safeParse({
-      ...inquiryPayload,
-      accessories: [1, 2, 3],
-    });
-    expect(arrayOfNumbers.success).toBe(false);
   });
 });

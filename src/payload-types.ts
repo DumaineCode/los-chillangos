@@ -68,7 +68,6 @@ export interface Config {
   blocks: {};
   collections: {
     tours: Tour;
-    rentals: Rental;
     extras: Extra;
     bookings: Booking;
     'contact-messages': ContactMessage;
@@ -83,7 +82,6 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     tours: ToursSelect<false> | ToursSelect<true>;
-    rentals: RentalsSelect<false> | RentalsSelect<true>;
     extras: ExtrasSelect<false> | ExtrasSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     'contact-messages': ContactMessagesSelect<false> | ContactMessagesSelect<true>;
@@ -476,60 +474,6 @@ export interface MediaVideo {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "rentals".
- */
-export interface Rental {
-  id: number;
-  /**
-   * Auto-generated from the name. Only change it if you know what you are doing — it changes the rental web address.
-   */
-  slug?: string | null;
-  /**
-   * The bike model name as it appears across the site.
-   */
-  name: string;
-  /**
-   * Detail-page copy describing the bike.
-   */
-  description?: string | null;
-  /**
-   * Key features of the bike (e.g. motor, range, frame size).
-   */
-  characteristics?: string | null;
-  /**
-   * Informative price shown as-is, e.g. "$150/day". No calculation is applied.
-   */
-  price?: string | null;
-  /**
-   * Main image shown on the rental card and at the top of the rental page.
-   */
-  heroImage?: (number | null) | Media;
-  gallery?:
-    | {
-        image: number | Media;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Rentable accessories (helmet, lock, child seat). Display-only — no booking math.
-   */
-  accessories?:
-    | {
-        name: string;
-        photo?: (number | null) | Media;
-        /**
-         * Optional informative price shown as-is, e.g. "$50/day".
-         */
-        price?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "bookings".
  */
 export interface Booking {
@@ -633,14 +577,6 @@ export interface ContactMessage {
   phone?: string | null;
   message: string;
   /**
-   * Bike slug this inquiry referenced. Only present for rental inquiries.
-   */
-  rental?: string | null;
-  /**
-   * Accessories referenced in this inquiry. Only present for rental inquiries.
-   */
-  accessories?: string | null;
-  /**
    * Mark messages as you handle them.
    */
   status: 'new' | 'read' | 'replied' | 'archived';
@@ -700,10 +636,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tours';
         value: number | Tour;
-      } | null)
-    | ({
-        relationTo: 'rentals';
-        value: number | Rental;
       } | null)
     | ({
         relationTo: 'extras';
@@ -881,35 +813,6 @@ export interface ToursSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "rentals_select".
- */
-export interface RentalsSelect<T extends boolean = true> {
-  slug?: T;
-  name?: T;
-  description?: T;
-  characteristics?: T;
-  price?: T;
-  heroImage?: T;
-  gallery?:
-    | T
-    | {
-        image?: T;
-        id?: T;
-      };
-  accessories?:
-    | T
-    | {
-        name?: T;
-        photo?: T;
-        price?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "extras_select".
  */
 export interface ExtrasSelect<T extends boolean = true> {
@@ -976,8 +879,6 @@ export interface ContactMessagesSelect<T extends boolean = true> {
   email?: T;
   phone?: T;
   message?: T;
-  rental?: T;
-  accessories?: T;
   status?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1141,11 +1042,11 @@ export interface Landing {
      */
     ctaGhostHref?: string | null;
     /**
-     * Optional. Shown only when filled, e.g. "Rent a bike". Links to the rentals catalog.
+     * Optional. Shown only when filled, e.g. "Rent a bike". Links to the rentals block on the home.
      */
     ctaRentals?: string | null;
     /**
-     * Where the rentals button takes the visitor. Default: "/rentals".
+     * Where the rentals button takes the visitor. Default: "#rentals-home" (the rentals block on the home).
      */
     ctaRentalsHref?: string | null;
     /**
@@ -1352,9 +1253,37 @@ export interface Landing {
      */
     sub?: string | null;
     /**
-     * Label on the button that links to the rentals catalog, e.g. "Browse rentals →".
+     * Each rentable duration and its price, e.g. "1 hour" – "$150".
+     */
+    durations?:
+      | {
+          /**
+           * e.g. "1 hour", "2 hours".
+           */
+          label: string;
+          /**
+           * Shown as-is, e.g. "$150". No calculation is applied.
+           */
+          price: string;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Optional helmet add-on label, e.g. "Helmet".
+     */
+    helmetLabel?: string | null;
+    /**
+     * Optional helmet price, shown as-is, e.g. "$30".
+     */
+    helmetPrice?: string | null;
+    /**
+     * Label on the contact button, e.g. "Reserve by WhatsApp".
      */
     ctaLabel?: string | null;
+    /**
+     * Where the button goes. Default "#contact" (the contact section). Can be a WhatsApp/phone link.
+     */
+    ctaHref?: string | null;
   };
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1979,7 +1908,17 @@ export interface LandingSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         sub?: T;
+        durations?:
+          | T
+          | {
+              label?: T;
+              price?: T;
+              id?: T;
+            };
+        helmetLabel?: T;
+        helmetPrice?: T;
         ctaLabel?: T;
+        ctaHref?: T;
       };
   updatedAt?: T;
   createdAt?: T;

@@ -272,9 +272,9 @@
         "adultHint": "Full price · 13+",
         "teenLabel": "Teens",
         "teenHint": "Ages 12–17",
-      "extrasTitle": "Extras",
-      "extrasNone": "No extras available for this tour.",
-      "extraInfoAria": "More information about {name}"
+        "extrasTitle": "Extras",
+        "extrasNone": "No extras available for this tour.",
+        "extraInfoAria": "More information about {name}"
       },
       "details": {
         "title": "Your details",
@@ -375,51 +375,11 @@
     "slotTooLate": "Too late"
   },
   "rentals": {
-    "card": {
-      "view": "VIEW →"
-    },
-    "catalog": {
-      "metaTitle": "Bike rentals — Los Chillangos",
-      "metaDescription": "Rent a bike in CDMX. Browse our models, see what each ride includes, and request a quote.",
-      "eyebrow": "The fleet",
-      "title": "Rent the city by bike.",
-      "sub": "Pick a model. We handle the rest.",
-      "empty": "No bikes are available right now. Check back soon or message us directly."
-    },
-    "detail": {
-      "back": "Home",
-      "breadcrumb": "Rentals",
-      "sectionCharacteristics": "Characteristics",
-      "sectionAccessories": "Accessories",
-      "priceLabel": "Price",
-      "metaNotFound": "Rental not found",
-      "accessoryPhotoAlt": "Photo of {name}"
-    },
-    "inquiry": {
-      "heading": "Request a quote",
-      "seededMessage": "I'm interested in renting the {bikeName} bike.",
-      "nameLabel": "Name",
-      "namePlaceholder": "Your name",
-      "emailLabel": "Email",
-      "emailPlaceholder": "you@example.com",
-      "messageLabel": "Your message",
-      "submit": "Send inquiry",
-      "sending": "Sending…",
-      "successTitle": "Inquiry sent!",
-      "successBody": "Thanks for reaching out. We'll get back to you about this bike soon.",
-      "sendAnother": "Send another inquiry",
-      "errors": {
-        "name": "Tell us your name.",
-        "email": "That email doesn't look right.",
-        "message": "Please write a slightly longer message.",
-        "unexpected": "Something went wrong. Please try again."
-      }
-    },
     "home": {
       "eyebrow": "Bike rentals",
       "title": "Rather ride on your own?",
-      "sub": "Rent one of our bikes and explore at your own pace.",
-      "cta": "Browse rentals →"
+      "sub": "Rent our bike by the hour and explore at your own pace.",
+      "cta": "Reserve →"
     }
   }
 }

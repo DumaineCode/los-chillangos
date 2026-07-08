@@ -272,9 +272,9 @@
         "adultHint": "Precio completo · 13+",
         "teenLabel": "Adolescentes",
         "teenHint": "12–17 años",
-      "extrasTitle": "Extras",
-      "extrasNone": "No hay extras disponibles para este tour.",
-      "extraInfoAria": "Más información sobre {name}"
+        "extrasTitle": "Extras",
+        "extrasNone": "No hay extras disponibles para este tour.",
+        "extraInfoAria": "Más información sobre {name}"
       },
       "details": {
         "title": "Tus datos",
@@ -375,51 +375,11 @@
     "slotTooLate": "Muy tarde"
   },
   "rentals": {
-    "card": {
-      "view": "VER →"
-    },
-    "catalog": {
-      "metaTitle": "Renta de bicicletas — Los Chillangos",
-      "metaDescription": "Renta una bicicleta en la CDMX. Conoce nuestros modelos, mira qué incluye cada uno y solicita una cotización.",
-      "eyebrow": "La flota",
-      "title": "Recorre la ciudad en bici.",
-      "sub": "Elige un modelo. Nosotros nos encargamos del resto.",
-      "empty": "No hay bicicletas disponibles por ahora. Vuelve pronto o escríbenos directamente."
-    },
-    "detail": {
-      "back": "Inicio",
-      "breadcrumb": "Rentas",
-      "sectionCharacteristics": "Características",
-      "sectionAccessories": "Accesorios",
-      "priceLabel": "Precio",
-      "metaNotFound": "Renta no encontrada",
-      "accessoryPhotoAlt": "Foto de {name}"
-    },
-    "inquiry": {
-      "heading": "Solicita una cotización",
-      "seededMessage": "Me interesa rentar la bicicleta {bikeName}.",
-      "nameLabel": "Nombre",
-      "namePlaceholder": "Tu nombre",
-      "emailLabel": "Correo",
-      "emailPlaceholder": "tu@ejemplo.com",
-      "messageLabel": "Tu mensaje",
-      "submit": "Enviar solicitud",
-      "sending": "Enviando…",
-      "successTitle": "¡Solicitud enviada!",
-      "successBody": "Gracias por escribirnos. Te responderemos pronto sobre esta bicicleta.",
-      "sendAnother": "Enviar otra solicitud",
-      "errors": {
-        "name": "Dinos tu nombre.",
-        "email": "Ese correo no parece válido.",
-        "message": "Escribe un mensaje un poco más largo.",
-        "unexpected": "Algo salió mal. Inténtalo de nuevo."
-      }
-    },
     "home": {
       "eyebrow": "Renta de bicicletas",
       "title": "¿Prefieres rodar por tu cuenta?",
-      "sub": "Renta una de nuestras bicicletas y explora a tu propio ritmo.",
-      "cta": "Ver rentas →"
+      "sub": "Renta nuestra bici por horas y explora a tu propio ritmo.",
+      "cta": "Reservar →"
     }
   }
 }
