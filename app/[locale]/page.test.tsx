@@ -48,11 +48,7 @@ vi.mock('next-intl/server', () => ({
 // assert which hero CTAs route through next-intl (locale prefix) vs plain <a>.
 vi.mock('../../i18n/navigation', () => ({
   Link: ({ href, children, ...rest }: ComponentProps<'a'> & { href: unknown }) => (
-    <a
-      href={typeof href === 'string' ? href : JSON.stringify(href)}
-      data-locale-link=""
-      {...rest}
-    >
+    <a href={typeof href === 'string' ? href : JSON.stringify(href)} data-locale-link="" {...rest}>
       {children}
     </a>
   ),
@@ -283,10 +279,11 @@ describe('HomePage — services strip', () => {
 // ---------------------------------------------------------------------------
 // Visual refresh — hero CTAs (2 → 4) + quote block.
 //
-// The two NEW CTAs (rentals, plan-your-own-trip) render only when their label
-// is non-empty, so pre-refresh CMS rows keep the original 2-CTA hero. Internal
-// routes (/rentals) go through the locale-aware Link; anchors (#tours,
-// #contact) stay plain <a>. The quote block renders only when `quote` has
+// The two extra CTAs (rentals, plan-your-own-trip) render only when their label
+// is non-empty, so pre-refresh CMS rows keep the original 2-CTA hero. The rentals
+// CTA defaults to the on-page anchor #rentals-home; internal routes (e.g. /book)
+// go through the locale-aware Link; anchors (#tours, #rentals-home, #contact)
+// stay plain <a>. The quote block renders only when `quote` has
 // content; its attribution renders only when `quoteAuthor` is non-empty.
 // ---------------------------------------------------------------------------
 
@@ -300,59 +297,69 @@ const FULL_HERO: HeroOverrides = {
 /** Finds a hero CTA anchor by its visible label. */
 const getCtaByLabel = (container: HTMLElement, label: string) =>
   Array.from(container.querySelectorAll('.hero-cine-ctas a')).find((a) =>
-    a.textContent?.includes(label),
+    a.textContent?.includes(label)
   );
 
 describe('HomePage — hero CTAs (visual refresh)', () => {
-  it('renders 4 CTAs in spec order when the new labels are populated', async () => {
+  it('renders the 3 essential CTAs in spec order (ghost/how-we-work dropped)', async () => {
     const { container } = await renderHome(DEFAULT_SERVICES, FULL_HERO);
 
     const ctas = container.querySelectorAll('.hero-cine-ctas a');
-    expect(ctas).toHaveLength(4);
+    expect(ctas).toHaveLength(3);
 
     const labels = Array.from(ctas).map((a) => a.textContent?.replace('→', '').trim());
-    expect(labels).toEqual(['See tours', 'Rent a bike', 'Plan your own trip', 'How we work']);
+    expect(labels).toEqual(['See tours', 'Rent a bike', 'Plan your own trip']);
   });
 
-  it('applies code-side default hrefs for the new CTAs (/rentals, #contact)', async () => {
+  it('applies code-side default hrefs for the new CTAs (#rentals-home, #contact)', async () => {
     const { container } = await renderHome(DEFAULT_SERVICES, FULL_HERO);
 
     expect(getCtaByLabel(container, 'See tours')?.getAttribute('href')).toBe('#tours');
-    expect(getCtaByLabel(container, 'Rent a bike')?.getAttribute('href')).toBe('/rentals');
+    expect(getCtaByLabel(container, 'Rent a bike')?.getAttribute('href')).toBe('#rentals-home');
     expect(getCtaByLabel(container, 'Plan your own trip')?.getAttribute('href')).toBe('#contact');
   });
 
   it('honors CMS-provided hrefs over the code-side defaults', async () => {
     const { container } = await renderHome(DEFAULT_SERVICES, {
       ...FULL_HERO,
-      ctaRentalsHref: '/rentals?bike=city',
+      ctaRentalsHref: '/book?bike=city',
       ctaPlanHref: 'https://wa.me/5255',
     });
 
-    expect(getCtaByLabel(container, 'Rent a bike')?.getAttribute('href')).toBe('/rentals?bike=city');
-    expect(getCtaByLabel(container, 'Plan your own trip')?.getAttribute('href')).toBe('https://wa.me/5255');
+    expect(getCtaByLabel(container, 'Rent a bike')?.getAttribute('href')).toBe('/book?bike=city');
+    expect(getCtaByLabel(container, 'Plan your own trip')?.getAttribute('href')).toBe(
+      'https://wa.me/5255'
+    );
   });
 
-  it('routes /rentals through the locale-aware Link but keeps anchors plain', async () => {
-    const { container } = await renderHome(DEFAULT_SERVICES, FULL_HERO);
+  it('routes internal-route CTAs through the locale-aware Link but keeps anchors plain', async () => {
+    // The default rentals CTA is now the on-page anchor #rentals-home; override it
+    // with a real internal route to prove internal routes use the locale Link.
+    const { container } = await renderHome(DEFAULT_SERVICES, {
+      ...FULL_HERO,
+      ctaRentalsHref: '/book',
+    });
 
     // Internal route → mocked next-intl Link (marked with data-locale-link).
     expect(getCtaByLabel(container, 'Rent a bike')?.hasAttribute('data-locale-link')).toBe(true);
     // Anchors → plain <a>, NOT localized.
     expect(getCtaByLabel(container, 'See tours')?.hasAttribute('data-locale-link')).toBe(false);
-    expect(getCtaByLabel(container, 'Plan your own trip')?.hasAttribute('data-locale-link')).toBe(false);
+    expect(getCtaByLabel(container, 'Plan your own trip')?.hasAttribute('data-locale-link')).toBe(
+      false
+    );
   });
 
-  it('renders only the original 2 CTAs when the new labels are unset (existing rows)', async () => {
+  it('renders only the tours CTA when the rent/plan labels are unset (existing rows)', async () => {
     const { container } = await renderHome(DEFAULT_SERVICES, {
       ctaPrimary: 'See tours',
       ctaGhost: 'How we work',
     });
 
     const ctas = container.querySelectorAll('.hero-cine-ctas a');
-    expect(ctas).toHaveLength(2);
+    expect(ctas).toHaveLength(1);
     expect(ctas[0].textContent).toContain('See tours');
-    expect(ctas[1].textContent).toContain('How we work');
+    // The former ghost CTA (how-we-work) is no longer rendered in the hero.
+    expect(getCtaByLabel(container, 'How we work')).toBeUndefined();
   });
 
   it('treats whitespace-only new labels as empty (no blank buttons)', async () => {
@@ -363,7 +370,7 @@ describe('HomePage — hero CTAs (visual refresh)', () => {
       ctaPlan: '',
     });
 
-    expect(container.querySelectorAll('.hero-cine-ctas a')).toHaveLength(2);
+    expect(container.querySelectorAll('.hero-cine-ctas a')).toHaveLength(1);
   });
 });
 
@@ -442,7 +449,7 @@ describe('HomePage — hero quote as primary heading (inversion)', () => {
     expect(h1!.textContent?.trim()).toBe('Los Chillangos');
     expect(container.querySelectorAll('h1')).toHaveLength(1);
     // The hero itself is unaffected — CTAs still render.
-    expect(container.querySelectorAll('.hero-cine-ctas a')).toHaveLength(4);
+    expect(container.querySelectorAll('.hero-cine-ctas a')).toHaveLength(3);
   });
 });
 
@@ -493,5 +500,92 @@ describe('HomePage — hero quote pink accent markup', () => {
     const h1 = container.querySelector('h1.hero-cine-headline')!;
     expect(h1.querySelector('span.hero-accent')).toBeNull();
     expect(h1.textContent).toBe(QUOTE);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Rentals price list (#rentals-home)
+//
+// The business rents ONE bike in ONE size, so the home block is a simple, CMS-
+// editable PRICE LIST (durations + optional helmet + contact CTA), not a
+// catalog. Copy comes from the Landing `rentals` tab; when no priced duration
+// exists the block degrades to the framing copy + contact CTA.
+// ---------------------------------------------------------------------------
+describe('home rentals price list', () => {
+  type RentalsTab = Record<string, unknown>;
+
+  async function renderHomeWithRentalsTab(rentals: RentalsTab | undefined) {
+    findGlobalMock.mockImplementation(({ slug }: { slug: string }) => {
+      if (slug === 'landing') {
+        return Promise.resolve({ ...buildLanding(DEFAULT_SERVICES, FULL_HERO), rentals });
+      }
+      return Promise.resolve(null);
+    });
+    findMock.mockResolvedValue({ docs: [makeTour()] });
+
+    const ui = await HomePage({ params: Promise.resolve({ locale: 'en' }) });
+    return render(ui);
+  }
+
+  it('renders the editable price list (durations + helmet) and a contact CTA', async () => {
+    const { container } = await renderHomeWithRentalsTab({
+      eyebrow: 'Bike rentals',
+      title: 'Rather ride on your own?',
+      durations: [
+        { id: 'a', label: '1 hour', price: '$150' },
+        { id: 'b', label: '2 hours', price: '$280' },
+      ],
+      helmetLabel: 'Helmet',
+      helmetPrice: '$50',
+      ctaLabel: 'Reserve by WhatsApp',
+      ctaHref: '#contact',
+    });
+
+    const block = container.querySelector('[data-testid="rentals-home-block"]')!;
+    const list = block.querySelector('[data-testid="rental-price-list"]')!;
+    expect(list).not.toBeNull();
+
+    // Each duration row surfaces its label + price verbatim.
+    expect(list.textContent).toContain('1 hour');
+    expect(list.textContent).toContain('$150');
+    expect(list.textContent).toContain('2 hours');
+    expect(list.textContent).toContain('$280');
+
+    // Helmet add-on row renders when both label and price are set.
+    const helmet = block.querySelector('[data-testid="rental-helmet-row"]')!;
+    expect(helmet).not.toBeNull();
+    expect(helmet.textContent).toContain('Helmet');
+    expect(helmet.textContent).toContain('$50');
+
+    // CTA points at the configured destination; #contact is an anchor, so it is a
+    // plain <a> (NOT routed through the locale-aware Link).
+    const cta = block.querySelector('[data-testid="rentals-home-cta"]')!;
+    expect(cta.getAttribute('href')).toBe('#contact');
+    expect(cta.hasAttribute('data-locale-link')).toBe(false);
+  });
+
+  it('omits the helmet row when the helmet price is not set', async () => {
+    const { container } = await renderHomeWithRentalsTab({
+      durations: [{ id: 'a', label: '1 hour', price: '$150' }],
+      helmetLabel: 'Helmet',
+      // no helmetPrice
+      ctaHref: '#contact',
+    });
+
+    const block = container.querySelector('[data-testid="rentals-home-block"]')!;
+    expect(block.querySelector('[data-testid="rental-price-list"]')).not.toBeNull();
+    expect(block.querySelector('[data-testid="rental-helmet-row"]')).toBeNull();
+  });
+
+  it('falls back to framing copy + contact CTA when there are no priced durations', async () => {
+    const { container } = await renderHomeWithRentalsTab(undefined);
+
+    const block = container.querySelector('[data-testid="rentals-home-block"]')!;
+    expect(block.querySelector('[data-testid="rental-price-list"]')).toBeNull();
+    expect(block.querySelector('.section-head')).not.toBeNull();
+
+    // Default CTA destination is the contact section.
+    const cta = block.querySelector('[data-testid="rentals-home-cta"]')!;
+    expect(cta.getAttribute('href')).toBe('#contact');
   });
 });

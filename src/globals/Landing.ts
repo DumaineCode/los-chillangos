@@ -148,20 +148,20 @@ export const Landing: GlobalConfig = {
               label: { en: 'Rentals button — label', es: 'Botón de rentas — texto' },
               admin: {
                 description: {
-                  en: 'Optional. Shown only when filled, e.g. "Rent a bike". Links to the rentals catalog.',
-                  es: 'Opcional. Se muestra solo si tiene texto, ej.: "Renta una bici". Enlaza al catálogo de rentas.',
+                  en: 'Optional. Shown only when filled, e.g. "Rent a bike". Links to the rentals block on the home.',
+                  es: 'Opcional. Se muestra solo si tiene texto, ej.: "Renta una bici". Enlaza al bloque de rentas del inicio.',
                 },
               },
             },
             {
               name: 'ctaRentalsHref',
               type: 'text',
-              defaultValue: '/rentals',
+              defaultValue: '#rentals-home',
               label: { en: 'Rentals button — link', es: 'Botón de rentas — destino' },
               admin: {
                 description: {
-                  en: 'Where the rentals button takes the visitor. Default: "/rentals".',
-                  es: 'A dónde lleva el botón de rentas. Predeterminado: "/rentals".',
+                  en: 'Where the rentals button takes the visitor. Default: "#rentals-home" (the rentals block on the home).',
+                  es: 'A dónde lleva el botón de rentas. Predeterminado: "#rentals-home" (el bloque de rentas del inicio).',
                 },
               },
             },
@@ -182,7 +182,10 @@ export const Landing: GlobalConfig = {
               name: 'ctaPlanHref',
               type: 'text',
               defaultValue: '#contact',
-              label: { en: 'Plan-your-trip button — link', es: 'Botón de viaje a medida — destino' },
+              label: {
+                en: 'Plan-your-trip button — link',
+                es: 'Botón de viaje a medida — destino',
+              },
               admin: {
                 description: {
                   en: 'Where the plan-your-trip button takes the visitor. Default: "#contact".',
@@ -736,11 +739,11 @@ export const Landing: GlobalConfig = {
           ],
         },
         // ── Rentals ──────────────────────────────────────────────────────
-        // Featured bike-rentals home block. Mirrors the other marketing tabs
-        // (eyebrow/title/sub + CTA label, all localized). Like the seasonal tab
-        // it relates to a collection conceptually, but the CTA destination is
-        // the fixed `/rentals` catalog route — so there is no per-row relation,
-        // just localized copy + a link the home page renders.
+        // Bike-rentals home block. The business rents ONE bike model in ONE size,
+        // so this is NOT a catalog — it is a simple, editable PRICE LIST: a set of
+        // duration options (each with its own price) plus an optional helmet
+        // add-on, and a contact CTA. All copy is localized. Online payment is a
+        // future phase; today the CTA points at the contact section.
         {
           name: 'rentals',
           label: { en: 'Bike rentals', es: 'Renta de bicicletas' },
@@ -782,14 +785,94 @@ export const Landing: GlobalConfig = {
               },
             },
             {
+              // Duration/price rows. Editable list so the client adds/removes
+              // options (e.g. 1h, 2h, 4h, 6h) and sets each price from /admin.
+              name: 'durations',
+              type: 'array',
+              labels: {
+                singular: { en: 'Duration option', es: 'Opción de duración' },
+                plural: { en: 'Duration options', es: 'Opciones de duración' },
+              },
+              admin: {
+                description: {
+                  en: 'Each rentable duration and its price, e.g. "1 hour" – "$150".',
+                  es: 'Cada duración rentable y su precio, ej.: "1 hora" – "$150".',
+                },
+              },
+              fields: [
+                {
+                  name: 'label',
+                  type: 'text',
+                  required: true,
+                  localized: true,
+                  label: { en: 'Duration', es: 'Duración' },
+                  admin: {
+                    description: {
+                      en: 'e.g. "1 hour", "2 hours".',
+                      es: 'ej.: "1 hora", "2 horas".',
+                    },
+                  },
+                },
+                {
+                  name: 'price',
+                  type: 'text',
+                  required: true,
+                  label: { en: 'Price', es: 'Precio' },
+                  admin: {
+                    description: {
+                      en: 'Shown as-is, e.g. "$150". No calculation is applied.',
+                      es: 'Se muestra tal cual, ej.: "$150". No se aplica ningún cálculo.',
+                    },
+                  },
+                },
+              ],
+            },
+            {
+              // Optional helmet add-on line (label + price). Rendered only when
+              // both are filled, so it disappears cleanly if not offered.
+              name: 'helmetLabel',
+              type: 'text',
+              localized: true,
+              label: { en: 'Helmet label', es: 'Etiqueta del casco' },
+              admin: {
+                description: {
+                  en: 'Optional helmet add-on label, e.g. "Helmet".',
+                  es: 'Etiqueta opcional del casco, ej.: "Casco".',
+                },
+              },
+            },
+            {
+              name: 'helmetPrice',
+              type: 'text',
+              label: { en: 'Helmet price', es: 'Precio del casco' },
+              admin: {
+                description: {
+                  en: 'Optional helmet price, shown as-is, e.g. "$30".',
+                  es: 'Precio opcional del casco, se muestra tal cual, ej.: "$30".',
+                },
+              },
+            },
+            {
               name: 'ctaLabel',
               type: 'text',
               localized: true,
               label: { en: 'Button label', es: 'Texto del botón' },
               admin: {
                 description: {
-                  en: 'Label on the button that links to the rentals catalog, e.g. "Browse rentals →".',
-                  es: 'Texto del botón que enlaza al catálogo de rentas, ej.: "Ver rentas →".',
+                  en: 'Label on the contact button, e.g. "Reserve by WhatsApp".',
+                  es: 'Texto del botón de contacto, ej.: "Reserva por WhatsApp".',
+                },
+              },
+            },
+            {
+              name: 'ctaHref',
+              type: 'text',
+              defaultValue: '#contact',
+              label: { en: 'Button destination', es: 'Destino del botón' },
+              admin: {
+                description: {
+                  en: 'Where the button goes. Default "#contact" (the contact section). Can be a WhatsApp/phone link.',
+                  es: 'A dónde lleva el botón. Predeterminado "#contact" (la sección de contacto). Puede ser un enlace de WhatsApp/teléfono.',
                 },
               },
             },

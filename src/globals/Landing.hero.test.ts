@@ -10,7 +10,7 @@ import { Landing } from './Landing';
 // famous-Mexican quote with attribution. Labels and the quote are localized
 // marketing copy; hrefs and the author (a proper name) are NOT localized,
 // matching the existing ctaPrimary/ctaGhost convention. Hrefs carry
-// defaultValues so NEW rows point at /rentals and #contact out of the box —
+// defaultValues so NEW rows point at #rentals-home and #contact out of the box —
 // existing rows rely on code-side defaults in the page render.
 // ---------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ describe('Landing — hero tab CTA fields (visual refresh)', () => {
       'hrefs are shared across locales (next-intl Link localizes routes)'
     ).toBeFalsy();
     expect(rentalsHref && 'defaultValue' in rentalsHref && rentalsHref.defaultValue).toBe(
-      '/rentals'
+      '#rentals-home'
     );
 
     const planHref = heroFieldByName('ctaPlanHref');

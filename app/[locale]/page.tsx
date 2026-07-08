@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react';
 import type { Metadata } from 'next';
 import { draftMode } from 'next/headers';
 import Image from 'next/image';
@@ -153,6 +154,16 @@ export default async function HomePage({ params }: Props) {
 
   const tours = toursResult.docs;
 
+  // Rentals price list (from the Landing `rentals` tab). Keep only rows that have
+  // BOTH a label and a price, so a half-filled admin row never renders broken.
+  const rentalDurations = (rentalsBlock?.durations ?? []).filter((d) =>
+    Boolean(d.label && d.price)
+  );
+  const helmetLabel = rentalsBlock?.helmetLabel?.trim() ?? '';
+  const helmetPrice = rentalsBlock?.helmetPrice?.trim() ?? '';
+  const showHelmet = helmetLabel !== '' && helmetPrice !== '';
+  const rentalsCtaHref = rentalsBlock?.ctaHref?.trim() || '#contact';
+
   const valuesItems = (values?.items ?? []).map((v) => ({ t: v.title, d: v.description }));
   const servicesItems = (services?.items ?? []).map((s) => ({ t: s.title, d: s.description }));
   const faqItems = (faq?.items ?? []).map((f) => ({ q: f.question, a: f.answer }));
@@ -184,18 +195,18 @@ export default async function HomePage({ params }: Props) {
   // a number/null). Legacy/null focal → centered, byte-identical to before.
   const heroVideoPosition = resolveMediaImage(hero?.heroVideo)?.objectPosition ?? '50% 50%';
   const heroCtaPrimary = hero?.ctaPrimary ?? '';
-  const heroCtaGhost = hero?.ctaGhost ?? '';
   // CTA destinations are editable per global. Defaults preserve the original
   // anchors so existing rows that pre-date the field render exactly as before.
   const heroCtaPrimaryHref = hero?.ctaPrimaryHref?.trim() || '#tours';
-  const heroCtaGhostHref = hero?.ctaGhostHref?.trim() || '#about';
-  // Visual refresh: two NEW CTAs (rentals, plan-your-own-trip) render only
-  // when their label has content — existing rows that pre-date the fields keep
-  // the original 2-CTA hero untouched. Href defaults are code-side because
-  // Payload defaultValues only apply to rows saved after the field ships.
+  // Hero shows three essential CTAs: tours (primary), rent-a-bike, and
+  // plan-your-own-trip. The former `ctaGhost` (how-we-work) is intentionally
+  // no longer rendered here — the CMS field is kept for data safety only.
+  // rentals + plan render only when their label has content, so pre-refresh
+  // rows degrade gracefully to a single tours CTA. Href defaults are code-side
+  // because Payload defaultValues only apply to rows saved after the field ships.
   const heroCtaRentals = hero?.ctaRentals?.trim() ?? '';
   const heroCtaPlan = hero?.ctaPlan?.trim() ?? '';
-  const heroCtaRentalsHref = hero?.ctaRentalsHref?.trim() || '/rentals';
+  const heroCtaRentalsHref = hero?.ctaRentalsHref?.trim() || '#rentals-home';
   const heroCtaPlanHref = hero?.ctaPlanHref?.trim() || '#contact';
   // Hero heading: the required `quote` is the primary <h1>. Trim so a
   // whitespace-only value is treated as empty and the brand fallback wins in
@@ -296,10 +307,11 @@ export default async function HomePage({ params }: Props) {
           <div className="hero-cine-bot">
             <div className="hero-cine-ctas fade-in" style={{ animationDelay: '0.4s' }}>
               <HeroCta href={heroCtaPrimaryHref} className="btn btn-primary btn-xl">
-                {heroCtaPrimary} →
+                {heroCtaPrimary}
+                <ArrowRight size={18} aria-hidden="true" />
               </HeroCta>
               {heroCtaRentals ? (
-                <HeroCta href={heroCtaRentalsHref} className="btn btn-primary btn-xl">
+                <HeroCta href={heroCtaRentalsHref} className="btn btn-ghost btn-xl">
                   {heroCtaRentals}
                 </HeroCta>
               ) : null}
@@ -308,9 +320,6 @@ export default async function HomePage({ params }: Props) {
                   {heroCtaPlan}
                 </HeroCta>
               ) : null}
-              <HeroCta href={heroCtaGhostHref} className="btn btn-ghost btn-xl">
-                {heroCtaGhost}
-              </HeroCta>
             </div>
           </div>
         </div>
@@ -407,9 +416,13 @@ export default async function HomePage({ params }: Props) {
         </div>
       </section>
 
-      {/* Featured rentals — links to the standalone /rentals catalog. Copy comes
-          from the Landing `rentals` named tab; the CTA destination is the fixed
-          localized /rentals route (next-intl Link applies the locale prefix). */}
+      {/* Bike rentals — simple, editable PRICE LIST. The business rents ONE bike
+          model in ONE size, so this is NOT a catalog: a set of duration options
+          (each with its price) + an optional helmet add-on + a contact CTA. All
+          copy comes from the Landing `rentals` tab (durations/helmet/CTA), with
+          i18n fallbacks for the framing text. When no priced duration exists yet,
+          the block degrades to the editable copy + contact CTA so the home never
+          renders empty. Online payment is a future phase. */}
       <section className="section" id="rentals-home" data-testid="rentals-home-block">
         <div className="container">
           <div className="section-head">
@@ -421,13 +434,47 @@ export default async function HomePage({ params }: Props) {
             </div>
             <p className="section-sub">{rentalsBlock?.sub || tRentals('home.sub')}</p>
           </div>
-          <Link
-            href="/rentals"
-            className="btn btn-primary btn-lg"
-            data-testid="rentals-home-cta"
-          >
-            {rentalsBlock?.ctaLabel || tRentals('home.cta')}
-          </Link>
+
+          {rentalDurations.length > 0 ? (
+            <div className="rental-pricing">
+              <ul className="rental-price-list" data-testid="rental-price-list">
+                {rentalDurations.map((d, i) => (
+                  <li className="rental-price-row" key={d.id ?? i}>
+                    <span className="rental-price-label">{d.label}</span>
+                    <span className="rental-price-dots" aria-hidden="true" />
+                    <span className="rental-price-value">{d.price}</span>
+                  </li>
+                ))}
+                {showHelmet ? (
+                  <li
+                    className="rental-price-row rental-price-row-addon"
+                    data-testid="rental-helmet-row"
+                  >
+                    <span className="rental-price-label">{helmetLabel}</span>
+                    <span className="rental-price-dots" aria-hidden="true" />
+                    <span className="rental-price-value">{helmetPrice}</span>
+                  </li>
+                ) : null}
+              </ul>
+              <div className="rental-pricing-cta">
+                <HeroCta
+                  href={rentalsCtaHref}
+                  className="btn btn-primary btn-lg"
+                  testId="rentals-home-cta"
+                >
+                  {rentalsBlock?.ctaLabel || tRentals('home.cta')}
+                </HeroCta>
+              </div>
+            </div>
+          ) : (
+            <HeroCta
+              href={rentalsCtaHref}
+              className="btn btn-primary btn-lg"
+              testId="rentals-home-cta"
+            >
+              {rentalsBlock?.ctaLabel || tRentals('home.cta')}
+            </HeroCta>
+          )}
         </div>
       </section>
 
@@ -481,11 +528,7 @@ export default async function HomePage({ params }: Props) {
             <div className="testimonial-slider">
               <div className="testimonial-track">
                 {testimonialItems.map((item, i) => (
-                  <article
-                    key={i}
-                    id={`testimonial-${i}`}
-                    className="testimonial-slide"
-                  >
+                  <article key={i} id={`testimonial-${i}`} className="testimonial-slide">
                     <p className="testimonial">{item.quote}</p>
                     <div className="testimonial-meta" style={{ justifyContent: 'center' }}>
                       {item.avatar ? (
@@ -498,7 +541,10 @@ export default async function HomePage({ params }: Props) {
                             alt={item.name || 'Guest'}
                             fill
                             sizes="64px"
-                            style={{ objectFit: 'cover', objectPosition: item.avatar.objectPosition }}
+                            style={{
+                              objectFit: 'cover',
+                              objectPosition: item.avatar.objectPosition,
+                            }}
                           />
                         </div>
                       ) : (
@@ -515,11 +561,7 @@ export default async function HomePage({ params }: Props) {
               {testimonialItems.length > 1 ? (
                 <div className="testimonial-dots" aria-hidden="true">
                   {testimonialItems.map((_, i) => (
-                    <a
-                      key={i}
-                      href={`#testimonial-${i}`}
-                      className="testimonial-dot"
-                    />
+                    <a key={i} href={`#testimonial-${i}`} className="testimonial-dot" />
                   ))}
                 </div>
               ) : null}
@@ -608,15 +650,17 @@ function HeroCta({
   href,
   className,
   children,
+  testId,
 }: {
   href: string;
   className: string;
   children: ReactNode;
+  testId?: string;
 }) {
   const isInternalRoute = href.startsWith('/') && !href.startsWith('//');
   if (isInternalRoute) {
     return (
-      <Link href={href} className={className}>
+      <Link href={href} className={className} data-testid={testId}>
         {children}
       </Link>
     );
@@ -626,6 +670,7 @@ function HeroCta({
     <a
       href={href}
       className={className}
+      data-testid={testId}
       {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
     >
       {children}

@@ -711,7 +711,7 @@ async function seedContentGlobals(
     data: {
       hero: {
         ctaRentals: 'Rent a bike',
-        ctaRentalsHref: '/rentals',
+        ctaRentalsHref: '#rentals-home',
         ctaPlan: 'Plan your own trip',
         ctaPlanHref: '#contact',
         quote: 'Feet, what do I need you for when I have wings to fly?',
@@ -731,6 +731,52 @@ async function seedContentGlobals(
     },
   });
   console.log('[seed] global "landing" hero CTAs + quote upserted (en + es).');
+
+  // --- Landing.rentals (single-bike price list) ---
+  // The business rents ONE bike in ONE size, so the home rentals block is a
+  // simple price list, not a catalog. Seed sample durations + a helmet add-on so
+  // the block is visible immediately; the owner edits prices in /admin. The
+  // duration `label` is localized, so we seed en first, capture the generated row
+  // ids, then update es on the SAME ids (prices are non-localized, kept as-is).
+  const rentalPrices = ['$150', '$280', '$480', '$650'];
+  const rentalLabelsEn = ['1 hour', '2 hours', '4 hours', '6 hours'];
+  const rentalLabelsEs = ['1 hora', '2 horas', '4 horas', '6 horas'];
+  const landingRentalsEn = await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'en',
+    data: {
+      rentals: {
+        eyebrow: 'Bike rentals',
+        title: 'Rather ride on your own?',
+        sub: 'Rent our bike by the hour and explore at your own pace.',
+        durations: rentalLabelsEn.map((label, i) => ({ label, price: rentalPrices[i] })),
+        helmetLabel: 'Helmet',
+        helmetPrice: '$50',
+        ctaLabel: 'Reserve by WhatsApp',
+        ctaHref: '#contact',
+      },
+    },
+  });
+  const rentalDurationIds = (landingRentalsEn.rentals?.durations ?? []).map((d) => d.id);
+  await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'es',
+    data: {
+      rentals: {
+        eyebrow: 'Renta de bicicletas',
+        title: '¿Prefieres rodar por tu cuenta?',
+        sub: 'Renta nuestra bici por horas y explora a tu propio ritmo.',
+        durations: rentalLabelsEs.map((label, i) => ({
+          id: rentalDurationIds[i],
+          label,
+          price: rentalPrices[i],
+        })),
+        helmetLabel: 'Casco',
+        ctaLabel: 'Reserva por WhatsApp',
+      },
+    },
+  });
+  console.log('[seed] global "landing" rentals price list upserted (en + es).');
 }
 
 // ---- Main ----

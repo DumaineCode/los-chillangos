@@ -618,7 +618,7 @@ body:has(.hero-cine) { padding-top: 0; }
 .hero-cine-bot {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 20px;
 }
 .hero-cine-ctas {
@@ -701,9 +701,16 @@ body:has(.hero-cine) { padding-top: 0; }
   .hero-cine-bot {
     gap: 28px;
   }
+  /* Three CTAs stack full-width for easy tapping; labels never truncate. */
   .hero-cine-ctas {
+    flex-direction: column;
     align-items: stretch;
-    gap: 10px;
+    width: 100%;
+    max-width: 420px;
+    gap: 12px;
+  }
+  .hero-cine-ctas .btn-xl {
+    width: 100%;
   }
 }
 
@@ -712,13 +719,7 @@ body:has(.hero-cine) { padding-top: 0; }
   .hero-cine-quote-h1 {
     font-size: clamp(44px, 13vw, 72px);
   }
-  /* 4 CTAs stack into a 2x2 grid; .btn-xl steps down near .btn-lg size.
-     Labels may wrap inside the fixed columns instead of overflowing. */
-  .hero-cine-ctas {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
+  /* Narrow phones: keep the full-width stack but step the size down. */
   .hero-cine-ctas .btn-xl {
     padding: 18px 24px;
     font-size: 15px;
@@ -1057,6 +1058,49 @@ body:has(.hero-cine) { padding-top: 0; }
   line-height: 1.65;
   color: var(--ink-soft);
   margin: 0 0 16px;
+}
+
+/* === Rentals price list (#rentals-home) ===
+   One bike, one size — so the block is a simple price table: each rentable
+   duration (and an optional helmet add-on) as a label…dotted-leader…price row,
+   followed by a contact CTA. No catalog, no cards. */
+.rental-pricing {
+  max-width: 640px;
+}
+.rental-price-list {
+  list-style: none;
+  margin: 0 0 32px;
+  padding: 0;
+}
+.rental-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.rental-price-row:first-child {
+  border-top: 1px solid var(--line);
+}
+.rental-price-row-addon .rental-price-label {
+  color: var(--ink-soft);
+}
+.rental-price-label {
+  font-family: var(--serif);
+  font-size: clamp(20px, 2.4vw, 28px);
+  line-height: 1;
+}
+.rental-price-dots {
+  flex: 1;
+  align-self: end;
+  margin-bottom: 6px;
+  border-bottom: 1px dotted var(--line);
+}
+.rental-price-value {
+  font-family: var(--mono);
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 /* === Services strip (inside #tours) ===
