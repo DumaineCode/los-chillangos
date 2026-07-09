@@ -176,26 +176,31 @@ async function main(): Promise<void> {
     console.log(`[seed:seasonal] tour "${SLUG}" created as draft (id ${tourId}).`);
   }
 
-  // --- Point the seasonalFeature global at this tour ---
+  // --- Point the landing.seasonal tab at this tour ---
+  // PRECONDITION: run `pnpm seed` first. On a completely fresh database the
+  // `landing` doc does not exist yet and this partial write would fail the
+  // required `hero.quote` validation — `pnpm seed` creates the doc with it.
   // Guarded: runs whether the tour was just created or already existed, so a
   // re-run is safe. The highlight only renders once the tour is PUBLISHED (the
   // landing query enforces _status: published + isSeasonal), so enabling here
   // never surfaces a draft — it just pre-wires the pointer for the owner.
   await payload.updateGlobal({
-    slug: 'seasonalFeature',
+    slug: 'landing',
     locale: 'en',
     data: {
-      enabled: true,
-      eyebrow: 'Seasonal event',
-      featuredSeasonalTour: tourId,
+      seasonal: {
+        enabled: true,
+        eyebrow: 'Seasonal event',
+        featuredSeasonalTour: tourId,
+      },
     },
   });
   await payload.updateGlobal({
-    slug: 'seasonalFeature',
+    slug: 'landing',
     locale: 'es',
-    data: { eyebrow: 'Evento de temporada' },
+    data: { seasonal: { eyebrow: 'Evento de temporada' } },
   });
-  console.log(`[seed:seasonal] seasonalFeature → tour ${tourId} (enabled, en + es eyebrow).`);
+  console.log(`[seed:seasonal] landing.seasonal → tour ${tourId} (enabled, en + es eyebrow).`);
 
   console.log('[seed:seasonal] Done.');
   process.exit(0);

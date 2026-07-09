@@ -19,18 +19,9 @@ import { ContactMessages } from './collections/ContactMessages';
 import { Landing } from './globals/Landing';
 import { Navigation } from './globals/Navigation';
 import { ContactInfo } from './globals/ContactInfo';
-import { Hero } from './globals/Hero';
-import { Marquee } from './globals/Marquee';
-import { Values } from './globals/Values';
-import { About } from './globals/About';
-import { Testimonial } from './globals/Testimonial';
-import { Services } from './globals/Services';
-import { Team } from './globals/Team';
-import { Faq } from './globals/Faq';
 import { Footer } from './globals/Footer';
 import { SocialLinks } from './globals/SocialLinks';
 import { Branding } from './globals/Branding';
-import { SeasonalFeature } from './globals/SeasonalFeature';
 import { EmailContent } from './globals/EmailContent';
 import { BookingSettings } from './globals/BookingSettings';
 
@@ -162,18 +153,6 @@ export default buildConfig({
     Branding,
     EmailContent,
     BookingSettings,
-    // ── Legacy per-section globals — hidden from the nav (admin.hidden) but
-    // kept registered so their data survives as the migration source + rollback
-    // safety net. Remove only after the Landing migration is verified in prod.
-    Hero,
-    Marquee,
-    Values,
-    About,
-    Testimonial,
-    Services,
-    Team,
-    Faq,
-    SeasonalFeature,
   ],
   // Admin INTERFACE language (chrome: buttons, menus, system messages, errors).
   // Distinct from `localization` below, which governs CONTENT values (en/es).

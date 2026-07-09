@@ -50,7 +50,7 @@ interface I18nHero {
   h1d: string;
   lede: string;
   ctaPrimary: string;
-  ctaGhost: string;
+
 }
 
 interface I18nFooter {
@@ -127,28 +127,7 @@ function loadLegacyData(): { I18N: I18N; TOURS: RawTour[] } | null {
 
 // ---- Load next-intl message bundles (source for the content globals) ----
 
-interface HeroStat {
-  num: string;
-  label: string;
-}
-
 interface Messages {
-  hero: {
-    live: string;
-    estLabel: string;
-    neighborhoods: string;
-    scroll: string;
-    stats: {
-      routesNum: string;
-      routesLbl: string;
-      perTourNum: string;
-      perTourLbl: string;
-      groupNum: string;
-      groupLbl: string;
-      ratingNum: string;
-      ratingLbl: string;
-    };
-  };
   marquee: string;
   values: {
     eyebrow: string;
@@ -189,16 +168,6 @@ interface Messages {
 function loadMessages(locale: Locale): Messages {
   const msgPath = resolve(here, '..', 'messages', `${locale}.json`);
   return JSON.parse(readFileSync(msgPath, 'utf8')) as Messages;
-}
-
-function heroStatsFrom(m: Messages): HeroStat[] {
-  const s = m.hero.stats;
-  return [
-    { num: s.routesNum, label: s.routesLbl },
-    { num: s.perTourNum, label: s.perTourLbl },
-    { num: s.groupNum, label: s.groupLbl },
-    { num: s.ratingNum, label: s.ratingLbl },
-  ];
 }
 
 // ---- Map tagColor: data.js uses "default" for unset; map to undefined ----
@@ -384,36 +353,18 @@ async function seedGlobals(
   });
   console.log('[seed] global "contact-info" upserted (en + es).');
 
-  // --- Hero ---
+  // --- Landing.hero primary CTA (legacy i18n copy → consolidated landing global) ---
   await payload.updateGlobal({
-    slug: 'hero',
+    slug: 'landing',
     locale: 'en',
-    data: {
-      eyebrow: i18n.en.hero.eyebrow,
-      h1a: i18n.en.hero.h1a,
-      h1b: i18n.en.hero.h1b,
-      h1c: i18n.en.hero.h1c,
-      h1d: i18n.en.hero.h1d,
-      lede: i18n.en.hero.lede,
-      ctaPrimary: i18n.en.hero.ctaPrimary,
-      ctaGhost: i18n.en.hero.ctaGhost,
-    },
+    data: { hero: { ctaPrimary: i18n.en.hero.ctaPrimary } },
   });
   await payload.updateGlobal({
-    slug: 'hero',
+    slug: 'landing',
     locale: 'es',
-    data: {
-      eyebrow: i18n.es.hero.eyebrow,
-      h1a: i18n.es.hero.h1a,
-      h1b: i18n.es.hero.h1b,
-      h1c: i18n.es.hero.h1c,
-      h1d: i18n.es.hero.h1d,
-      lede: i18n.es.hero.lede,
-      ctaPrimary: i18n.es.hero.ctaPrimary,
-      ctaGhost: i18n.es.hero.ctaGhost,
-    },
+    data: { hero: { ctaPrimary: i18n.es.hero.ctaPrimary } },
   });
-  console.log('[seed] global "hero" upserted (en + es).');
+  console.log('[seed] global "landing" hero primary CTA upserted (en + es).');
 
   // --- Footer ---
   // Same 2-pass pattern as Navigation (columns[].title and columns[].links[].label
@@ -501,208 +452,23 @@ async function seedGlobals(
 
 // ---- Seed: content globals (sourced from messages/*.json) ----
 //
-// These globals were migrated out of the next-intl JSON so the owner can edit
-// every homepage section from /admin. They do NOT depend on the legacy
-// `data.js`, so they always seed (even after legacy cleanup). All writes are
-// partial upserts — fields not listed here (e.g. uploaded images) are kept.
+// Homepage section copy migrated out of the next-intl JSON so the owner can
+// edit every section from /admin. Everything lives on the consolidated
+// `landing` global (one named tab per section). These writes do NOT depend on
+// the legacy `data.js`, so they always seed. All writes are partial upserts —
+// fields not listed here (e.g. uploaded images) are kept.
 
 async function seedContentGlobals(
   payload: Awaited<ReturnType<typeof getPayload>>,
   msgEn: Messages,
   msgEs: Messages
 ): Promise<void> {
-  // --- Hero (new fields only; legacy text seeded in seedGlobals or already in DB) ---
-  // `stats` is an array with a localized `label` + non-localized `num`, so it
-  // needs the 2-pass id-preserving pattern.
-  const heroEn = await payload.updateGlobal({
-    slug: 'hero',
-    locale: 'en',
-    data: {
-      live: msgEn.hero.live,
-      estLabel: msgEn.hero.estLabel,
-      neighborhoods: msgEn.hero.neighborhoods,
-      scroll: msgEn.hero.scroll,
-      stats: heroStatsFrom(msgEn),
-    },
-  });
-  const heroEsStats = heroStatsFrom(msgEs);
-  await payload.updateGlobal({
-    slug: 'hero',
-    locale: 'es',
-    data: {
-      live: msgEs.hero.live,
-      estLabel: msgEs.hero.estLabel,
-      neighborhoods: msgEs.hero.neighborhoods,
-      scroll: msgEs.hero.scroll,
-      stats: (heroEn.stats ?? []).map((stat, i) => ({
-        id: stat.id,
-        num: stat.num,
-        label: heroEsStats[i]?.label,
-      })),
-    },
-  });
-  console.log('[seed] global "hero" content fields upserted (en + es).');
-
-  // --- Marquee ---
-  await payload.updateGlobal({ slug: 'marquee', locale: 'en', data: { text: msgEn.marquee } });
-  await payload.updateGlobal({ slug: 'marquee', locale: 'es', data: { text: msgEs.marquee } });
-  console.log('[seed] global "marquee" upserted (en + es).');
-
-  // --- Values ---
-  const valuesEn = await payload.updateGlobal({
-    slug: 'values',
-    locale: 'en',
-    data: {
-      eyebrow: msgEn.values.eyebrow,
-      title: msgEn.values.title,
-      sub: msgEn.values.sub,
-      items: msgEn.values.items.map((it) => ({ title: it.t, description: it.d })),
-    },
-  });
-  await payload.updateGlobal({
-    slug: 'values',
-    locale: 'es',
-    data: {
-      eyebrow: msgEs.values.eyebrow,
-      title: msgEs.values.title,
-      sub: msgEs.values.sub,
-      items: (valuesEn.items ?? []).map((it, i) => ({
-        id: it.id,
-        title: msgEs.values.items[i]?.t,
-        description: msgEs.values.items[i]?.d,
-      })),
-    },
-  });
-  console.log('[seed] global "values" upserted (en + es).');
-
-  // --- About (editorial) ---
-  await payload.updateGlobal({
-    slug: 'about',
-    locale: 'en',
-    data: {
-      eyebrow: msgEn.editorial.eyebrow,
-      title: msgEn.editorial.title,
-      p1: msgEn.editorial.p1,
-      p2: msgEn.editorial.p2,
-      meetCta: msgEn.editorial.meetCta,
-      imageLabel: msgEn.editorial.imageLabel,
-    },
-  });
-  await payload.updateGlobal({
-    slug: 'about',
-    locale: 'es',
-    data: {
-      eyebrow: msgEs.editorial.eyebrow,
-      title: msgEs.editorial.title,
-      p1: msgEs.editorial.p1,
-      p2: msgEs.editorial.p2,
-      meetCta: msgEs.editorial.meetCta,
-      imageLabel: msgEs.editorial.imageLabel,
-    },
-  });
-  console.log('[seed] global "about" upserted (en + es).');
-
-  // --- Testimonial ---
-  // `name` is non-localized; set it on en (applies to both). quote/loc localized.
-  const testimonialEn = await payload.updateGlobal({
-    slug: 'testimonial',
-    locale: 'en',
-    data: {
-      eyebrow: msgEn.testimonial.eyebrow,
-      items: msgEn.testimonial.items.map((it) => ({
-        quote: it.quote,
-        name: it.name,
-        loc: it.loc,
-      })),
-    },
-  });
-  await payload.updateGlobal({
-    slug: 'testimonial',
-    locale: 'es',
-    data: {
-      eyebrow: msgEs.testimonial.eyebrow,
-      items: (testimonialEn.items ?? []).map((it, i) => ({
-        id: it.id,
-        quote: msgEs.testimonial.items[i]?.quote,
-        loc: msgEs.testimonial.items[i]?.loc,
-      })),
-    },
-  });
-  console.log('[seed] global "testimonial" upserted (en + es).');
-
-  // --- Services ---
-  const servicesEn = await payload.updateGlobal({
-    slug: 'services',
-    locale: 'en',
-    data: {
-      eyebrow: msgEn.services.eyebrow,
-      title: msgEn.services.title,
-      sub: msgEn.services.sub,
-      inquireCta: msgEn.services.inquireCta,
-      items: msgEn.services.items.map((it) => ({ title: it.t, description: it.d })),
-    },
-  });
-  await payload.updateGlobal({
-    slug: 'services',
-    locale: 'es',
-    data: {
-      eyebrow: msgEs.services.eyebrow,
-      title: msgEs.services.title,
-      sub: msgEs.services.sub,
-      inquireCta: msgEs.services.inquireCta,
-      items: (servicesEn.items ?? []).map((it, i) => ({
-        id: it.id,
-        title: msgEs.services.items[i]?.t,
-        description: msgEs.services.items[i]?.d,
-      })),
-    },
-  });
-  console.log('[seed] global "services" upserted (en + es).');
-
-  // --- Faq ---
-  const faqEn = await payload.updateGlobal({
-    slug: 'faq',
-    locale: 'en',
-    data: {
-      eyebrow: msgEn.faq.eyebrow,
-      title: msgEn.faq.title,
-      items: msgEn.faq.items.map((it) => ({ question: it.q, answer: it.a })),
-    },
-  });
-  await payload.updateGlobal({
-    slug: 'faq',
-    locale: 'es',
-    data: {
-      eyebrow: msgEs.faq.eyebrow,
-      title: msgEs.faq.title,
-      items: (faqEn.items ?? []).map((it, i) => ({
-        id: it.id,
-        question: msgEs.faq.items[i]?.q,
-        answer: msgEs.faq.items[i]?.a,
-      })),
-    },
-  });
-  console.log('[seed] global "faq" upserted (en + es).');
-
-  // --- ContactInfo.address2 (partial upsert; non-localized) ---
-  await payload.updateGlobal({
-    slug: 'contact-info',
-    locale: 'en',
-    data: { address2: msgEn.footer.address2 },
-  });
-  console.log('[seed] global "contact-info" address2 upserted.');
-
-  // --- Footer.geoLabel (partial upsert; non-localized) ---
-  await payload.updateGlobal({
-    slug: 'footer',
-    locale: 'en',
-    data: { geoLabel: msgEn.footer.geoLabel },
-  });
-  console.log('[seed] global "footer" geoLabel upserted.');
-
-  // --- Landing.hero (visual refresh: rentals/plan CTAs + quote) ---
-  // Partial upsert on the consolidated `landing` global: only the new hero
-  // fields are written; headline, media and the original CTA pair are kept.
+  // --- Landing.hero (rentals/plan CTAs + quote) ---
+  // MUST run FIRST among the `landing` writes: `hero.quote` is required, and on
+  // a FRESH database Payload validates required fields against the merged
+  // (existing + patch) doc — with no existing doc, the first `landing` write
+  // fails unless it supplies the quote itself. Every later write is a partial
+  // upsert against the then-existing doc, so ordering only matters here.
   // Hrefs and the author (a proper name) are non-localized → en pass only.
   // The Frida Kahlo quote is a seeded default the owner can replace in /admin.
   await payload.updateGlobal({
@@ -730,7 +496,192 @@ async function seedContentGlobals(
       },
     },
   });
-  console.log('[seed] global "landing" hero CTAs + quote upserted (en + es).');
+  console.log('[seed] landing.hero CTAs + quote upserted (en + es).');
+
+  // --- Marquee ---
+  await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'en',
+    data: { marquee: { text: msgEn.marquee } },
+  });
+  await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'es',
+    data: { marquee: { text: msgEs.marquee } },
+  });
+  console.log('[seed] landing.marquee upserted (en + es).');
+
+  // --- Values ---
+  const landingValuesEn = await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'en',
+    data: {
+      values: {
+        eyebrow: msgEn.values.eyebrow,
+        title: msgEn.values.title,
+        sub: msgEn.values.sub,
+        items: msgEn.values.items.map((it) => ({ title: it.t, description: it.d })),
+      },
+    },
+  });
+  await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'es',
+    data: {
+      values: {
+        eyebrow: msgEs.values.eyebrow,
+        title: msgEs.values.title,
+        sub: msgEs.values.sub,
+        items: (landingValuesEn.values?.items ?? []).map((it, i) => ({
+          id: it.id,
+          title: msgEs.values.items[i]?.t,
+          description: msgEs.values.items[i]?.d,
+        })),
+      },
+    },
+  });
+  console.log('[seed] landing.values upserted (en + es).');
+
+  // --- About (editorial) ---
+  await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'en',
+    data: {
+      about: {
+        eyebrow: msgEn.editorial.eyebrow,
+        title: msgEn.editorial.title,
+        p1: msgEn.editorial.p1,
+        p2: msgEn.editorial.p2,
+        meetCta: msgEn.editorial.meetCta,
+        imageLabel: msgEn.editorial.imageLabel,
+      },
+    },
+  });
+  await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'es',
+    data: {
+      about: {
+        eyebrow: msgEs.editorial.eyebrow,
+        title: msgEs.editorial.title,
+        p1: msgEs.editorial.p1,
+        p2: msgEs.editorial.p2,
+        meetCta: msgEs.editorial.meetCta,
+        imageLabel: msgEs.editorial.imageLabel,
+      },
+    },
+  });
+  console.log('[seed] landing.about upserted (en + es).');
+
+  // --- Testimonial ---
+  // `name` is non-localized; set it on en (applies to both). quote/loc localized.
+  const landingTestimonialEn = await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'en',
+    data: {
+      testimonial: {
+        eyebrow: msgEn.testimonial.eyebrow,
+        items: msgEn.testimonial.items.map((it) => ({
+          quote: it.quote,
+          name: it.name,
+          loc: it.loc,
+        })),
+      },
+    },
+  });
+  await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'es',
+    data: {
+      testimonial: {
+        eyebrow: msgEs.testimonial.eyebrow,
+        items: (landingTestimonialEn.testimonial?.items ?? []).map((it, i) => ({
+          id: it.id,
+          quote: msgEs.testimonial.items[i]?.quote,
+          loc: msgEs.testimonial.items[i]?.loc,
+        })),
+      },
+    },
+  });
+  console.log('[seed] landing.testimonial upserted (en + es).');
+
+  // --- Services ---
+  const landingServicesEn = await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'en',
+    data: {
+      services: {
+        eyebrow: msgEn.services.eyebrow,
+        title: msgEn.services.title,
+        sub: msgEn.services.sub,
+        inquireCta: msgEn.services.inquireCta,
+        items: msgEn.services.items.map((it) => ({ title: it.t, description: it.d })),
+      },
+    },
+  });
+  await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'es',
+    data: {
+      services: {
+        eyebrow: msgEs.services.eyebrow,
+        title: msgEs.services.title,
+        sub: msgEs.services.sub,
+        inquireCta: msgEs.services.inquireCta,
+        items: (landingServicesEn.services?.items ?? []).map((it, i) => ({
+          id: it.id,
+          title: msgEs.services.items[i]?.t,
+          description: msgEs.services.items[i]?.d,
+        })),
+      },
+    },
+  });
+  console.log('[seed] landing.services upserted (en + es).');
+
+  // --- Faq ---
+  const landingFaqEn = await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'en',
+    data: {
+      faq: {
+        eyebrow: msgEn.faq.eyebrow,
+        title: msgEn.faq.title,
+        items: msgEn.faq.items.map((it) => ({ question: it.q, answer: it.a })),
+      },
+    },
+  });
+  await payload.updateGlobal({
+    slug: 'landing',
+    locale: 'es',
+    data: {
+      faq: {
+        eyebrow: msgEs.faq.eyebrow,
+        title: msgEs.faq.title,
+        items: (landingFaqEn.faq?.items ?? []).map((it, i) => ({
+          id: it.id,
+          question: msgEs.faq.items[i]?.q,
+          answer: msgEs.faq.items[i]?.a,
+        })),
+      },
+    },
+  });
+  console.log('[seed] landing.faq upserted (en + es).');
+
+  // --- ContactInfo.address2 (partial upsert; non-localized) ---
+  await payload.updateGlobal({
+    slug: 'contact-info',
+    locale: 'en',
+    data: { address2: msgEn.footer.address2 },
+  });
+  console.log('[seed] global "contact-info" address2 upserted.');
+
+  // --- Footer.geoLabel (partial upsert; non-localized) ---
+  await payload.updateGlobal({
+    slug: 'footer',
+    locale: 'en',
+    data: { geoLabel: msgEn.footer.geoLabel },
+  });
+  console.log('[seed] global "footer" geoLabel upserted.');
 
   // --- Landing.rentals (single-bike price list) ---
   // The business rents ONE bike in ONE size, so the home rentals block is a
@@ -787,6 +738,12 @@ async function main(): Promise<void> {
   const msgEs = loadMessages('es');
   const payload = await getPayload({ config });
 
+  // Content globals FIRST: their initial write creates the `landing` doc with
+  // the required `hero.quote`, so the partial `landing` upserts inside
+  // `seedGlobals` (hero.ctaPrimary) validate cleanly even on a fresh database.
+  console.log('[seed] Seeding content globals (homepage sections)…');
+  await seedContentGlobals(payload, msgEn, msgEs);
+
   if (legacy) {
     console.log('[seed] Seeding legacy globals…');
     await seedGlobals(payload, legacy.I18N);
@@ -794,9 +751,6 @@ async function main(): Promise<void> {
     console.log('[seed] Seeding tours…');
     await seedTours(payload, legacy.TOURS, legacy.I18N);
   }
-
-  console.log('[seed] Seeding content globals (homepage sections)…');
-  await seedContentGlobals(payload, msgEn, msgEs);
 
   console.log('[seed] Done.');
   process.exit(0);

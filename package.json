@@ -23,7 +23,6 @@
     "seed": "tsx scripts/seed.ts",
     "seed:seasonal": "tsx scripts/seed-seasonal.ts",
     "seed:all": "pnpm seed:admin && pnpm seed",
-    "seed:hero": "tsx scripts/seed-hero.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
