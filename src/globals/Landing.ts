@@ -12,15 +12,16 @@ import { NAV_GROUPS } from '../admin/navGroups';
  * edits the whole landing — top to bottom — instead of hunting through the
  * sidebar.
  *
+ * Tab ORDER mirrors the order the sections appear on the rendered homepage
+ * (hero → marquee → values → seasonal → tours header → services → rentals →
+ * about → testimonial → faq → team) and each tab label is numbered so the
+ * editor always knows where on the page they are editing.
+ *
  * Why named tabs (not unnamed like Tours): the sections collide on field names
  * (`eyebrow`, `title`, `sub`, `items` repeat across sections), so each tab
  * MUST namespace its data. The stored/read shape is therefore nested:
  * `landing.hero.eyebrow`, `landing.values.items`, `landing.seasonal.enabled`, …
  *
- * Field definitions are copied 1:1 from the legacy globals so the migration
- * (`scripts/migrate-landing.ts`) is a straight value copy. The legacy globals
- * remain registered but `admin.hidden` until the migration is verified in
- * production — they are the rollback/source-of-truth safety net.
  *
  * Live Preview: split-screen editor where the client sees the real homepage
  * re-render. The iframe loads `/next/preview`, which validates the user, enables
@@ -64,7 +65,7 @@ export const Landing: GlobalConfig = {
         // ── Hero ─────────────────────────────────────────────────────────
         {
           name: 'hero',
-          label: { en: 'Hero', es: 'Portada' },
+          label: { en: '1. Hero', es: '1. Portada' },
           fields: [
             // ── Hero heading (the quote) ─────────────────────────────────
             // The quote IS the primary hero heading (rendered as the single
@@ -114,25 +115,6 @@ export const Landing: GlobalConfig = {
                 description: {
                   en: 'Where the primary button takes the visitor. Examples: "#tours" (section on the home page), "/book" (another page on your site), "https://wa.me/52...".',
                   es: 'A dónde lleva el botón principal. Ejemplos: "#tours" (una sección de la página de inicio), "/book" (otra página de tu sitio), "https://wa.me/52...".',
-                },
-              },
-            },
-            // ── Secondary button (label + link) ──────────────────────────
-            {
-              name: 'ctaGhost',
-              type: 'text',
-              localized: true,
-              label: { en: 'Secondary button — label', es: 'Botón secundario — texto' },
-            },
-            {
-              name: 'ctaGhostHref',
-              type: 'text',
-              defaultValue: '#about',
-              label: { en: 'Secondary button — link', es: 'Botón secundario — destino' },
-              admin: {
-                description: {
-                  en: 'Where the secondary button takes the visitor. Examples: "#about", "/services", "mailto:hola@…".',
-                  es: 'A dónde lleva el botón secundario. Ejemplos: "#about", "/services", "mailto:hola@…".',
                 },
               },
             },
@@ -233,25 +215,12 @@ export const Landing: GlobalConfig = {
                 },
               },
             },
-            {
-              name: 'posterImage',
-              type: 'upload',
-              relationTo: 'media',
-              label: { en: 'Poster image', es: 'Imagen de póster' },
-              admin: {
-                condition: (_, siblingData) => siblingData?.mediaType === 'video',
-                description: {
-                  en: 'Poster: first paint (LCP) + mobile/reduced-motion still. Strongly recommended.',
-                  es: 'Póster: imagen inicial y para móvil o con menos movimiento. Muy recomendable.',
-                },
-              },
-            },
           ],
         },
         // ── Marquee ──────────────────────────────────────────────────────
         {
           name: 'marquee',
-          label: { en: 'Marquee', es: 'Cinta de texto' },
+          label: { en: '2. Marquee', es: '2. Cinta de texto' },
           fields: [
             {
               name: 'text',
@@ -270,7 +239,7 @@ export const Landing: GlobalConfig = {
         // ── Values ───────────────────────────────────────────────────────
         {
           name: 'values',
-          label: { en: 'Values', es: 'Valores' },
+          label: { en: '3. Values', es: '3. Valores' },
           fields: [
             {
               name: 'eyebrow',
@@ -323,11 +292,23 @@ export const Landing: GlobalConfig = {
             },
           ],
         },
-        // ── About ────────────────────────────────────────────────────────
+        // ── Seasonal ─────────────────────────────────────────────────────
         {
-          name: 'about',
-          label: { en: 'About', es: 'Sobre nosotros' },
+          name: 'seasonal',
+          label: { en: '4. Seasonal', es: '4. Temporada' },
           fields: [
+            {
+              name: 'enabled',
+              type: 'checkbox',
+              defaultValue: false,
+              label: { en: 'Show on home page', es: 'Mostrar en la página de inicio' },
+              admin: {
+                description: {
+                  en: 'Show the seasonal highlight on the landing page.',
+                  es: 'Muestra el destacado de temporada en la página de inicio.',
+                },
+              },
+            },
             {
               name: 'eyebrow',
               type: 'text',
@@ -335,94 +316,34 @@ export const Landing: GlobalConfig = {
               label: { en: 'Eyebrow', es: 'Antetítulo' },
               admin: {
                 description: {
-                  en: 'Small label, e.g. "Our approach".',
-                  es: 'Etiqueta pequeña, ej.: "Nuestra forma de trabajar".',
+                  en: 'Small label above the highlight, e.g. "This season".',
+                  es: 'Etiqueta pequeña sobre el destacado, ej.: "Esta temporada".',
                 },
               },
             },
             {
-              name: 'title',
-              type: 'textarea',
-              localized: true,
-              label: { en: 'Title', es: 'Título' },
-            },
-            {
-              name: 'p1',
-              type: 'textarea',
-              localized: true,
-              label: { en: 'Paragraph 1', es: 'Párrafo 1' },
-              admin: { description: { en: 'First paragraph.', es: 'Primer párrafo.' } },
-            },
-            {
-              name: 'p2',
-              type: 'textarea',
-              localized: true,
-              label: { en: 'Paragraph 2', es: 'Párrafo 2' },
-              admin: { description: { en: 'Second paragraph.', es: 'Segundo párrafo.' } },
-            },
-            {
-              name: 'meetCta',
-              type: 'text',
-              localized: true,
-              label: { en: 'Button label', es: 'Texto del botón' },
+              name: 'featuredSeasonalTour',
+              type: 'relationship',
+              relationTo: 'tours',
+              hasMany: false,
+              label: { en: 'Featured seasonal tour', es: 'Tour de temporada destacado' },
               admin: {
                 description: {
-                  en: 'Button label, e.g. "Meet the guides →".',
-                  es: 'Texto del botón, ej.: "Conoce a los guías →".',
-                },
-              },
-            },
-            {
-              name: 'image',
-              type: 'upload',
-              relationTo: 'media',
-              label: { en: 'Image (fallback)', es: 'Imagen (alternativa)' },
-              admin: {
-                description: {
-                  en: 'Single photo, used only when the gallery below is empty. If both are empty, a placeholder is shown.',
-                  es: 'Foto única, se usa solo cuando la galería de abajo está vacía. Si ambas están vacías, se muestra un marcador de posición.',
-                },
-              },
-            },
-            {
-              name: 'images',
-              type: 'array',
-              label: { en: 'Image gallery (slider)', es: 'Galería de imágenes (slider)' },
-              maxRows: 8,
-              admin: {
-                description: {
-                  en: 'Upload one or more photos. With two or more, they auto-rotate as a slider in the same image frame (no design change). Swipe or drag also works.',
-                  es: 'Subí una o más fotos. Con dos o más, rotan solas como slider en el mismo marco de imagen (sin cambiar el diseño). También se puede deslizar o arrastrar.',
-                },
-              },
-              fields: [
-                {
-                  name: 'image',
-                  type: 'upload',
-                  relationTo: 'media',
-                  required: true,
-                  label: { en: 'Photo', es: 'Foto' },
-                },
-              ],
-            },
-            {
-              name: 'imageLabel',
-              type: 'text',
-              localized: true,
-              label: { en: 'Image caption', es: 'Leyenda de la imagen' },
-              admin: {
-                description: {
-                  en: 'Caption shown over the placeholder when no image is uploaded.',
-                  es: 'Leyenda que se muestra sobre el marcador cuando no se ha subido una imagen.',
+                  en: 'The seasonal tour to highlight. Must be published and marked seasonal.',
+                  es: 'El tour de temporada a destacar. Debe estar publicado y marcado como de temporada.',
                 },
               },
             },
           ],
         },
-        // ── Testimonial ──────────────────────────────────────────────────
+        // ── Tours (section header) ─────────────────────────────────────────
+        // Header copy for the tours-catalog section. The tours themselves are
+        // managed in the Tours collection; this tab only edits the eyebrow /
+        // title / subheading shown above the catalog grid. Empty fields fall
+        // back to the built-in i18n copy so the section never renders blank.
         {
-          name: 'testimonial',
-          label: { en: 'Testimonial', es: 'Testimonio' },
+          name: 'tours',
+          label: { en: '5. Tours (header)', es: '5. Tours (encabezado)' },
           fields: [
             {
               name: 'eyebrow',
@@ -431,71 +352,41 @@ export const Landing: GlobalConfig = {
               label: { en: 'Eyebrow', es: 'Antetítulo' },
               admin: {
                 description: {
-                  en: 'Small label, e.g. "Notes from guests".',
-                  es: 'Etiqueta pequeña, ej.: "Lo que dicen los viajeros".',
+                  en: 'Small label above the tours catalog, e.g. "Choose your ride". Leave empty to use the built-in default.',
+                  es: 'Etiqueta pequeña sobre el catálogo de tours, ej.: "Elige tu ruta". Déjalo vacío para usar el texto predeterminado.',
                 },
               },
             },
             {
-              name: 'items',
-              type: 'array',
-              label: { en: 'Testimonials', es: 'Testimonios' },
+              name: 'title',
+              type: 'text',
+              localized: true,
+              label: { en: 'Title', es: 'Título' },
               admin: {
                 description: {
-                  en: 'Each entry is a full testimonial shown in the slider. The layout stays identical across slides.',
-                  es: 'Cada entrada es un testimonio completo que se muestra en el slider. El diseño es idéntico en todos.',
+                  en: 'Heading of the tours section. Leave empty to use the built-in default.',
+                  es: 'Título de la sección de tours. Déjalo vacío para usar el texto predeterminado.',
                 },
               },
-              fields: [
-                {
-                  name: 'quote',
-                  type: 'textarea',
-                  localized: true,
-                  label: { en: 'Quote', es: 'Cita' },
+            },
+            {
+              name: 'sub',
+              type: 'textarea',
+              localized: true,
+              label: { en: 'Subheading', es: 'Subtítulo' },
+              admin: {
+                description: {
+                  en: 'Short copy next to the title. Leave empty to use the built-in default.',
+                  es: 'Texto corto junto al título. Déjalo vacío para usar el texto predeterminado.',
                 },
-                {
-                  name: 'name',
-                  type: 'text',
-                  label: { en: 'Guest name', es: 'Nombre del viajero' },
-                  admin: {
-                    description: {
-                      en: 'Guest name, e.g. "Hana K.".',
-                      es: 'Nombre del viajero, ej.: "Hana K.".',
-                    },
-                  },
-                },
-                {
-                  name: 'loc',
-                  type: 'text',
-                  localized: true,
-                  label: { en: 'Location / date', es: 'Lugar / fecha' },
-                  admin: {
-                    description: {
-                      en: 'Location / date line, e.g. "Brooklyn, NY · Mar 2026".',
-                      es: 'Línea de lugar y fecha, ej.: "Brooklyn, NY · Mar 2026".',
-                    },
-                  },
-                },
-                {
-                  name: 'avatar',
-                  type: 'upload',
-                  relationTo: 'media',
-                  label: { en: 'Photo', es: 'Foto' },
-                  admin: {
-                    description: {
-                      en: 'Guest photo. If empty, a placeholder circle is shown.',
-                      es: 'Foto del viajero. Si está vacía, se muestra un círculo de marcador.',
-                    },
-                  },
-                },
-              ],
+              },
             },
           ],
         },
         // ── Services ─────────────────────────────────────────────────────
         {
           name: 'services',
-          label: { en: 'Services', es: 'Servicios' },
+          label: { en: '6. Services', es: '6. Servicios' },
           fields: [
             {
               name: 'eyebrow',
@@ -554,190 +445,6 @@ export const Landing: GlobalConfig = {
             },
           ],
         },
-        // ── FAQ ──────────────────────────────────────────────────────────
-        {
-          name: 'faq',
-          label: { en: 'FAQ', es: 'Preguntas frecuentes' },
-          fields: [
-            {
-              name: 'eyebrow',
-              type: 'text',
-              localized: true,
-              label: { en: 'Eyebrow', es: 'Antetítulo' },
-              admin: {
-                description: {
-                  en: 'Small label, e.g. "Practical".',
-                  es: 'Etiqueta pequeña, ej.: "Información práctica".',
-                },
-              },
-            },
-            { name: 'title', type: 'text', localized: true, label: { en: 'Title', es: 'Título' } },
-            {
-              name: 'items',
-              type: 'array',
-              labels: {
-                singular: { en: 'Question', es: 'Pregunta' },
-                plural: { en: 'Questions', es: 'Preguntas' },
-              },
-              fields: [
-                {
-                  name: 'question',
-                  type: 'text',
-                  required: true,
-                  localized: true,
-                  label: { en: 'Question', es: 'Pregunta' },
-                },
-                {
-                  name: 'answer',
-                  type: 'textarea',
-                  required: true,
-                  localized: true,
-                  label: { en: 'Answer', es: 'Respuesta' },
-                },
-              ],
-            },
-          ],
-        },
-        // ── Team ─────────────────────────────────────────────────────────
-        {
-          name: 'team',
-          label: { en: 'Team', es: 'Equipo' },
-          fields: [
-            {
-              name: 'eyebrow',
-              type: 'text',
-              localized: true,
-              label: { en: 'Eyebrow', es: 'Antetítulo' },
-              admin: {
-                description: {
-                  en: 'Small label, e.g. "The people".',
-                  es: 'Etiqueta pequeña, ej.: "Las personas".',
-                },
-              },
-            },
-            {
-              name: 'title',
-              type: 'text',
-              localized: true,
-              label: { en: 'Title', es: 'Título' },
-              admin: {
-                description: {
-                  en: 'Section heading, e.g. "Our team".',
-                  es: 'Título de la sección, ej.: "Nuestro equipo".',
-                },
-              },
-            },
-            {
-              name: 'sub',
-              type: 'textarea',
-              localized: true,
-              label: { en: 'Subheading', es: 'Subtítulo' },
-              admin: {
-                description: {
-                  en: 'Optional short intro under the heading.',
-                  es: 'Introducción corta opcional debajo del título.',
-                },
-              },
-            },
-            {
-              name: 'items',
-              type: 'array',
-              labels: {
-                singular: { en: 'Member', es: 'Integrante' },
-                plural: { en: 'Members', es: 'Integrantes' },
-              },
-              admin: {
-                description: {
-                  en: 'Add team members. Three look best in a row.',
-                  es: 'Agrega integrantes del equipo. Tres se ven mejor en una fila.',
-                },
-              },
-              fields: [
-                {
-                  name: 'name',
-                  type: 'text',
-                  required: true,
-                  label: { en: 'Name', es: 'Nombre' },
-                  admin: {
-                    description: {
-                      en: 'Person name, e.g. "Diego R.".',
-                      es: 'Nombre de la persona, ej.: "Diego R.".',
-                    },
-                  },
-                },
-                {
-                  name: 'role',
-                  type: 'text',
-                  required: true,
-                  localized: true,
-                  label: { en: 'Role', es: 'Rol' },
-                  admin: {
-                    description: {
-                      en: 'Role / title, e.g. "Lead guide".',
-                      es: 'Rol o puesto, ej.: "Guía principal".',
-                    },
-                  },
-                },
-                {
-                  name: 'photo',
-                  type: 'upload',
-                  relationTo: 'media',
-                  label: { en: 'Photo', es: 'Foto' },
-                  admin: {
-                    description: {
-                      en: 'Profile photo. If empty, a placeholder circle is shown.',
-                      es: 'Foto de perfil. Si está vacía, se muestra un círculo de marcador.',
-                    },
-                  },
-                },
-              ],
-            },
-          ],
-        },
-        // ── Seasonal ─────────────────────────────────────────────────────
-        {
-          name: 'seasonal',
-          label: { en: 'Seasonal', es: 'Temporada' },
-          fields: [
-            {
-              name: 'enabled',
-              type: 'checkbox',
-              defaultValue: false,
-              label: { en: 'Show on home page', es: 'Mostrar en la página de inicio' },
-              admin: {
-                description: {
-                  en: 'Show the seasonal highlight on the landing page.',
-                  es: 'Muestra el destacado de temporada en la página de inicio.',
-                },
-              },
-            },
-            {
-              name: 'eyebrow',
-              type: 'text',
-              localized: true,
-              label: { en: 'Eyebrow', es: 'Antetítulo' },
-              admin: {
-                description: {
-                  en: 'Small label above the highlight, e.g. "This season".',
-                  es: 'Etiqueta pequeña sobre el destacado, ej.: "Esta temporada".',
-                },
-              },
-            },
-            {
-              name: 'featuredSeasonalTour',
-              type: 'relationship',
-              relationTo: 'tours',
-              hasMany: false,
-              label: { en: 'Featured seasonal tour', es: 'Tour de temporada destacado' },
-              admin: {
-                description: {
-                  en: 'The seasonal tour to highlight. Must be published and marked seasonal.',
-                  es: 'El tour de temporada a destacar. Debe estar publicado y marcado como de temporada.',
-                },
-              },
-            },
-          ],
-        },
         // ── Rentals ──────────────────────────────────────────────────────
         // Bike-rentals home block. The business rents ONE bike model in ONE size,
         // so this is NOT a catalog — it is a simple, editable PRICE LIST: a set of
@@ -746,7 +453,7 @@ export const Landing: GlobalConfig = {
         // future phase; today the CTA points at the contact section.
         {
           name: 'rentals',
-          label: { en: 'Bike rentals', es: 'Renta de bicicletas' },
+          label: { en: '7. Bike rentals', es: '7. Renta de bicicletas' },
           fields: [
             {
               name: 'eyebrow',
@@ -875,6 +582,315 @@ export const Landing: GlobalConfig = {
                   es: 'A dónde lleva el botón. Predeterminado "#contact" (la sección de contacto). Puede ser un enlace de WhatsApp/teléfono.',
                 },
               },
+            },
+          ],
+        },
+        // ── About ────────────────────────────────────────────────────────
+        {
+          name: 'about',
+          label: { en: '8. About', es: '8. Sobre nosotros' },
+          fields: [
+            {
+              name: 'eyebrow',
+              type: 'text',
+              localized: true,
+              label: { en: 'Eyebrow', es: 'Antetítulo' },
+              admin: {
+                description: {
+                  en: 'Small label, e.g. "Our approach".',
+                  es: 'Etiqueta pequeña, ej.: "Nuestra forma de trabajar".',
+                },
+              },
+            },
+            {
+              name: 'title',
+              type: 'textarea',
+              localized: true,
+              label: { en: 'Title', es: 'Título' },
+            },
+            {
+              name: 'p1',
+              type: 'textarea',
+              localized: true,
+              label: { en: 'Paragraph 1', es: 'Párrafo 1' },
+              admin: { description: { en: 'First paragraph.', es: 'Primer párrafo.' } },
+            },
+            {
+              name: 'p2',
+              type: 'textarea',
+              localized: true,
+              label: { en: 'Paragraph 2', es: 'Párrafo 2' },
+              admin: { description: { en: 'Second paragraph.', es: 'Segundo párrafo.' } },
+            },
+            {
+              name: 'meetCta',
+              type: 'text',
+              localized: true,
+              label: { en: 'Button label', es: 'Texto del botón' },
+              admin: {
+                description: {
+                  en: 'Button label, e.g. "Meet the guides →".',
+                  es: 'Texto del botón, ej.: "Conoce a los guías →".',
+                },
+              },
+            },
+            {
+              name: 'image',
+              type: 'upload',
+              relationTo: 'media',
+              label: { en: 'Image (fallback)', es: 'Imagen (alternativa)' },
+              admin: {
+                description: {
+                  en: 'Single photo, used only when the gallery below is empty. If both are empty, a placeholder is shown.',
+                  es: 'Foto única, se usa solo cuando la galería de abajo está vacía. Si ambas están vacías, se muestra un marcador de posición.',
+                },
+              },
+            },
+            {
+              name: 'images',
+              type: 'array',
+              label: { en: 'Image gallery (slider)', es: 'Galería de imágenes (slider)' },
+              maxRows: 8,
+              admin: {
+                description: {
+                  en: 'Upload one or more photos. With two or more, they auto-rotate as a slider in the same image frame (no design change). Swipe or drag also works.',
+                  es: 'Subí una o más fotos. Con dos o más, rotan solas como slider en el mismo marco de imagen (sin cambiar el diseño). También se puede deslizar o arrastrar.',
+                },
+              },
+              fields: [
+                {
+                  name: 'image',
+                  type: 'upload',
+                  relationTo: 'media',
+                  required: true,
+                  label: { en: 'Photo', es: 'Foto' },
+                },
+              ],
+            },
+            {
+              name: 'imageLabel',
+              type: 'text',
+              localized: true,
+              label: { en: 'Image caption', es: 'Leyenda de la imagen' },
+              admin: {
+                description: {
+                  en: 'Caption shown over the placeholder when no image is uploaded.',
+                  es: 'Leyenda que se muestra sobre el marcador cuando no se ha subido una imagen.',
+                },
+              },
+            },
+          ],
+        },
+        // ── Testimonial ──────────────────────────────────────────────────
+        {
+          name: 'testimonial',
+          label: { en: '9. Testimonials', es: '9. Testimonios' },
+          fields: [
+            {
+              name: 'eyebrow',
+              type: 'text',
+              localized: true,
+              label: { en: 'Eyebrow', es: 'Antetítulo' },
+              admin: {
+                description: {
+                  en: 'Small label, e.g. "Notes from guests".',
+                  es: 'Etiqueta pequeña, ej.: "Lo que dicen los viajeros".',
+                },
+              },
+            },
+            {
+              name: 'items',
+              type: 'array',
+              label: { en: 'Testimonials', es: 'Testimonios' },
+              admin: {
+                description: {
+                  en: 'Each entry is a full testimonial shown in the slider. The layout stays identical across slides.',
+                  es: 'Cada entrada es un testimonio completo que se muestra en el slider. El diseño es idéntico en todos.',
+                },
+              },
+              fields: [
+                {
+                  name: 'quote',
+                  type: 'textarea',
+                  localized: true,
+                  label: { en: 'Quote', es: 'Cita' },
+                },
+                {
+                  name: 'name',
+                  type: 'text',
+                  label: { en: 'Guest name', es: 'Nombre del viajero' },
+                  admin: {
+                    description: {
+                      en: 'Guest name, e.g. "Hana K.".',
+                      es: 'Nombre del viajero, ej.: "Hana K.".',
+                    },
+                  },
+                },
+                {
+                  name: 'loc',
+                  type: 'text',
+                  localized: true,
+                  label: { en: 'Location / date', es: 'Lugar / fecha' },
+                  admin: {
+                    description: {
+                      en: 'Location / date line, e.g. "Brooklyn, NY · Mar 2026".',
+                      es: 'Línea de lugar y fecha, ej.: "Brooklyn, NY · Mar 2026".',
+                    },
+                  },
+                },
+                {
+                  name: 'avatar',
+                  type: 'upload',
+                  relationTo: 'media',
+                  label: { en: 'Photo', es: 'Foto' },
+                  admin: {
+                    description: {
+                      en: 'Guest photo. If empty, a placeholder circle is shown.',
+                      es: 'Foto del viajero. Si está vacía, se muestra un círculo de marcador.',
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        // ── FAQ ──────────────────────────────────────────────────────────
+        {
+          name: 'faq',
+          label: { en: '10. FAQ', es: '10. Preguntas frecuentes' },
+          fields: [
+            {
+              name: 'eyebrow',
+              type: 'text',
+              localized: true,
+              label: { en: 'Eyebrow', es: 'Antetítulo' },
+              admin: {
+                description: {
+                  en: 'Small label, e.g. "Practical".',
+                  es: 'Etiqueta pequeña, ej.: "Información práctica".',
+                },
+              },
+            },
+            { name: 'title', type: 'text', localized: true, label: { en: 'Title', es: 'Título' } },
+            {
+              name: 'items',
+              type: 'array',
+              labels: {
+                singular: { en: 'Question', es: 'Pregunta' },
+                plural: { en: 'Questions', es: 'Preguntas' },
+              },
+              fields: [
+                {
+                  name: 'question',
+                  type: 'text',
+                  required: true,
+                  localized: true,
+                  label: { en: 'Question', es: 'Pregunta' },
+                },
+                {
+                  name: 'answer',
+                  type: 'textarea',
+                  required: true,
+                  localized: true,
+                  label: { en: 'Answer', es: 'Respuesta' },
+                },
+              ],
+            },
+          ],
+        },
+        // ── Team ─────────────────────────────────────────────────────────
+        {
+          name: 'team',
+          label: { en: '11. Team', es: '11. Equipo' },
+          fields: [
+            {
+              name: 'eyebrow',
+              type: 'text',
+              localized: true,
+              label: { en: 'Eyebrow', es: 'Antetítulo' },
+              admin: {
+                description: {
+                  en: 'Small label, e.g. "The people".',
+                  es: 'Etiqueta pequeña, ej.: "Las personas".',
+                },
+              },
+            },
+            {
+              name: 'title',
+              type: 'text',
+              localized: true,
+              label: { en: 'Title', es: 'Título' },
+              admin: {
+                description: {
+                  en: 'Section heading, e.g. "Our team".',
+                  es: 'Título de la sección, ej.: "Nuestro equipo".',
+                },
+              },
+            },
+            {
+              name: 'sub',
+              type: 'textarea',
+              localized: true,
+              label: { en: 'Subheading', es: 'Subtítulo' },
+              admin: {
+                description: {
+                  en: 'Optional short intro under the heading.',
+                  es: 'Introducción corta opcional debajo del título.',
+                },
+              },
+            },
+            {
+              name: 'items',
+              type: 'array',
+              labels: {
+                singular: { en: 'Member', es: 'Integrante' },
+                plural: { en: 'Members', es: 'Integrantes' },
+              },
+              admin: {
+                description: {
+                  en: 'Add team members. Three look best in a row.',
+                  es: 'Agrega integrantes del equipo. Tres se ven mejor en una fila.',
+                },
+              },
+              fields: [
+                {
+                  name: 'name',
+                  type: 'text',
+                  required: true,
+                  label: { en: 'Name', es: 'Nombre' },
+                  admin: {
+                    description: {
+                      en: 'Person name, e.g. "Diego R.".',
+                      es: 'Nombre de la persona, ej.: "Diego R.".',
+                    },
+                  },
+                },
+                {
+                  name: 'role',
+                  type: 'text',
+                  required: true,
+                  localized: true,
+                  label: { en: 'Role', es: 'Rol' },
+                  admin: {
+                    description: {
+                      en: 'Role / title, e.g. "Lead guide".',
+                      es: 'Rol o puesto, ej.: "Guía principal".',
+                    },
+                  },
+                },
+                {
+                  name: 'photo',
+                  type: 'upload',
+                  relationTo: 'media',
+                  label: { en: 'Photo', es: 'Foto' },
+                  admin: {
+                    description: {
+                      en: 'Profile photo. If empty, a placeholder circle is shown.',
+                      es: 'Foto de perfil. Si está vacía, se muestra un círculo de marcador.',
+                    },
+                  },
+                },
+              ],
             },
           ],
         },

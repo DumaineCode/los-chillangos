@@ -289,7 +289,6 @@ describe('HomePage — services strip', () => {
 
 const FULL_HERO: HeroOverrides = {
   ctaPrimary: 'See tours',
-  ctaGhost: 'How we work',
   ctaRentals: 'Rent a bike',
   ctaPlan: 'Plan your own trip',
 };
@@ -352,20 +351,16 @@ describe('HomePage — hero CTAs (visual refresh)', () => {
   it('renders only the tours CTA when the rent/plan labels are unset (existing rows)', async () => {
     const { container } = await renderHome(DEFAULT_SERVICES, {
       ctaPrimary: 'See tours',
-      ctaGhost: 'How we work',
     });
 
     const ctas = container.querySelectorAll('.hero-cine-ctas a');
     expect(ctas).toHaveLength(1);
     expect(ctas[0].textContent).toContain('See tours');
-    // The former ghost CTA (how-we-work) is no longer rendered in the hero.
-    expect(getCtaByLabel(container, 'How we work')).toBeUndefined();
   });
 
   it('treats whitespace-only new labels as empty (no blank buttons)', async () => {
     const { container } = await renderHome(DEFAULT_SERVICES, {
       ctaPrimary: 'See tours',
-      ctaGhost: 'How we work',
       ctaRentals: '   ',
       ctaPlan: '',
     });
@@ -587,5 +582,72 @@ describe('home rentals price list', () => {
     // Default CTA destination is the contact section.
     const cta = block.querySelector('[data-testid="rentals-home-cta"]')!;
     expect(cta.getAttribute('href')).toBe('#contact');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tours catalog header — CMS-first copy from the Landing `tours` tab with
+// i18n fallback. The mock i18n table (getTranslations above) supplies
+// 'Catalog' / 'Tours' / 'Pick your ride' as the built-in defaults, so these
+// tests assert the visible contract: CMS copy wins when present, and empty or
+// whitespace-only values fall back so the section never renders blank.
+// ---------------------------------------------------------------------------
+
+describe('HomePage — tours catalog header', () => {
+  type ToursTab = { eyebrow?: string; title?: string; sub?: string };
+
+  async function renderHomeWithToursTab(tours: ToursTab | undefined) {
+    findGlobalMock.mockImplementation(({ slug }: { slug: string }) => {
+      if (slug === 'landing') {
+        return Promise.resolve({ ...buildLanding(DEFAULT_SERVICES, FULL_HERO), tours });
+      }
+      return Promise.resolve(null);
+    });
+    findMock.mockResolvedValue({ docs: [makeTour()] });
+
+    const ui = await HomePage({ params: Promise.resolve({ locale: 'en' }) });
+    return render(ui);
+  }
+
+  /** The catalog header is the FIRST .section-head inside #tours. */
+  function getCatalogHead(container: HTMLElement) {
+    const head = container.querySelector('#tours .section-head');
+    if (!head) throw new Error('missing #tours .section-head');
+    return head;
+  }
+
+  it('renders the CMS copy when the tours tab is filled', async () => {
+    const { container } = await renderHomeWithToursTab({
+      eyebrow: 'From the CMS',
+      title: 'Rides the client renamed',
+      sub: 'Client-authored subheading',
+    });
+
+    const head = getCatalogHead(container);
+    expect(head.querySelector('.eyebrow')?.textContent).toContain('From the CMS');
+    expect(head.querySelector('.section-title')?.textContent).toBe('Rides the client renamed');
+    expect(head.querySelector('.section-sub')?.textContent).toBe('Client-authored subheading');
+  });
+
+  it('falls back to the i18n defaults when the tab is absent (pre-migration rows)', async () => {
+    const { container } = await renderHomeWithToursTab(undefined);
+
+    const head = getCatalogHead(container);
+    expect(head.querySelector('.eyebrow')?.textContent).toContain('Catalog');
+    expect(head.querySelector('.section-title')?.textContent).toBe('Tours');
+    expect(head.querySelector('.section-sub')?.textContent).toBe('Pick your ride');
+  });
+
+  it('treats whitespace-only CMS values as empty and falls back per field', async () => {
+    const { container } = await renderHomeWithToursTab({
+      eyebrow: '   ',
+      title: 'Only the title is set',
+      sub: '',
+    });
+
+    const head = getCatalogHead(container);
+    expect(head.querySelector('.eyebrow')?.textContent).toContain('Catalog');
+    expect(head.querySelector('.section-title')?.textContent).toBe('Only the title is set');
+    expect(head.querySelector('.section-sub')?.textContent).toBe('Pick your ride');
   });
 });

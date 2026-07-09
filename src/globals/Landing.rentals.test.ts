@@ -36,7 +36,7 @@ describe('Landing — rentals named tab', () => {
     const tab = getRentalsTab();
     expect('name' in tab && tab.name).toBe('rentals');
     // Named tab → localized human label, mirroring the other Landing tabs.
-    expect(tab.label).toEqual({ en: 'Bike rentals', es: 'Renta de bicicletas' });
+    expect(tab.label).toEqual({ en: '7. Bike rentals', es: '7. Renta de bicicletas' });
   });
 
   it('exposes localized eyebrow/title/sub + ctaLabel marketing fields', () => {

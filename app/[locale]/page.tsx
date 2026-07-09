@@ -170,6 +170,14 @@ export default async function HomePage({ params }: Props) {
   const marqueeText = marquee?.text ?? '';
   const seasonalEyebrow = landing?.seasonal?.eyebrow ?? '';
 
+  // Tours-catalog section header: CMS copy from the Landing `tours` tab wins;
+  // empty fields fall back to the built-in i18n strings so the section never
+  // renders blank.
+  const toursHeader = landing?.tours;
+  const toursEyebrow = toursHeader?.eyebrow?.trim() || tCatalog('eyebrow');
+  const toursTitle = toursHeader?.title?.trim() || tCatalog('title');
+  const toursSub = toursHeader?.sub?.trim() || tCatalog('sub');
+
   const filters: { key: 'all' | 'ebike' | 'walking' | 'daytrip' | 'new'; label: string }[] = [
     { key: 'all', label: tCatalog('filters.all') },
     { key: 'ebike', label: tCatalog('filters.ebike') },
@@ -199,9 +207,7 @@ export default async function HomePage({ params }: Props) {
   // anchors so existing rows that pre-date the field render exactly as before.
   const heroCtaPrimaryHref = hero?.ctaPrimaryHref?.trim() || '#tours';
   // Hero shows three essential CTAs: tours (primary), rent-a-bike, and
-  // plan-your-own-trip. The former `ctaGhost` (how-we-work) is intentionally
-  // no longer rendered here — the CMS field is kept for data safety only.
-  // rentals + plan render only when their label has content, so pre-refresh
+  // plan-your-own-trip. rentals + plan render only when their label has content, so pre-refresh
   // rows degrade gracefully to a single tours CTA. Href defaults are code-side
   // because Payload defaultValues only apply to rows saved after the field ships.
   const heroCtaRentals = hero?.ctaRentals?.trim() ?? '';
@@ -367,11 +373,11 @@ export default async function HomePage({ params }: Props) {
           <div className="section-head">
             <div>
               <div className="eyebrow" style={{ marginBottom: 16 }}>
-                {tCatalog('eyebrow')} <span style={{ margin: '0 8px' }}>·</span> 02
+                {toursEyebrow} <span style={{ margin: '0 8px' }}>·</span> 02
               </div>
-              <h2 className="section-title">{tCatalog('title')}</h2>
+              <h2 className="section-title">{toursTitle}</h2>
             </div>
-            <p className="section-sub">{tCatalog('sub')}</p>
+            <p className="section-sub">{toursSub}</p>
           </div>
           <CatalogFilter filters={filters} cards={cards} />
 

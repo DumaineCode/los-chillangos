@@ -1018,11 +1018,6 @@ export interface Landing {
      * Where the primary button takes the visitor. Examples: "#tours" (section on the home page), "/book" (another page on your site), "https://wa.me/52...".
      */
     ctaPrimaryHref?: string | null;
-    ctaGhost?: string | null;
-    /**
-     * Where the secondary button takes the visitor. Examples: "#about", "/services", "mailto:hola@…".
-     */
-    ctaGhostHref?: string | null;
     /**
      * Optional. Shown only when filled, e.g. "Rent a bike". Links to the rentals block on the home.
      */
@@ -1048,10 +1043,6 @@ export interface Landing {
      * Background video (muted, looping). Mobile/reduced-motion show the poster only.
      */
     heroVideo?: (number | null) | MediaVideo;
-    /**
-     * Poster: first paint (LCP) + mobile/reduced-motion still. Strongly recommended.
-     */
-    posterImage?: (number | null) | Media;
   };
   marquee?: {
     /**
@@ -1076,6 +1067,99 @@ export interface Landing {
           id?: string | null;
         }[]
       | null;
+  };
+  seasonal?: {
+    /**
+     * Show the seasonal highlight on the landing page.
+     */
+    enabled?: boolean | null;
+    /**
+     * Small label above the highlight, e.g. "This season".
+     */
+    eyebrow?: string | null;
+    /**
+     * The seasonal tour to highlight. Must be published and marked seasonal.
+     */
+    featuredSeasonalTour?: (number | null) | Tour;
+  };
+  tours?: {
+    /**
+     * Small label above the tours catalog, e.g. "Choose your ride". Leave empty to use the built-in default.
+     */
+    eyebrow?: string | null;
+    /**
+     * Heading of the tours section. Leave empty to use the built-in default.
+     */
+    title?: string | null;
+    /**
+     * Short copy next to the title. Leave empty to use the built-in default.
+     */
+    sub?: string | null;
+  };
+  services?: {
+    /**
+     * Small label, e.g. "Beyond the tour".
+     */
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    /**
+     * Link label on each card, e.g. "Inquire →".
+     */
+    inquireCta?: string | null;
+    items?:
+      | {
+          title: string;
+          description: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  rentals?: {
+    /**
+     * Small label above the block, e.g. "Bike rentals".
+     */
+    eyebrow?: string | null;
+    /**
+     * Block heading, e.g. "Rather ride on your own?".
+     */
+    title?: string | null;
+    /**
+     * Short copy under the heading.
+     */
+    sub?: string | null;
+    /**
+     * Each rentable duration and its price, e.g. "1 hour" – "$150".
+     */
+    durations?:
+      | {
+          /**
+           * e.g. "1 hour", "2 hours".
+           */
+          label: string;
+          /**
+           * Shown as-is, e.g. "$150". No calculation is applied.
+           */
+          price: string;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Optional helmet add-on label, e.g. "Helmet".
+     */
+    helmetLabel?: string | null;
+    /**
+     * Optional helmet price, shown as-is, e.g. "$30".
+     */
+    helmetPrice?: string | null;
+    /**
+     * Label on the contact button, e.g. "Reserve by WhatsApp".
+     */
+    ctaLabel?: string | null;
+    /**
+     * Where the button goes. Default "#contact" (the contact section). Can be a WhatsApp/phone link.
+     */
+    ctaHref?: string | null;
   };
   about?: {
     /**
@@ -1140,25 +1224,6 @@ export interface Landing {
         }[]
       | null;
   };
-  services?: {
-    /**
-     * Small label, e.g. "Beyond the tour".
-     */
-    eyebrow?: string | null;
-    title?: string | null;
-    sub?: string | null;
-    /**
-     * Link label on each card, e.g. "Inquire →".
-     */
-    inquireCta?: string | null;
-    items?:
-      | {
-          title: string;
-          description: string;
-          id?: string | null;
-        }[]
-      | null;
-  };
   faq?: {
     /**
      * Small label, e.g. "Practical".
@@ -1206,66 +1271,6 @@ export interface Landing {
           id?: string | null;
         }[]
       | null;
-  };
-  seasonal?: {
-    /**
-     * Show the seasonal highlight on the landing page.
-     */
-    enabled?: boolean | null;
-    /**
-     * Small label above the highlight, e.g. "This season".
-     */
-    eyebrow?: string | null;
-    /**
-     * The seasonal tour to highlight. Must be published and marked seasonal.
-     */
-    featuredSeasonalTour?: (number | null) | Tour;
-  };
-  rentals?: {
-    /**
-     * Small label above the block, e.g. "Bike rentals".
-     */
-    eyebrow?: string | null;
-    /**
-     * Block heading, e.g. "Rather ride on your own?".
-     */
-    title?: string | null;
-    /**
-     * Short copy under the heading.
-     */
-    sub?: string | null;
-    /**
-     * Each rentable duration and its price, e.g. "1 hour" – "$150".
-     */
-    durations?:
-      | {
-          /**
-           * e.g. "1 hour", "2 hours".
-           */
-          label: string;
-          /**
-           * Shown as-is, e.g. "$150". No calculation is applied.
-           */
-          price: string;
-          id?: string | null;
-        }[]
-      | null;
-    /**
-     * Optional helmet add-on label, e.g. "Helmet".
-     */
-    helmetLabel?: string | null;
-    /**
-     * Optional helmet price, shown as-is, e.g. "$30".
-     */
-    helmetPrice?: string | null;
-    /**
-     * Label on the contact button, e.g. "Reserve by WhatsApp".
-     */
-    ctaLabel?: string | null;
-    /**
-     * Where the button goes. Default "#contact" (the contact section). Can be a WhatsApp/phone link.
-     */
-    ctaHref?: string | null;
   };
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1496,8 +1501,6 @@ export interface LandingSelect<T extends boolean = true> {
         quoteAuthor?: T;
         ctaPrimary?: T;
         ctaPrimaryHref?: T;
-        ctaGhost?: T;
-        ctaGhostHref?: T;
         ctaRentals?: T;
         ctaRentalsHref?: T;
         ctaPlan?: T;
@@ -1505,7 +1508,6 @@ export interface LandingSelect<T extends boolean = true> {
         mediaType?: T;
         heroImage?: T;
         heroVideo?: T;
-        posterImage?: T;
       };
   marquee?:
     | T
@@ -1525,6 +1527,53 @@ export interface LandingSelect<T extends boolean = true> {
               description?: T;
               id?: T;
             };
+      };
+  seasonal?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        featuredSeasonalTour?: T;
+      };
+  tours?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+      };
+  services?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        inquireCta?: T;
+        items?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              id?: T;
+            };
+      };
+  rentals?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        durations?:
+          | T
+          | {
+              label?: T;
+              price?: T;
+              id?: T;
+            };
+        helmetLabel?: T;
+        helmetPrice?: T;
+        ctaLabel?: T;
+        ctaHref?: T;
       };
   about?:
     | T
@@ -1557,21 +1606,6 @@ export interface LandingSelect<T extends boolean = true> {
               id?: T;
             };
       };
-  services?:
-    | T
-    | {
-        eyebrow?: T;
-        title?: T;
-        sub?: T;
-        inquireCta?: T;
-        items?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              id?: T;
-            };
-      };
   faq?:
     | T
     | {
@@ -1599,31 +1633,6 @@ export interface LandingSelect<T extends boolean = true> {
               photo?: T;
               id?: T;
             };
-      };
-  seasonal?:
-    | T
-    | {
-        enabled?: T;
-        eyebrow?: T;
-        featuredSeasonalTour?: T;
-      };
-  rentals?:
-    | T
-    | {
-        eyebrow?: T;
-        title?: T;
-        sub?: T;
-        durations?:
-          | T
-          | {
-              label?: T;
-              price?: T;
-              id?: T;
-            };
-        helmetLabel?: T;
-        helmetPrice?: T;
-        ctaLabel?: T;
-        ctaHref?: T;
       };
   updatedAt?: T;
   createdAt?: T;
