@@ -225,6 +225,42 @@ describe('POST /api/booking/checkout', () => {
     expect(body.error).toBe('cutoff-passed');
   });
 
+  it('returns 422 ticket-cutoff-passed for a bike tour past the day-before-noon cutoff', async () => {
+    // now = Sunday 2030-06-16 08:00 CDMX; tour is the SAME day. Bike tickets
+    // closed the day before at noon (Sat 2030-06-15 12:00) → sales shut (§5).
+    vi.setSystemTime(new Date('2030-06-16T14:00:00Z'));
+    mockPayload.findByID.mockResolvedValueOnce(
+      makeTour({
+        usesBikes: true,
+        durationMinutes: 120,
+        availableDays: ['0'],
+        timeSlots: [{ time: '14:00', capacity: 8 }], // >2h from 08:00 CDMX now
+      })
+    );
+    const res = await POST(makeRequest(makeBody({ date: '2030-06-16', time: '14:00' })));
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe('ticket-cutoff-passed');
+  });
+
+  it('does NOT apply the day-before-noon cutoff to non-bike tours (same-day ok)', async () => {
+    // Same clock/day as above, but a walking tour (usesBikes falsy) is exempt
+    // from §5 — only the same-day 2h cutoff governs it, and 11:00 is > 2h away.
+    vi.setSystemTime(new Date('2030-06-16T14:00:00Z')); // 08:00 CDMX
+    mockPayload.findByID.mockResolvedValueOnce(
+      makeTour({ usesBikes: false, availableDays: ['0'], timeSlots: [{ time: '14:00', capacity: 8 }] })
+    );
+    mockPayload.find.mockResolvedValueOnce({ docs: [] }); // no seats taken
+    mockCreateSession.mockResolvedValueOnce({
+      id: 'cs_test_walk',
+      url: 'https://checkout.stripe.com/c/pay/cs_test_walk',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockPayload.create.mockResolvedValueOnce({ id: 77, reference: 'LC-WALK01' });
+    const res = await POST(makeRequest(makeBody({ date: '2030-06-16', time: '14:00' })));
+    expect(res.status).toBe(200);
+  });
+
   it('returns 422 over-slot-capacity when adults+teens > slot.capacity', async () => {
     mockPayload.findByID.mockResolvedValueOnce(makeTour());
     const res = await POST(makeRequest(makeBody({ adults: 10, teens: 0 })));
@@ -441,6 +477,11 @@ describe('POST /api/booking/checkout', () => {
     // Candidate bike tour (cupo 8) at 09:00. An existing paid bike booking on
     // the SAME day fills the full fleet at 09:00 → authoritative fleet gate
     // rejects BEFORE the booking row is ever created.
+    //
+    // `now` must sit BEFORE the day-before-noon bike ticket cutoff (§5), else the
+    // booking (2030-06-12) is closed for bike tickets before the fleet gate runs.
+    // 2030-06-10 is two days before → cutoff (2030-06-11 12:00 CDMX) not yet passed.
+    vi.setSystemTime(new Date('2030-06-10T13:00:00Z'));
     const candidateTour = makeTour({
       id: 2,
       usesBikes: true,

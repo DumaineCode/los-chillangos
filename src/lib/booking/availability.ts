@@ -29,6 +29,16 @@ export const STRIPE_SESSION_TTL_MINUTES = 30;
 /** A slot starting in less than this many hours from "now" is closed for same-day bookings. */
 export const SAME_DAY_CUTOFF_HOURS = 2;
 
+/**
+ * Bike-ticket cutoff: how many CDMX calendar days BEFORE the tour the ticket
+ * window closes. `1` = the day before. Applies ONLY to bike tours (usesBikes),
+ * gated at the call site (mirrors how `isSameDayCutoffPassed` is type-agnostic).
+ */
+export const BIKE_TICKET_CUTOFF_DAYS_BEFORE = 1;
+
+/** Bike-ticket cutoff hour (CDMX wall clock, 24h). `12` = noon. */
+export const BIKE_TICKET_CUTOFF_HOUR = 12;
+
 /** CDMX has not observed DST since 2022 — fixed offset UTC-6 effectively. */
 export const TOUR_TIMEZONE = 'America/Mexico_City';
 
@@ -71,6 +81,42 @@ export function isSameDayCutoffPassed(
   const diffMs = slotInstant.getTime() - now.getTime();
   const diffHours = diffMs / 3_600_000;
   return diffHours < SAME_DAY_CUTOFF_HOURS;
+}
+
+const DAY_MS = 24 * 3_600_000;
+
+/**
+ * The exact instant a bike tour's ticket window CLOSES: `BIKE_TICKET_CUTOFF_HOUR`
+ * (noon) on the CDMX calendar day that is `BIKE_TICKET_CUTOFF_DAYS_BEFORE` days
+ * before the tour's own CDMX day. For a Sunday tour that is Saturday 12:00 CDMX.
+ *
+ * TZ discipline: `date` may be ANY instant on the tour's CDMX day. We anchor to
+ * that day's CDMX-midnight (`getCDMXDayRange`), step back whole days (CDMX has a
+ * fixed offset year-round, so subtracting 24h always lands on the previous
+ * CDMX-midnight), re-read the resulting calendar day, and build noon from it via
+ * `ymdHHMMToCDMXInstant`. Month/year boundaries are handled by the calendar
+ * re-read, never by raw arithmetic on the components.
+ */
+export function getBikeTicketCutoffInstant(date: Date): Date {
+  const tourDayMidnightUTC = getCDMXDayRange(date).startUTC;
+  const cutoffDayInstant = new Date(
+    tourDayMidnightUTC.getTime() - BIKE_TICKET_CUTOFF_DAYS_BEFORE * DAY_MS
+  );
+  const cutoffYMD = getYMDInTourTZ(cutoffDayInstant);
+  const hh = String(BIKE_TICKET_CUTOFF_HOUR).padStart(2, '0');
+  return ymdHHMMToCDMXInstant(cutoffYMD, `${hh}:00`);
+}
+
+/**
+ * Bike-ticket cutoff gate. Returns true once `now` has reached (or passed) the
+ * day-before-noon cutoff for a tour on `date`. The boundary instant itself is
+ * CLOSED (`>=`): at Saturday 12:00:00 sharp, Sunday's bike tickets are shut.
+ *
+ * CALLER RESPONSIBILITY: only invoke for bike tours (`usesBikes === true`).
+ * Non-bike tours are exempt and must not be passed through here.
+ */
+export function isBikeTicketCutoffPassed(date: Date, now: Date = new Date()): boolean {
+  return now.getTime() >= getBikeTicketCutoffInstant(date).getTime();
 }
 
 /**

@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  BIKE_TICKET_CUTOFF_DAYS_BEFORE,
+  BIKE_TICKET_CUTOFF_HOUR,
   HOLD_TTL_MINUTES,
   SAME_DAY_CUTOFF_HOURS,
   STRIPE_SESSION_TTL_MINUTES,
   TOUR_TIMEZONE,
   computeSlotAvailability,
+  getBikeTicketCutoffInstant,
   getCDMXDayRange,
   getTimeSlotsForTour,
   getTodayInTourTZ,
   getTourDayISO,
   getTourWeekDays,
+  isBikeTicketCutoffPassed,
   isDateBeforeTodayInTourTZ,
   isDateBookableForTour,
   isSameDayCutoffPassed,
@@ -105,6 +109,79 @@ describe('isSameDayCutoffPassed', () => {
     const now = new Date('2026-06-15T20:00:00Z'); // 14:00 CDMX
     const slotDate = new Date('2026-06-15T14:00:00Z');
     expect(isSameDayCutoffPassed(slotDate, '09:00', now)).toBe(true);
+  });
+});
+
+describe('bike ticket cutoff (day-before at noon CDMX)', () => {
+  it('exposes the locked cutoff constants', () => {
+    expect(BIKE_TICKET_CUTOFF_DAYS_BEFORE).toBe(1);
+    expect(BIKE_TICKET_CUTOFF_HOUR).toBe(12);
+  });
+
+  describe('getBikeTicketCutoffInstant', () => {
+    it('is the previous CDMX day at 12:00 (Saturday noon for a Sunday tour)', () => {
+      // Tour on Sunday 2026-06-14 (any instant on that CDMX day).
+      const tourDate = new Date('2026-06-14T18:00:00Z'); // Sun 12:00 CDMX
+      // Cutoff = Sat 2026-06-13 12:00 CDMX = 18:00Z (UTC-6).
+      expect(getBikeTicketCutoffInstant(tourDate).toISOString()).toBe(
+        '2026-06-13T18:00:00.000Z'
+      );
+    });
+
+    it('crosses a month boundary (tour on the 1st → cutoff last day of prev month)', () => {
+      // Tour on 2026-07-01 CDMX → cutoff 2026-06-30 12:00 CDMX = 18:00Z.
+      const tourDate = new Date('2026-07-01T18:00:00Z');
+      expect(getBikeTicketCutoffInstant(tourDate).toISOString()).toBe(
+        '2026-06-30T18:00:00.000Z'
+      );
+    });
+
+    it('resolves the tour day in CDMX, not UTC (late-night UTC boundary)', () => {
+      // 2026-06-15T04:00:00Z = 2026-06-14T22:00:00 CDMX → tour day is Jun 14,
+      // so cutoff is Jun 13 noon, NOT Jun 14 noon.
+      const tourDate = new Date('2026-06-15T04:00:00Z');
+      expect(getBikeTicketCutoffInstant(tourDate).toISOString()).toBe(
+        '2026-06-13T18:00:00.000Z'
+      );
+    });
+
+    it('crosses a YEAR boundary (tour on Jan 1 → cutoff Dec 31 prev year at noon)', () => {
+      // Tour on 2027-01-01 CDMX → cutoff 2026-12-31 12:00 CDMX = 18:00Z.
+      const tourDate = new Date('2027-01-01T18:00:00Z');
+      expect(getBikeTicketCutoffInstant(tourDate).toISOString()).toBe(
+        '2026-12-31T18:00:00.000Z'
+      );
+    });
+  });
+
+  it('is CLOSED exactly at the cutoff instant (Saturday noon)', () => {
+    const tourDate = new Date('2026-06-14T18:00:00Z'); // Sunday tour
+    const now = new Date('2026-06-13T18:00:00Z'); // Saturday 12:00 CDMX exactly
+    expect(isBikeTicketCutoffPassed(tourDate, now)).toBe(true);
+  });
+
+  it('is CLOSED after the cutoff (Saturday afternoon)', () => {
+    const tourDate = new Date('2026-06-14T18:00:00Z');
+    const now = new Date('2026-06-13T20:00:00Z'); // Sat 14:00 CDMX
+    expect(isBikeTicketCutoffPassed(tourDate, now)).toBe(true);
+  });
+
+  it('is OPEN one minute before the cutoff (Saturday 11:59)', () => {
+    const tourDate = new Date('2026-06-14T18:00:00Z');
+    const now = new Date('2026-06-13T17:59:00Z'); // Sat 11:59 CDMX
+    expect(isBikeTicketCutoffPassed(tourDate, now)).toBe(false);
+  });
+
+  it('is OPEN days in advance', () => {
+    const tourDate = new Date('2026-06-14T18:00:00Z');
+    const now = new Date('2026-06-01T18:00:00Z');
+    expect(isBikeTicketCutoffPassed(tourDate, now)).toBe(false);
+  });
+
+  it('is CLOSED on the tour day itself (well past the day-before noon)', () => {
+    const tourDate = new Date('2026-06-14T18:00:00Z');
+    const now = new Date('2026-06-14T14:00:00Z'); // Sunday 08:00 CDMX, tour day
+    expect(isBikeTicketCutoffPassed(tourDate, now)).toBe(true);
   });
 });
 

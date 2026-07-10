@@ -6,6 +6,7 @@ import {
   HOLD_TTL_MINUTES,
   STRIPE_SESSION_TTL_MINUTES,
   getTimeSlotsForTour,
+  isBikeTicketCutoffPassed,
   isDateBeforeTodayInTourTZ,
   isDateBookableForTour,
   isSameDayCutoffPassed,
@@ -100,6 +101,17 @@ export async function POST(request: Request): Promise<Response> {
 
   if (isSameDayCutoffPassed(dateAnchor, data.time, now)) {
     return jsonNoStore({ error: 'cutoff-passed' }, 422);
+  }
+
+  // Bike tours close their ticket window the day before at noon CDMX (§5
+  // BUSINESS_RULES). Non-bike tours are exempt. After this cutoff the unsold
+  // bikes are released to the rental flow (built separately); ticket sales for
+  // the tour are shut regardless of remaining seats.
+  if (
+    (tour as { usesBikes?: boolean }).usesBikes === true &&
+    isBikeTicketCutoffPassed(dateAnchor, now)
+  ) {
+    return jsonNoStore({ error: 'ticket-cutoff-passed' }, 422);
   }
 
   const requested = data.adults + data.teens;

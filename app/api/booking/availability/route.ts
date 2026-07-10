@@ -11,6 +11,7 @@ import {
   type YMD,
   getTimeSlotsForTour,
   getYMDInTourTZ,
+  isBikeTicketCutoffPassed,
 } from '../../../../src/lib/booking/availability';
 import { getPayload } from '../../../../src/lib/payload';
 import type { Tour } from '../../../../src/payload-types';
@@ -73,6 +74,15 @@ export async function GET(request: Request): Promise<Response> {
   // evaluator the checkout POST uses via `evaluateBikeSlot`, so the advisory can
   // never disagree with the authoritative gate.
   if (tour.usesBikes === true) {
+    // Day-level ticket cutoff (§5 BUSINESS_RULES): once the day-before-noon CDMX
+    // cutoff has passed, EVERY slot of this bike tour is closed for ticket sales,
+    // regardless of fleet/cooldown. Short-circuit so the client greys out the
+    // whole day with a distinct reason (and we skip the two fleet-state reads).
+    if (isBikeTicketCutoffPassed(anchor)) {
+      return jsonNoStore({
+        slots: slots.map((s) => ({ ...s, bikeBlocked: true, bikeReason: 'ticket-cutoff' })),
+      });
+    }
     const flagged = await flagBikeSlots({ payload, tour, anchor, slots });
     return jsonNoStore({ slots: flagged });
   }
