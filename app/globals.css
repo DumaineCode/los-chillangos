@@ -93,6 +93,8 @@
   --sans: var(--font-dm-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
   --mono: var(--font-jetbrains-mono), "IBM Plex Mono", ui-monospace, monospace;
   --display: var(--font-anton), "Anton", "Impact", sans-serif;
+  /* Rye — rustic Western display, used in the home hero headline. */
+  --display-alt: var(--font-rye), "Rye", "Rockwell", Georgia, serif;
 }
 
 [data-theme="dark"] {
@@ -558,34 +560,47 @@ body:has(.hero-cine) { padding-top: 0; }
   100% { transform: scale(1.18) translate(-2%, -1.5%); }
 }
 
+/* Variant B — everything is centered and grouped as one block in the middle of
+   the frame (headline → attribution → CTAs), rather than pinning CTAs to the
+   bottom edge. `justify-content: center` collapses the old mid/bot split into a
+   single centered stack; `gap` sets the rhythm between the sub-blocks. */
 .hero-cine-inner {
   position: relative;
   z-index: 4;
   height: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
   padding: 112px 0 48px;
 }
 
-/* Headline mid-section */
+/* Headline mid-section — no longer flex:1 (that pushed the CTAs away); it's now
+   an auto-height, centered sub-block sitting directly above the CTAs. */
 .hero-cine-mid {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 32px 0;
+  align-items: center;
+  text-align: center;
+  padding: 0;
 }
 
+/* Headline set in Rye (rustic Western display). Rye is upright-only and runs
+   wide, so we drop the serif italic + negative tracking and use a gentler size
+   ramp than the old serif headline. */
 .hero-cine-headline {
-  font-family: var(--serif);
+  font-family: var(--display-alt);
   font-weight: 400;
-  font-size: clamp(56px, 8.5vw, 156px);
-  line-height: 0.92;
-  letter-spacing: -0.025em;
+  font-style: normal;
+  font-size: clamp(48px, 7vw, 118px);
+  line-height: 1.04;
+  letter-spacing: 0;
   margin: 0;
   color: var(--cream-fixed);
   text-wrap: balance;
-  max-width: 14ch;
+  max-width: 16ch;
 }
 .hero-cine-headline em {
   font-style: italic;
@@ -596,9 +611,10 @@ body:has(.hero-cine) { padding-top: 0; }
    a 4-word headline (esp. Spanish), so it gets a wider measure, a slightly
    looser line-height, and italic emphasis to read as an editorial quote. */
 .hero-cine-quote-h1 {
-  font-style: italic;
-  max-width: 19ch;
-  line-height: 1.02;
+  /* Rye has no italic; the quote reads as an upright Western headline. */
+  font-style: normal;
+  max-width: 18ch;
+  line-height: 1.06;
   text-wrap: balance;
 }
 /* Owner-authored *asterisk* runs inside the quote render in the brand pink.
@@ -631,6 +647,7 @@ body:has(.hero-cine) { padding-top: 0; }
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
+  justify-content: center;
 }
 .hero-cine-ctas .btn-primary {
   /* Deeper on-brand pink + pure white so the primary hero CTA clears WCAG AA

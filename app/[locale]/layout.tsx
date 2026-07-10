@@ -1,6 +1,6 @@
 import { hasLocale } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
-import { Anton, DM_Sans, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
+import { Anton, DM_Sans, Instrument_Serif, JetBrains_Mono, Rye } from 'next/font/google';
 import { notFound } from 'next/navigation';
 
 import { routing, type Locale } from '../../i18n/routing';
@@ -63,6 +63,15 @@ const anton = Anton({
   display: 'swap',
 });
 
+// Rye — rustic Western display face used for the home hero headline.
+// Single weight (400), no italic. Exposed as `--font-rye` / `--display-alt`.
+const rye = Rye({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-rye',
+  display: 'swap',
+});
+
 // No generateStaticParams: this layout fetches Payload globals (navigation,
 // branding), so it must render at request time, not at build time. Locales are
 // validated below via hasLocale() and the middleware enforces the prefix.
@@ -117,7 +126,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`${instrumentSerif.variable} ${dmSans.variable} ${jetbrainsMono.variable} ${anton.variable}`}
+      className={`${instrumentSerif.variable} ${dmSans.variable} ${jetbrainsMono.variable} ${anton.variable} ${rye.variable}`}
     >
       <head>
         {/* Sets data-theme before first paint to avoid a flash of the wrong theme. */}
