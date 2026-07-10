@@ -5,6 +5,7 @@ import {
   revalidateBookingsAfterDelete,
 } from '../hooks/revalidateBookings';
 import { generateBookingReference } from '../lib/booking/reference';
+import { BOOKING_CURRENCY } from '../lib/booking/currency';
 import type { SelectedExtra } from '../lib/booking/pricing';
 import { computeBookingTotals } from '../lib/booking/totals';
 import { NAV_GROUPS } from '../admin/navGroups';
@@ -262,8 +263,8 @@ export const Bookings: CollectionConfig = {
       label: { en: 'Price per person', es: 'Precio por persona' },
       admin: {
         description: {
-          en: 'USD per person at the time of booking (snapshot — not linked).',
-          es: 'USD por persona al momento de reservar (foto fija — no se actualiza después).',
+          en: 'MXN per person at the time of booking (snapshot — not linked).',
+          es: 'MXN por persona al momento de reservar (foto fija — no se actualiza después).',
         },
       },
     },
@@ -323,7 +324,7 @@ export const Bookings: CollectionConfig = {
           type: 'number',
           required: true,
           min: 0,
-          label: { en: 'Unit price (USD)', es: 'Precio unitario (USD)' },
+          label: { en: 'Unit price (MXN)', es: 'Precio unitario (MXN)' },
         },
         {
           name: 'priceType',
@@ -340,7 +341,7 @@ export const Bookings: CollectionConfig = {
           type: 'number',
           required: true,
           min: 0,
-          label: { en: 'Computed amount (USD)', es: 'Importe calculado (USD)' },
+          label: { en: 'Computed amount (MXN)', es: 'Importe calculado (MXN)' },
         },
       ],
     },
@@ -348,12 +349,12 @@ export const Bookings: CollectionConfig = {
       name: 'currency',
       type: 'text',
       required: true,
-      defaultValue: 'USD',
+      defaultValue: BOOKING_CURRENCY,
       label: { en: 'Currency', es: 'Moneda' },
       validate: (value: string | null | undefined) => {
         if (!value) return 'La moneda es obligatoria.';
         if (!/^[A-Z]{3}$/.test(value)) {
-          return 'La moneda debe ser un código ISO de 3 letras en mayúsculas (ej.: "USD").';
+          return 'La moneda debe ser un código ISO de 3 letras en mayúsculas (ej.: "MXN").';
         }
         return true;
       },

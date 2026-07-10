@@ -312,7 +312,7 @@ describe('POST /api/booking/checkout', () => {
     expect(createCall.data.tour).toBe(1);
     expect(createCall.data.adults).toBe(2);
     expect(createCall.data.pricePerPerson).toBe(89);
-    expect(createCall.data.currency).toBe('USD');
+    expect(createCall.data.currency).toBe('MXN');
 
     // Stripe session created with idempotency key + correct line item
     expect(mockCreateSession).toHaveBeenCalledTimes(1);
@@ -328,7 +328,7 @@ describe('POST /api/booking/checkout', () => {
     expect(sessionParams.mode).toBe('payment');
     expect(sessionParams.customer_email).toBe('hana@example.com');
     expect(sessionParams.line_items[0]?.price_data.unit_amount).toBe(2 * 89 * 100);
-    expect(sessionParams.line_items[0]?.price_data.currency).toBe('usd');
+    expect(sessionParams.line_items[0]?.price_data.currency).toBe('mxn');
     expect(stripeOptions?.idempotencyKey).toMatch(/^booking-LC-/);
 
     // expires_at is set to STRIPE_SESSION_TTL_MINUTES from "now", NOT

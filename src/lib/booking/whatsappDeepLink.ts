@@ -27,6 +27,8 @@
  * object so the caller can plug in `next-intl` translations.
  */
 
+import { BOOKING_CURRENCY } from './currency';
+
 export type BookingLocale = 'en' | 'es';
 
 export interface BookingIntent {
@@ -109,7 +111,7 @@ export function buildMessageBody(
   const dateFormatted = new Intl.DateTimeFormat(bcp47, { dateStyle: 'long' }).format(intent.date);
   const totalFormatted = new Intl.NumberFormat(bcp47, {
     style: 'currency',
-    currency: 'USD',
+    currency: BOOKING_CURRENCY,
     maximumFractionDigits: 0,
   }).format(intent.estimatedTotal);
 

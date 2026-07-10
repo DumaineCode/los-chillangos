@@ -222,7 +222,7 @@ export const Tours: CollectionConfig = {
               min: 0,
               label: { en: 'Price', es: 'Precio' },
               admin: {
-                description: { en: 'USD price per person.', es: 'Precio por persona en USD.' },
+                description: { en: 'Price per person (MXN).', es: 'Precio por persona (MXN).' },
                 step: 1,
               },
             },

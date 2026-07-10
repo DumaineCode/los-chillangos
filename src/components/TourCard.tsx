@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '../../i18n/navigation';
 import type { Locale } from '../../i18n/routing';
 import { selectCardThumbnail } from '../lib/seasonal/cardThumbnail';
+import { BOOKING_CURRENCY } from '../lib/booking/currency';
 import type { Tour } from '../payload-types';
 
 type Props = {
@@ -61,7 +62,7 @@ export async function TourCard({ tour, locale }: Props) {
       <div className="tour-card-foot">
         <span className="tour-card-price">
           ${tour.price}
-          <small>USD {t('perPersonShort')}</small>
+          <small>{BOOKING_CURRENCY} {t('perPersonShort')}</small>
         </span>
         <span className="tour-card-cta">{t('view')}</span>
       </div>

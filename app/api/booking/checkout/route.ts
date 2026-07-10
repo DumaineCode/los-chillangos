@@ -21,6 +21,7 @@ import {
   resolveSelectedExtras,
 } from '../../../../src/lib/booking/stripeLineItems';
 import { computeBookingTotals } from '../../../../src/lib/booking/totals';
+import { BOOKING_CURRENCY } from '../../../../src/lib/booking/currency';
 import { getPayload } from '../../../../src/lib/payload';
 import { stripe } from '../../../../src/lib/stripe/client';
 import { getSiteUrl } from '../../../../src/lib/stripe/env';
@@ -160,7 +161,7 @@ export async function POST(request: Request): Promise<Response> {
   // agree (parity guard in pricing.test.ts).
   const tourPrice = (tour as { price?: number }).price ?? 0;
   const pricePerPerson = tourPrice;
-  const currency = 'USD';
+  const currency = BOOKING_CURRENCY;
 
   const offeredExtras: ResolvableExtra[] = (
     (tour as { extras?: unknown[] }).extras ?? []

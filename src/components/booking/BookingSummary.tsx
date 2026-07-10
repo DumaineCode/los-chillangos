@@ -40,12 +40,12 @@ export function BookingSummary({
         date
       )
     : '—';
+  // Peso-first display: the whole site charges MXN (no selector), so amounts
+  // render with the peso sign `$` in both locales, consistent with the extra
+  // price labels (`+$140`) and es-MX. The `MXN` clarifier lives on prominent
+  // labels (e.g. the tour card), not baked into every number.
   const currency = (n: number) =>
-    new Intl.NumberFormat(bcp47, {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(n);
+    `$${new Intl.NumberFormat(bcp47, { maximumFractionDigits: 0 }).format(n)}`;
 
   return (
     <aside className="cart-summary">

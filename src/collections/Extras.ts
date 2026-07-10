@@ -95,11 +95,11 @@ export const Extras: CollectionConfig = {
       type: 'number',
       required: true,
       min: 0,
-      label: { en: 'Price (USD)', es: 'Precio (USD)' },
+      label: { en: 'Price (MXN)', es: 'Precio (MXN)' },
       admin: {
         description: {
-          en: 'Whole-dollar USD price. Global — applies to every tour that offers this extra.',
-          es: 'Precio en USD (dólares enteros). Global — aplica a todos los tours que ofrecen este extra.',
+          en: 'Whole-peso MXN price. Global — applies to every tour that offers this extra.',
+          es: 'Precio en MXN (pesos enteros). Global — aplica a todos los tours que ofrecen este extra.',
         },
       },
     },

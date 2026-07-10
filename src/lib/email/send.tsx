@@ -2,6 +2,7 @@ import { render } from '@react-email/render';
 import * as React from 'react';
 
 import { getPayload } from '../payload';
+import { BOOKING_CURRENCY } from '../booking/currency';
 import { BookingConfirmation } from '../../emails/BookingConfirmation';
 import { OwnerNotification } from '../../emails/OwnerNotification';
 import { EMAIL_STRINGS } from '../../emails/strings';
@@ -122,7 +123,7 @@ async function loadBookingEmailData(bookingId: number): Promise<BookingEmailData
 
   const adults = booking.adults ?? 0;
   const teens = booking.teens ?? 0;
-  const currency = booking.currency ?? 'USD';
+  const currency = booking.currency ?? BOOKING_CURRENCY;
   const fullName = booking.customer.name?.trim() || (locale === 'es' ? 'viajero' : 'traveler');
 
   return {

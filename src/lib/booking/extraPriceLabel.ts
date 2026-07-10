@@ -8,7 +8,8 @@
  * - `total`     → `+$140` (flat, charged once)
  * - `perPerson` → `+$20 / persona` (suffix appended after a space)
  *
- * `price` is a whole-dollar USD amount; no decimals are ever rendered.
+ * `price` is a whole-peso MXN amount; no decimals are ever rendered. The `$`
+ * here is the peso sign (the site charges MXN — see lib/booking/currency.ts).
  */
 export function formatExtraPrice({
   price,
