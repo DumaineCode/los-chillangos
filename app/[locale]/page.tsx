@@ -152,7 +152,13 @@ export default async function HomePage({ params }: Props) {
   const faq = landing?.faq;
   const rentalsBlock = landing?.rentals;
 
-  const tours = toursResult.docs;
+  // When a seasonal tour is featured in the banner above (HighlightSeasonal),
+  // drop it from the "Pick your pace" catalog grid so the exact same tour never
+  // renders twice back-to-back. Without an active seasonal feature, the catalog
+  // shows every published tour as before.
+  const tours = seasonalTour
+    ? toursResult.docs.filter((tour) => tour.id !== seasonalTour.id)
+    : toursResult.docs;
 
   // Rentals price list (from the Landing `rentals` tab). Keep only rows that have
   // BOTH a label and a price, so a half-filled admin row never renders broken.
@@ -226,12 +232,18 @@ export default async function HomePage({ params }: Props) {
     .map((entry) => resolveMediaImage(entry.image))
     .filter((image): image is ResolvedImage => image !== null);
   const aboutImage = aboutImages[0] ?? resolveMediaImage(about?.image);
-  const testimonialItems = (testimonial?.items ?? []).map((item) => ({
-    quote: item.quote,
-    name: item.name,
-    loc: item.loc,
-    avatar: resolveMediaImage(item.avatar),
-  }));
+  // Only surface testimonials that actually carry a quote. A CMS row with a
+  // name but no quote text would otherwise render as empty quotation marks —
+  // filtering here keeps the slider meaningful, and the `length > 0` guard in
+  // the JSX hides the whole section when nothing valid remains.
+  const testimonialItems = (testimonial?.items ?? [])
+    .map((item) => ({
+      quote: (item.quote ?? '').trim(),
+      name: item.name,
+      loc: item.loc,
+      avatar: resolveMediaImage(item.avatar),
+    }))
+    .filter((item) => item.quote !== '');
 
   const teamMembers = (team?.items ?? []).map((m) => ({
     name: m.name,
@@ -345,7 +357,7 @@ export default async function HomePage({ params }: Props) {
           <div className="section-head">
             <div>
               <div className="eyebrow" style={{ marginBottom: 16 }}>
-                {values?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 01
+                {values?.eyebrow}
               </div>
               <h2 className="section-title">{values?.title}</h2>
             </div>
@@ -373,7 +385,7 @@ export default async function HomePage({ params }: Props) {
           <div className="section-head">
             <div>
               <div className="eyebrow" style={{ marginBottom: 16 }}>
-                {toursEyebrow} <span style={{ margin: '0 8px' }}>·</span> 02
+                {toursEyebrow}
               </div>
               <h2 className="section-title">{toursTitle}</h2>
             </div>
@@ -438,11 +450,14 @@ export default async function HomePage({ params }: Props) {
               </div>
               <h2 className="section-title">{rentalsBlock?.title || tRentals('home.title')}</h2>
             </div>
-            <p className="section-sub">{rentalsBlock?.sub || tRentals('home.sub')}</p>
           </div>
 
           {rentalDurations.length > 0 ? (
-            <div className="rental-pricing">
+            // Warm, self-contained "rental menu": price list on the left, value
+            // prop + CTA on the right. Balances the composition (no dead
+            // half-width) and echoes the seasonal banner's cream surface so the
+            // two feature blocks read as siblings.
+            <div className="rental-panel">
               <ul className="rental-price-list" data-testid="rental-price-list">
                 {rentalDurations.map((d, i) => (
                   <li className="rental-price-row" key={d.id ?? i}>
@@ -462,7 +477,10 @@ export default async function HomePage({ params }: Props) {
                   </li>
                 ) : null}
               </ul>
-              <div className="rental-pricing-cta">
+              <div className="rental-aside">
+                <p className="rental-aside-lead">
+                  {rentalsBlock?.sub || tRentals('home.sub')}
+                </p>
                 <HeroCta
                   href={rentalsCtaHref}
                   className="btn btn-primary btn-lg"
@@ -473,13 +491,20 @@ export default async function HomePage({ params }: Props) {
               </div>
             </div>
           ) : (
-            <HeroCta
-              href={rentalsCtaHref}
-              className="btn btn-primary btn-lg"
-              testId="rentals-home-cta"
-            >
-              {rentalsBlock?.ctaLabel || tRentals('home.cta')}
-            </HeroCta>
+            <div className="rental-panel rental-panel-empty">
+              <div className="rental-aside">
+                <p className="rental-aside-lead">
+                  {rentalsBlock?.sub || tRentals('home.sub')}
+                </p>
+                <HeroCta
+                  href={rentalsCtaHref}
+                  className="btn btn-primary btn-lg"
+                  testId="rentals-home-cta"
+                >
+                  {rentalsBlock?.ctaLabel || tRentals('home.cta')}
+                </HeroCta>
+              </div>
+            </div>
           )}
         </div>
       </section>
@@ -511,7 +536,7 @@ export default async function HomePage({ params }: Props) {
             )}
             <div>
               <div className="eyebrow" style={{ marginBottom: 24 }}>
-                {about?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 03
+                {about?.eyebrow}
               </div>
               <h3>{about?.title}</h3>
               <p>{about?.p1}</p>
@@ -554,7 +579,13 @@ export default async function HomePage({ params }: Props) {
                           />
                         </div>
                       ) : (
-                        <div className="testimonial-avatar placeholder" data-label=""></div>
+                        <div
+                          className="testimonial-avatar avatar-monogram"
+                          role="img"
+                          aria-label={item.name || 'Guest'}
+                        >
+                          <span aria-hidden="true">{getInitials(item.name)}</span>
+                        </div>
                       )}
                       <div>
                         <div className="testimonial-name">{item.name}</div>
@@ -582,7 +613,7 @@ export default async function HomePage({ params }: Props) {
           <div className="section-head">
             <div>
               <div className="eyebrow" style={{ marginBottom: 16 }}>
-                {faq?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 04
+                {faq?.eyebrow}
               </div>
               <h2 className="section-title">{faq?.title}</h2>
             </div>
@@ -598,7 +629,7 @@ export default async function HomePage({ params }: Props) {
             <div className="section-head">
               <div>
                 <div className="eyebrow" style={{ marginBottom: 16 }}>
-                  {team?.eyebrow} <span style={{ margin: '0 8px' }}>·</span> 05
+                  {team?.eyebrow}
                 </div>
                 <h2 className="section-title">{team?.title}</h2>
               </div>
@@ -621,7 +652,13 @@ export default async function HomePage({ params }: Props) {
                       />
                     </div>
                   ) : (
-                    <div className="team-photo placeholder" data-label=""></div>
+                    <div
+                      className="team-photo avatar-monogram"
+                      role="img"
+                      aria-label={m.name || 'Team member'}
+                    >
+                      <span aria-hidden="true">{getInitials(m.name)}</span>
+                    </div>
                   )}
                   <div className="team-name">{m.name}</div>
                   <div className="team-role">{m.role}</div>
@@ -641,6 +678,20 @@ export default async function HomePage({ params }: Props) {
 function resolveMediaUrl(value: number | Media | MediaVideo | null | undefined): string | null {
   if (!value || typeof value === 'number') return null;
   return value.url ?? null;
+}
+
+/**
+ * Initials for an avatar monogram fallback. Used when a team member or guest has
+ * no uploaded photo, so the slot reads as an intentional monogram badge instead
+ * of an empty/broken circle. First + last initial, uppercased; a lone middle dot
+ * when there's no usable name.
+ */
+function getInitials(name: string | null | undefined): string {
+  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '\u00B7';
+  const first = parts[0]?.[0] ?? '';
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? '') : '';
+  return (first + last).toUpperCase();
 }
 
 /**

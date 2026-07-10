@@ -14,6 +14,7 @@ import HomePage from './page';
 
 const findGlobalMock = vi.fn();
 const findMock = vi.fn();
+const getActiveSeasonalTourMock = vi.fn();
 
 vi.mock('../../src/lib/payload', () => ({
   getPayload: () => Promise.resolve({ findGlobal: findGlobalMock, find: findMock }),
@@ -59,9 +60,11 @@ vi.mock('next/image', () => ({
   default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
 }));
 
-// Seasonal helper is unrelated to the services strip — return nothing.
+// Seasonal helper: controllable per test. Defaults to null (no active seasonal
+// feature) in beforeEach so the pre-existing suites are unaffected; the seasonal-
+// exclusion suite overrides it to return a featured tour.
 vi.mock('../../src/lib/seasonal/getActiveSeasonalTour', () => ({
-  getActiveSeasonalTour: () => Promise.resolve(null),
+  getActiveSeasonalTour: (...args: unknown[]) => getActiveSeasonalTourMock(...args),
 }));
 
 // HighlightSeasonal calls the client-only useTranslations hook unconditionally;
@@ -163,6 +166,9 @@ async function renderHome(
 beforeEach(() => {
   findGlobalMock.mockReset();
   findMock.mockReset();
+  getActiveSeasonalTourMock.mockReset();
+  // Default: no active seasonal feature (matches the legacy mock behavior).
+  getActiveSeasonalTourMock.mockResolvedValue(null);
 });
 
 afterEach(() => {
@@ -649,5 +655,106 @@ describe('HomePage — tours catalog header', () => {
     expect(head.querySelector('.eyebrow')?.textContent).toContain('Catalog');
     expect(head.querySelector('.section-title')?.textContent).toBe('Only the title is set');
     expect(head.querySelector('.section-sub')?.textContent).toBe('Pick your ride');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Seasonal exclusion — a tour featured in the HighlightSeasonal banner must NOT
+// also appear in the "Pick your pace" catalog grid (it used to render twice,
+// back-to-back). page.tsx filters the active seasonal tour out of the catalog by
+// id; with no active seasonal feature the catalog shows every published tour.
+// HighlightSeasonal is stubbed to null above, so any seasonal-tour title that
+// surfaces in the tree came from the catalog grid — exactly what we assert on.
+// ---------------------------------------------------------------------------
+describe('HomePage — seasonal tour excluded from the catalog grid', () => {
+  const classicDoc = { ...makeTour(), id: 1, title: 'Classic CDMX' };
+  const seasonalDoc = { ...makeTour(), id: 7, title: 'The Night Nobody Sleeps' };
+
+  async function renderHomeWithCatalog(
+    docs: ReturnType<typeof makeTour>[],
+    seasonalTour: unknown
+  ) {
+    getActiveSeasonalTourMock.mockResolvedValue(seasonalTour);
+    findGlobalMock.mockImplementation(({ slug }: { slug: string }) => {
+      if (slug === 'landing') return Promise.resolve(buildLanding(DEFAULT_SERVICES, FULL_HERO));
+      return Promise.resolve(null);
+    });
+    findMock.mockResolvedValue({ docs });
+
+    const ui = await HomePage({ params: Promise.resolve({ locale: 'en' }) });
+    return render(ui);
+  }
+
+  it('drops the featured seasonal tour from the catalog grid', async () => {
+    const { container, queryAllByText } = await renderHomeWithCatalog(
+      [seasonalDoc, classicDoc],
+      { ...seasonalDoc }
+    );
+
+    // Only the non-seasonal tour renders as a catalog card.
+    expect(container.querySelectorAll('[data-testid="tour-card"]')).toHaveLength(1);
+    // The seasonal tour title is absent from the catalog (it lives in the banner).
+    expect(queryAllByText('The Night Nobody Sleeps')).toHaveLength(0);
+    // The other published tour still renders exactly once.
+    expect(queryAllByText('Classic CDMX')).toHaveLength(1);
+  });
+
+  it('keeps every published tour when no seasonal feature is active', async () => {
+    const { container } = await renderHomeWithCatalog([seasonalDoc, classicDoc], null);
+    expect(container.querySelectorAll('[data-testid="tour-card"]')).toHaveLength(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Testimonials — graceful empty states. Rows without a quote (empty or
+// whitespace-only) are dropped so the slider never shows bare quotation marks;
+// when nothing valid remains the whole section is hidden. Guests without an
+// uploaded avatar fall back to an initials monogram (.avatar-monogram) instead
+// of an empty circle.
+// ---------------------------------------------------------------------------
+describe('HomePage — testimonial empty states', () => {
+  type TestimonialItem = { quote?: string; name?: string; loc?: string };
+
+  async function renderHomeWithTestimonials(items: TestimonialItem[]) {
+    findGlobalMock.mockImplementation(({ slug }: { slug: string }) => {
+      if (slug === 'landing') {
+        return Promise.resolve({
+          ...buildLanding(DEFAULT_SERVICES, FULL_HERO),
+          testimonial: { eyebrow: 'Testimonials', items },
+        });
+      }
+      return Promise.resolve(null);
+    });
+    findMock.mockResolvedValue({ docs: [makeTour()] });
+
+    const ui = await HomePage({ params: Promise.resolve({ locale: 'en' }) });
+    return render(ui);
+  }
+
+  it('drops rows with an empty/whitespace-only quote and keeps the valid ones', async () => {
+    const { container } = await renderHomeWithTestimonials([
+      { name: 'Ana Ramos', quote: '   ' },
+      { name: 'Beto Cruz', quote: 'Best ride in CDMX.' },
+    ]);
+
+    const slides = container.querySelectorAll('.testimonial');
+    expect(slides).toHaveLength(1);
+    expect(slides[0].textContent).toContain('Best ride in CDMX.');
+    // The empty-quote guest never renders.
+    expect(container.textContent).not.toContain('Ana Ramos');
+    // No-avatar guest falls back to an initials monogram (BC), not an empty circle.
+    const monogram = container.querySelector('.avatar-monogram');
+    expect(monogram).not.toBeNull();
+    expect(monogram!.textContent).toBe('BC');
+  });
+
+  it('hides the whole testimonial section when no row has a quote', async () => {
+    const { container } = await renderHomeWithTestimonials([
+      { name: 'Ana Ramos', quote: '' },
+      { name: 'Beto Cruz', quote: '   ' },
+    ]);
+
+    expect(container.querySelector('.testimonial-slider')).toBeNull();
+    expect(container.querySelector('.testimonial')).toBeNull();
   });
 });

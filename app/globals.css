@@ -72,17 +72,18 @@
 :root {
   /* Light theme — fondo blanco roto neutro (no crema como fondo principal) */
   --bg: #FAFAF7;          /* casi blanco, neutro cálido */
-  --bg-warm: #FFF3D6;     /* Crema — superficie/acento, no fondo */
+  --bg-warm: #F6F1E7;     /* Papel cálido — superficie de fills grandes (About, panels, cards). Softened from the saturated Crema #FFF3D6 so large areas read as warm off-white, not duck yellow. */
   --bg-deep: #0D182A;     /* Azul Profundo */
   --ink: #0D182A;         /* Azul Profundo como tinta */
   --ink-soft: #0D182ACC;  /* Azul Profundo 80% */
-  --ink-muted: #0D182A80; /* Azul Profundo 50% */
+  --ink-muted: #0D182AA6; /* Azul Profundo ~65% — darkened so muted labels clear WCAG AA (4.5:1) on light surfaces */
   --line: #0D182A1A;      /* Azul Profundo 10% */
   --line-strong: #0D182A33; /* Azul Profundo 20% */
-  --terra: #FF2E7A;       /* Rosa Mexicano — acento principal */
+  --terra: #FF2E7A;       /* Rosa Mexicano — acento principal (large/graphic use) */
   --terra-deep: #D11F60;  /* Rosa Mexicano oscurecido para hovers */
+  --terra-text: #B4124F;  /* Rosa Mexicano profundo — SOLO texto chico; el terra vivo no llega a 4.5:1 como texto sobre superficies claras */
   --moss: #00B2D6;        /* Azul Maya — acento secundario */
-  --cream: #FFF3D6;       /* Crema — superficies/cards (TEMÁTICO: se invierte en dark) */
+  --cream: #FFF3D6;       /* Crema saturado — SOLO acentos chicos (badges, tags, sellos). No usar en fills grandes: para eso está --bg-warm. (TEMÁTICO: se invierte en dark) */
   --cream-fixed: #FFF3D6; /* Crema CONSTANTE en ambos temas — para texto/fondos sobre superficies oscuras fijas (hero, footer, badges). NO redefinir en dark. */
   --rose: #FF2E7A;        /* alias del Rosa Mexicano */
   --black: #000000;       /* Negro */
@@ -101,10 +102,12 @@
   --bg-deep: #FAFAF7;     /* claro (inverso) */
   --ink: #FFF3D6;         /* Crema como tinta */
   --ink-soft: #FFF3D6CC;
-  --ink-muted: #FFF3D680;
+  --ink-muted: #FFF3D6B3;
   --line: #FFF3D61A;
   --line-strong: #FFF3D633;
   --cream: #0A0A0A;       /* superficies elevadas en oscuro */
+  /* On black the vivid terra already clears 4.5:1, so terra-text stays vivid. */
+  --terra-text: #FF2E7A;
 }
 
 * { box-sizing: border-box; }
@@ -164,12 +167,14 @@ a { color: inherit; text-decoration: none; }
   background: var(--ink);
   color: var(--bg);
 }
-.btn-primary:hover { background: var(--terra); color: var(--cream-fixed); }
+.btn-primary:hover { background: var(--terra-deep); color: #FFFFFF; }
 .btn-terra {
-  background: var(--terra);
-  color: var(--cream-fixed);
+  /* Deeper on-brand pink + white so terra buttons clear WCAG AA (4.5:1); the
+     vivid --terra with cream text only reached ~3.2:1. */
+  background: var(--terra-deep);
+  color: #FFFFFF;
 }
-.btn-terra:hover { background: var(--terra-deep); }
+.btn-terra:hover { background: #A8124C; }
 .btn-ghost {
   background: transparent;
   color: var(--ink);
@@ -628,11 +633,13 @@ body:has(.hero-cine) { padding-top: 0; }
   align-items: center;
 }
 .hero-cine-ctas .btn-primary {
-  background: var(--terra);
-  color: var(--cream-fixed);
+  /* Deeper on-brand pink + pure white so the primary hero CTA clears WCAG AA
+     (4.5:1); the vivid --terra with cream text only reached ~3.2:1. */
+  background: var(--terra-deep);
+  color: #FFFFFF;
 }
 .hero-cine-ctas .btn-primary:hover {
-  background: var(--terra-deep);
+  background: #A8124C;
 }
 .hero-cine-ctas .btn-ghost {
   border-color: rgba(255,243,214,0.4);
@@ -894,7 +901,7 @@ body:has(.hero-cine) { padding-top: 0; }
   color: var(--ink);
   z-index: 2;
 }
-.tour-card-tag.terra { background: var(--terra); color: #FFFFFF; }
+.tour-card-tag.terra { background: var(--terra-deep); color: #FFFFFF; }
 .tour-card-tag.maya { background: var(--moss); color: #FFFFFF; }
 .tour-card-tag.profundo { background: #0D182A; color: #FFFFFF; }
 .tour-card-tag.crema { background: var(--cream); color: var(--ink); }
@@ -903,8 +910,8 @@ body:has(.hero-cine) { padding-top: 0; }
    (light in BOTH themes, never the surface token which flips to near-black in
    dark), heavier weight + wider tracking, and a soft terra glow. */
 .tour-card-tag.seasonal {
-  background: var(--terra);
-  color: var(--cream-fixed);
+  background: var(--terra-deep);
+  color: #FFFFFF;
   font-weight: 600;
   letter-spacing: 0.14em;
   padding: 5px 11px;
@@ -1060,16 +1067,55 @@ body:has(.hero-cine) { padding-top: 0; }
   margin: 0 0 16px;
 }
 
-/* === Rentals price list (#rentals-home) ===
-   One bike, one size — so the block is a simple price table: each rentable
-   duration (and an optional helmet add-on) as a label…dotted-leader…price row,
-   followed by a contact CTA. No catalog, no cards. */
-.rental-pricing {
-  max-width: 640px;
+/* === Rentals panel (#rentals-home) ===
+   One bike, one size — so the block is a simple price table, not a catalog.
+   Presented as a warm, bordered "rental menu": the price list (label…dotted-
+   leader…price rows) on the left, the value prop + CTA on the right. The cream
+   surface echoes the seasonal banner so the two feature blocks read as siblings
+   and the section never leaves a dead half-width. */
+.rental-panel {
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 0;
+  align-items: stretch;
+  background: var(--bg-warm);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 40px 48px;
+}
+.rental-panel-empty {
+  grid-template-columns: 1fr;
+  max-width: 560px;
+}
+.rental-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+  margin-left: 48px;
+  padding-left: 48px;
+  border-left: 1px solid var(--line-strong);
+}
+.rental-panel-empty .rental-aside {
+  margin-left: 0;
+  padding-left: 0;
+  border-left: none;
+}
+.rental-aside-lead {
+  font-family: var(--serif);
+  font-size: clamp(21px, 2vw, 27px);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0;
+  text-wrap: balance;
+}
+.rental-aside .btn {
+  align-self: flex-start;
 }
 .rental-price-list {
   list-style: none;
-  margin: 0 0 32px;
+  margin: 0;
   padding: 0;
 }
 .rental-price-row {
@@ -1181,6 +1227,27 @@ body:has(.hero-cine) { padding-top: 0; }
 .testimonial-avatar {
   width: 48px; height: 48px;
   border-radius: 50%;
+}
+
+/* Monogram fallback — an intentional initials badge when no photo is uploaded,
+   so team/testimonial slots never render as empty or broken circles. Uses the
+   deep-ink surface + cream text so it reads as a deliberate brand mark. */
+.avatar-monogram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-deep);
+  color: var(--cream-fixed);
+  font-family: var(--serif);
+  letter-spacing: 0.01em;
+  line-height: 1;
+  user-select: none;
+}
+.testimonial-avatar.avatar-monogram {
+  font-size: 18px;
+}
+.team-photo.avatar-monogram {
+  font-size: clamp(40px, 6vw, 60px);
 }
 .testimonial-name {
   font-size: 15px;
@@ -1342,7 +1409,8 @@ body:has(.hero-cine) { padding-top: 0; }
   border-top: 1px solid #ffffff20;
   padding-top: 48px;
 }
-.footer h5 {
+.footer h5,
+.footer .footer-col-title {
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.12em;
@@ -1994,6 +2062,15 @@ body:has(.hero-cine) { padding-top: 0; }
   .values { grid-template-columns: 1fr 1fr; }
   .value-cell { border-right: none; padding: 24px 0; border-top: 1px solid var(--line); }
   .editorial { grid-template-columns: 1fr; gap: 32px; }
+  .rental-panel { grid-template-columns: 1fr; padding: 28px 24px; }
+  .rental-aside {
+    margin-left: 0;
+    padding-left: 0;
+    padding-top: 28px;
+    margin-top: 4px;
+    border-left: none;
+    border-top: 1px solid var(--line-strong);
+  }
   .strip-cards { grid-template-columns: 1fr; }
   .team { grid-template-columns: 1fr 1fr 1fr; gap: 24px 12px; }
   .team-photo { width: clamp(78px, 26vw, 140px); height: clamp(78px, 26vw, 140px); margin-bottom: 12px; }
@@ -2516,4 +2593,61 @@ body:has(.hero-cine) { padding-top: 0; }
   .catalog-notfound {
     padding: 36px 20px;
   }
+}
+
+/* ========================================================================
+   ACCESSIBILITY OVERRIDES (WCAG AA)
+   Centralized, low-risk contrast + motion fixes. Kept at the end of the file
+   so equal-specificity color rules resolve here without touching each block.
+   ======================================================================== */
+
+/* Small terra text → deeper on-brand pink (--terra-text) so labels clear 4.5:1
+   on light/cream surfaces. The vivid --terra stays for fills, badges and large
+   display type where 3:1 (large-text AA) already passes. */
+.value-num,
+.strip-card-link,
+.highlight-seasonal-body .eyebrow,
+.highlight-seasonal-eyebrow,
+.highlight-seasonal-eyebrow span,
+.highlight-seasonal-singledate,
+.highlight-seasonal-cta {
+  color: var(--terra-text);
+}
+/* Preserve the hover intent of the services link. */
+.strip-card-link:hover {
+  color: var(--ink);
+}
+
+/* The load-in reveal must not leave content stuck if animations are disabled,
+   and should be skipped entirely for users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+/* Visible keyboard focus. A single brand ring on every interactive control,
+   with an offset gap so it stays legible on light surfaces, cream panels, the
+   dark hero image and the footer alike. Only shows for keyboard/AT users
+   (:focus-visible), so mouse clicks stay clean. Modern browsers round the
+   outline to match the control's border-radius. */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible,
+[role='button']:focus-visible {
+  outline: 3px solid var(--terra);
+  outline-offset: 3px;
+}
+/* Elements sitting directly on the vivid terra fill get a light ring instead so
+   the focus indicator never disappears into the same pink. */
+.btn-primary:focus-visible,
+.btn-terra:focus-visible {
+  outline-color: #FFFFFF;
 }

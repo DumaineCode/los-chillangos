@@ -115,7 +115,7 @@ export async function Footer({ locale }: Props) {
           </div>
           {columns.map((col, ci) => (
             <div key={`col-${ci}`}>
-              <h5>{col.title}</h5>
+              <p className="footer-col-title">{col.title}</p>
               <ul>
                 {(col.links ?? []).map((link, li) => (
                   <li key={`col-${ci}-link-${li}`}>
@@ -126,7 +126,7 @@ export async function Footer({ locale }: Props) {
             </div>
           ))}
           <div>
-            <h5>·</h5>
+            <p className="footer-col-title" aria-hidden="true">·</p>
             <ul>
               {contact?.email ? (
                 <li>

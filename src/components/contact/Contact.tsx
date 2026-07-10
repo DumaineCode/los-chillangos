@@ -82,7 +82,7 @@ export async function Contact({ locale, contact, social }: Props) {
         <div className="section-head">
           <div>
             <div className="eyebrow" style={{ marginBottom: 16 }}>
-              {t('eyebrow')} <span style={{ margin: '0 8px' }}>·</span> 07
+              {t('eyebrow')}
             </div>
             <h2 className="section-title">{t('title')}</h2>
           </div>
@@ -96,7 +96,7 @@ export async function Contact({ locale, contact, social }: Props) {
           </div>
 
           {/* Channels we already have in the admin */}
-          <aside className="contact-info-col">
+          <div className="contact-info-col">
             <h3 className="contact-info-title">{t('directTitle')}</h3>
 
             <ul className="contact-channels">
@@ -181,7 +181,7 @@ export async function Contact({ locale, contact, social }: Props) {
                 </div>
               </div>
             ) : null}
-          </aside>
+          </div>
         </div>
       </div>
     </section>
