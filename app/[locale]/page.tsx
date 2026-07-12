@@ -168,7 +168,11 @@ export default async function HomePage({ params }: Props) {
   const helmetLabel = rentalsBlock?.helmetLabel?.trim() ?? '';
   const helmetPrice = rentalsBlock?.helmetPrice?.trim() ?? '';
   const showHelmet = helmetLabel !== '' && helmetPrice !== '';
-  const rentalsCtaHref = rentalsBlock?.ctaHref?.trim() || '#contact';
+  // Default the rentals CTA to the online rental checkout flow. Passed UNPREFIXED
+  // (`/rent`) so HeroCta's locale-aware Link adds the active locale, exactly like
+  // the catalog links to /book. An admin can still override it via the Landing
+  // `rentals` tab.
+  const rentalsCtaHref = rentalsBlock?.ctaHref?.trim() || '/rent';
 
   const valuesItems = (values?.items ?? []).map((v) => ({ t: v.title, d: v.description }));
   const servicesItems = (services?.items ?? []).map((s) => ({ t: s.title, d: s.description }));

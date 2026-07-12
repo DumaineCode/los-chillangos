@@ -380,6 +380,76 @@
       "title": "Rather ride on your own?",
       "sub": "Rent our bike by the hour and explore at your own pace.",
       "cta": "Reserve →"
+    },
+    "flow": {
+      "pageTitle": "Rent a bike — Los Chillangos",
+      "pageDescription": "Pick a day and time, choose how long, and pay securely online.",
+      "progressLabel": "Step {current} of {total}",
+      "stepLabels": {
+        "date": "Date",
+        "options": "Bikes",
+        "details": "Details",
+        "confirm": "Confirm"
+      },
+      "steps": {
+        "date": {
+          "title": "Pick a day",
+          "timeTitle": "Pick a start time"
+        },
+        "options": {
+          "title": "Duration & bikes",
+          "durationTitle": "How long?",
+          "quantityTitle": "How many bikes?",
+          "quantityHint": "Up to {max} available at this time",
+          "pricePreview": "Price"
+        },
+        "confirm": {
+          "title": "Ready to confirm",
+          "lede": "Review your rental and proceed to secure payment.",
+          "footer": "Sent from loschillangos.com"
+        }
+      },
+      "summary": {
+        "title": "Your rental",
+        "date": "Date",
+        "time": "Start time",
+        "duration": "Duration",
+        "bikes": "Bikes",
+        "unitPrice": "Per bike",
+        "total": "Total",
+        "totalNote": "Charged in MXN at checkout"
+      },
+      "loading": "Checking availability…",
+      "notRentable": "Bike rentals aren't open for that day yet. Pick today or tomorrow.",
+      "noCombos": "No rental slots are available for that day.",
+      "hoursLabel": "{count, plural, one {# hour} other {# hours}}",
+      "minutesLabel": "{count} min",
+      "payCta": "Pay & confirm",
+      "creating": "Creating your rental…",
+      "errors": {
+        "dateRequired": "Pick a day and start time.",
+        "comboRequired": "Choose a duration.",
+        "rentalUnavailable": "Those bikes are no longer available. Please pick another time.",
+        "unknownTier": "That duration is no longer offered. Please pick another.",
+        "unexpected": "Something went wrong. Please try again."
+      },
+      "success": {
+        "title": "You're all set!",
+        "pendingTitle": "Confirming your payment…",
+        "referenceLabel": "Reference",
+        "dateLabel": "Date",
+        "timeLabel": "Start time",
+        "durationLabel": "Duration",
+        "bikesLabel": "Bikes",
+        "totalLabel": "Total paid",
+        "pendingMessage": "Your payment is processing. We'll email your confirmation as soon as it lands.",
+        "timeoutMessage": "It's taking longer than expected. Please check your email or contact us with your reference."
+      },
+      "cancelled": {
+        "title": "Rental cancelled",
+        "message": "Your bikes were released. No charge was made.",
+        "retryCta": "Try again"
+      }
     }
   }
 }

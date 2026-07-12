@@ -585,9 +585,12 @@ describe('home rentals price list', () => {
     expect(block.querySelector('[data-testid="rental-price-list"]')).toBeNull();
     expect(block.querySelector('.section-head')).not.toBeNull();
 
-    // Default CTA destination is the contact section.
+    // Default CTA destination is the online rental checkout flow — an internal
+    // route passed UNPREFIXED (`/rent`) so it routes through the locale-aware
+    // Link, mirroring how the catalog links to /book.
     const cta = block.querySelector('[data-testid="rentals-home-cta"]')!;
-    expect(cta.getAttribute('href')).toBe('#contact');
+    expect(cta.getAttribute('href')).toBe('/rent');
+    expect(cta.hasAttribute('data-locale-link')).toBe(true);
   });
 });
 

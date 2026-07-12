@@ -380,6 +380,76 @@
       "title": "¿Prefieres rodar por tu cuenta?",
       "sub": "Renta nuestra bici por horas y explora a tu propio ritmo.",
       "cta": "Reservar →"
+    },
+    "flow": {
+      "pageTitle": "Renta una bici — Los Chillangos",
+      "pageDescription": "Elige el día y la hora, cuánto tiempo la quieres y paga en línea de forma segura.",
+      "progressLabel": "Paso {current} de {total}",
+      "stepLabels": {
+        "date": "Fecha",
+        "options": "Bicis",
+        "details": "Datos",
+        "confirm": "Confirmar"
+      },
+      "steps": {
+        "date": {
+          "title": "Elige un día",
+          "timeTitle": "Elige la hora de inicio"
+        },
+        "options": {
+          "title": "Duración y bicis",
+          "durationTitle": "¿Cuánto tiempo?",
+          "quantityTitle": "¿Cuántas bicis?",
+          "quantityHint": "Hasta {max} disponibles a esta hora",
+          "pricePreview": "Precio"
+        },
+        "confirm": {
+          "title": "Listo para confirmar",
+          "lede": "Revisa tu renta y continúa al pago seguro.",
+          "footer": "Enviado desde loschillangos.com"
+        }
+      },
+      "summary": {
+        "title": "Tu renta",
+        "date": "Fecha",
+        "time": "Hora de inicio",
+        "duration": "Duración",
+        "bikes": "Bicis",
+        "unitPrice": "Por bici",
+        "total": "Total",
+        "totalNote": "Se cobra en MXN al pagar"
+      },
+      "loading": "Verificando disponibilidad…",
+      "notRentable": "La renta de bicis aún no está abierta para ese día. Elige hoy o mañana.",
+      "noCombos": "No hay horarios de renta disponibles para ese día.",
+      "hoursLabel": "{count, plural, one {# hora} other {# horas}}",
+      "minutesLabel": "{count} min",
+      "payCta": "Pagar y confirmar",
+      "creating": "Creando tu renta…",
+      "errors": {
+        "dateRequired": "Elige un día y una hora de inicio.",
+        "comboRequired": "Elige una duración.",
+        "rentalUnavailable": "Esas bicis ya no están disponibles. Elige otra hora.",
+        "unknownTier": "Esa duración ya no se ofrece. Elige otra.",
+        "unexpected": "Algo salió mal. Inténtalo de nuevo."
+      },
+      "success": {
+        "title": "¡Todo listo!",
+        "pendingTitle": "Confirmando tu pago…",
+        "referenceLabel": "Referencia",
+        "dateLabel": "Fecha",
+        "timeLabel": "Hora de inicio",
+        "durationLabel": "Duración",
+        "bikesLabel": "Bicis",
+        "totalLabel": "Total pagado",
+        "pendingMessage": "Tu pago se está procesando. Te enviamos la confirmación por email apenas se acredite.",
+        "timeoutMessage": "Está tardando más de lo esperado. Revisa tu email o contactanos con tu referencia."
+      },
+      "cancelled": {
+        "title": "Renta cancelada",
+        "message": "Tus bicis fueron liberadas. No te cobramos.",
+        "retryCta": "Reintentar"
+      }
     }
   }
 }
