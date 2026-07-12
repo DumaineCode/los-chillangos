@@ -195,7 +195,9 @@ describe('POST /api/stripe/webhook', () => {
     expect(refundParams.reason).toBe('requested_by_customer');
     expect(refundParams.metadata.bookingReference).toBe('LC-LATE0001');
     expect(refundParams.metadata.autoRefundReason).toBe('hold-expired-before-payment');
-    expect(refundOptions.idempotencyKey).toBe('refund-LC-LATE0001');
+    // Idempotency key is collection-namespaced so a booking and a rental that
+    // share a reference can never collide (L1).
+    expect(refundOptions.idempotencyKey).toBe('refund-bookings-LC-LATE0001');
 
     // Booking flipped to refunded with the PI captured for traceability
     expect(mockPayload.update).toHaveBeenCalledTimes(1);
@@ -243,7 +245,7 @@ describe('POST /api/stripe/webhook', () => {
     expect(mockCreateRefund).toHaveBeenCalledTimes(1);
     const refundArgs = mockCreateRefund.mock.calls[0];
     const refundOptions = refundArgs?.[1] as { idempotencyKey: string };
-    expect(refundOptions.idempotencyKey).toBe('refund-LC-LATE0002');
+    expect(refundOptions.idempotencyKey).toBe('refund-bookings-LC-LATE0002');
 
     expect(mockPayload.update).toHaveBeenCalledTimes(1);
     const updateCall = mockPayload.update.mock.calls[0]?.[0] as {
@@ -373,6 +375,294 @@ describe('POST /api/stripe/webhook', () => {
     expect(res.status).toBe(200);
     const call = mockPayload.update.mock.calls[0]?.[0] as { data: { status: string } };
     expect(call.data.status).toBe('cancelled');
+  });
+
+  it('BOOKING checkout.session.completed → still-pending but hold LAPSED → shared auto-refund keying (free fix; NOT a commit)', async () => {
+    // TRIANGULATION: the shared refund trigger is keyed on holdExpiresAt <= paidInstant,
+    // so a tour booking still labeled `pending` (sweep not run) whose hold instant has
+    // passed also refunds. This is the promised free fix that benefits tours, scoped to
+    // the refund-trigger condition only.
+    mockConstructEvent.mockReturnValueOnce({
+      id: 'evt_booking_late_pending',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_booking_late',
+          payment_intent: 'pi_booking_late',
+          metadata: { bookingId: '77', bookingReference: 'LC-LATEPEND' },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockPayload.find.mockResolvedValueOnce({
+      docs: [{ id: 77, status: 'pending', reference: 'LC-LATEPEND', holdExpiresAt: '2000-01-01T00:00:00.000Z', notes: null }],
+    });
+
+    const res = await POST(makeReq('{}'));
+    expect(res.status).toBe(200);
+    expect(mockCreateRefund).toHaveBeenCalledTimes(1);
+    const updateCall = mockPayload.update.mock.calls[0]?.[0] as { collection: string; data: { status: string } };
+    expect(updateCall.collection).toBe('bookings');
+    expect(updateCall.data.status).toBe('refunded');
+    // No confirmation email on an auto-refunded late payment.
+    expect(mockSendEmails).not.toHaveBeenCalled();
+  });
+
+  it('BOOKING checkout.session.completed → pending with FUTURE hold → commits to paid (keying is scoped, no over-refund)', async () => {
+    mockConstructEvent.mockReturnValueOnce({
+      id: 'evt_booking_inhold',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_booking_inhold',
+          payment_intent: 'pi_booking_inhold',
+          metadata: { bookingId: '78', bookingReference: 'LC-INHOLD01' },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockPayload.find.mockResolvedValueOnce({
+      docs: [{ id: 78, status: 'pending', reference: 'LC-INHOLD01', holdExpiresAt: '2999-01-01T00:00:00.000Z', notes: null }],
+    });
+
+    const res = await POST(makeReq('{}'));
+    expect(res.status).toBe(200);
+    expect(mockCreateRefund).not.toHaveBeenCalled();
+    const call = mockPayload.update.mock.calls[0]?.[0] as { data: { status: string } };
+    expect(call.data.status).toBe('paid');
+    expect(mockSendEmails).toHaveBeenCalledTimes(1);
+  });
+
+  it('RENTAL checkout.session.completed → in-hold pending rental → pending → paid, no email (AC30 normal path)', async () => {
+    mockConstructEvent.mockReturnValueOnce({
+      id: 'evt_rental_paid',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_rental_ok',
+          payment_intent: 'pi_rental_ok',
+          metadata: { kind: 'rental', rentalId: '5', rentalReference: 'LC-RENT0005' },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    // Hold is still live (far future) → commit, do NOT refund.
+    mockPayload.find.mockResolvedValueOnce({
+      docs: [{ id: 5, status: 'pending', reference: 'LC-RENT0005', holdExpiresAt: '2999-01-01T00:00:00.000Z', notes: null }],
+    });
+
+    const res = await POST(makeReq('{}'));
+    expect(res.status).toBe(200);
+    expect(mockCreateRefund).not.toHaveBeenCalled();
+    expect(mockPayload.update).toHaveBeenCalledTimes(1);
+    const call = mockPayload.update.mock.calls[0]?.[0] as {
+      collection: string;
+      id: number;
+      data: Record<string, unknown>;
+    };
+    expect(call.collection).toBe('rentals');
+    expect(call.id).toBe(5);
+    expect(call.data.status).toBe('paid');
+    expect(call.data.stripePaymentIntentId).toBe('pi_rental_ok');
+    expect(call.data.holdExpiresAt).toBeNull();
+    // Rentals have no email step.
+    expect(mockSendEmails).not.toHaveBeenCalled();
+  });
+
+  it('RENTAL checkout.session.completed → LAPSED hold (holdExpiresAt <= paidInstant) → auto-refund, NOT a plain commit (AC30)', async () => {
+    mockConstructEvent.mockReturnValueOnce({
+      id: 'evt_rental_late',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_rental_late',
+          payment_intent: 'pi_rental_late',
+          metadata: { kind: 'rental', rentalId: '9', rentalReference: 'LC-RENT0009' },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    // Row is STILL labeled pending (sweep has not run) but the hold instant has
+    // long passed → must take the auto-refund path keyed on holdExpiresAt, NOT
+    // the swept status label.
+    mockPayload.find.mockResolvedValueOnce({
+      docs: [{ id: 9, status: 'pending', reference: 'LC-RENT0009', holdExpiresAt: '2000-01-01T00:00:00.000Z', notes: null }],
+    });
+
+    const res = await POST(makeReq('{}'));
+    expect(res.status).toBe(200);
+
+    expect(mockCreateRefund).toHaveBeenCalledTimes(1);
+    const refundArgs = mockCreateRefund.mock.calls[0];
+    const refundParams = refundArgs?.[0] as { payment_intent: string };
+    const refundOptions = refundArgs?.[1] as { idempotencyKey: string };
+    expect(refundParams.payment_intent).toBe('pi_rental_late');
+    expect(refundOptions.idempotencyKey).toBe('refund-rentals-LC-RENT0009');
+
+    expect(mockPayload.update).toHaveBeenCalledTimes(1);
+    const updateCall = mockPayload.update.mock.calls[0]?.[0] as {
+      collection: string;
+      id: number;
+      data: Record<string, unknown>;
+    };
+    expect(updateCall.collection).toBe('rentals');
+    expect(updateCall.id).toBe(9);
+    expect(updateCall.data.status).toBe('refunded');
+    // NOT a plain pending→paid commit.
+    expect(updateCall.data.status).not.toBe('paid');
+    expect(mockSendEmails).not.toHaveBeenCalled();
+  });
+
+  it('RENTAL checkout.session.expired → flips pending rental to expired', async () => {
+    mockConstructEvent.mockReturnValueOnce({
+      id: 'evt_rental_exp',
+      type: 'checkout.session.expired',
+      data: { object: { id: 'cs_rental_exp', metadata: { kind: 'rental', rentalId: '12' } } },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockPayload.find.mockResolvedValueOnce({ docs: [{ id: 12, status: 'pending' }] });
+
+    const res = await POST(makeReq('{}'));
+    expect(res.status).toBe(200);
+    const call = mockPayload.update.mock.calls[0]?.[0] as { collection: string; data: { status: string } };
+    expect(call.collection).toBe('rentals');
+    expect(call.data.status).toBe('expired');
+  });
+
+  // ---------------------------------------------------------------------------
+  // C1 regression fix — the auto-refund trigger must key on the STRIPE PAYMENT
+  // instant (event.created), NOT our handler's `new Date()` processing time. A
+  // delayed delivery or a retry-after-500 can push processing past holdExpiresAt
+  // for a customer who paid ON TIME; that must still commit pending → paid.
+  // ---------------------------------------------------------------------------
+
+  it('BOOKING completed → paid IN-HOLD but handler runs AFTER holdExpiresAt → commits to paid via the Stripe event timestamp, NOT new Date() (C1)', async () => {
+    const nowMs = Date.now();
+    const paymentCompletedSec = Math.floor((nowMs - 10 * 60 * 1000) / 1000); // paid 10 min ago
+    // Hold lapsed 5s ago in wall-clock (our slow processing), but the payment
+    // instant is well BEFORE it → the customer paid on time.
+    const holdExpiresAt = new Date(nowMs - 5 * 1000).toISOString();
+    mockConstructEvent.mockReturnValueOnce({
+      id: 'evt_booking_timely_late_proc',
+      type: 'checkout.session.completed',
+      created: paymentCompletedSec,
+      data: {
+        object: {
+          id: 'cs_b_timely',
+          payment_intent: 'pi_b_timely',
+          metadata: { bookingId: '55', bookingReference: 'LC-TIMELY01' },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockPayload.find.mockResolvedValueOnce({
+      docs: [{ id: 55, status: 'pending', reference: 'LC-TIMELY01', holdExpiresAt, notes: null }],
+    });
+
+    const res = await POST(makeReq('{}'));
+    expect(res.status).toBe(200);
+    expect(mockCreateRefund).not.toHaveBeenCalled();
+    expect(mockPayload.update).toHaveBeenCalledTimes(1);
+    const call = mockPayload.update.mock.calls[0]?.[0] as { data: { status: string } };
+    expect(call.data.status).toBe('paid');
+    expect(mockSendEmails).toHaveBeenCalledTimes(1);
+  });
+
+  it('RENTAL completed → paid IN-HOLD but handler runs AFTER holdExpiresAt → commits to paid via the event timestamp (C1)', async () => {
+    const nowMs = Date.now();
+    const paymentCompletedSec = Math.floor((nowMs - 8 * 60 * 1000) / 1000);
+    const holdExpiresAt = new Date(nowMs - 3 * 1000).toISOString();
+    mockConstructEvent.mockReturnValueOnce({
+      id: 'evt_rental_timely_late',
+      type: 'checkout.session.completed',
+      created: paymentCompletedSec,
+      data: {
+        object: {
+          id: 'cs_r_timely',
+          payment_intent: 'pi_r_timely',
+          metadata: { kind: 'rental', rentalId: '61', rentalReference: 'LC-RTIMELY1' },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockPayload.find.mockResolvedValueOnce({
+      docs: [{ id: 61, status: 'pending', reference: 'LC-RTIMELY1', holdExpiresAt, notes: null }],
+    });
+
+    const res = await POST(makeReq('{}'));
+    expect(res.status).toBe(200);
+    expect(mockCreateRefund).not.toHaveBeenCalled();
+    const call = mockPayload.update.mock.calls[0]?.[0] as { collection: string; data: { status: string } };
+    expect(call.collection).toBe('rentals');
+    expect(call.data.status).toBe('paid');
+    expect(mockSendEmails).not.toHaveBeenCalled();
+  });
+
+  it('completed → in-hold payment, first update THROWS (500), redelivery after holdExpiresAt still commits to paid via the event timestamp (C1 retry-after-failure)', async () => {
+    const nowMs = Date.now();
+    const paymentCompletedSec = Math.floor((nowMs - 12 * 60 * 1000) / 1000);
+    const holdExpiresAt = new Date(nowMs - 4 * 1000).toISOString();
+    const event = {
+      id: 'evt_retry',
+      type: 'checkout.session.completed',
+      created: paymentCompletedSec,
+      data: {
+        object: {
+          id: 'cs_retry',
+          payment_intent: 'pi_retry',
+          metadata: { bookingId: '63', bookingReference: 'LC-RETRY001' },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+    const row = {
+      docs: [{ id: 63, status: 'pending', reference: 'LC-RETRY001', holdExpiresAt, notes: null }],
+    };
+
+    // First delivery: the write fails transiently → 500 (Stripe will retry).
+    mockConstructEvent.mockReturnValueOnce(event);
+    mockPayload.find.mockResolvedValueOnce(row);
+    mockPayload.update.mockRejectedValueOnce(new Error('transient db error'));
+    const first = await POST(makeReq('{}'));
+    expect(first.status).toBe(500);
+    expect(mockCreateRefund).not.toHaveBeenCalled();
+
+    // Redelivery (retry): same event.created, processed even later → still paid.
+    mockConstructEvent.mockReturnValueOnce(event);
+    mockPayload.find.mockResolvedValueOnce(row);
+    const second = await POST(makeReq('{}'));
+    expect(second.status).toBe(200);
+    expect(mockCreateRefund).not.toHaveBeenCalled();
+    const call = mockPayload.update.mock.calls.at(-1)?.[0] as { data: { status: string } };
+    expect(call.data.status).toBe('paid');
+  });
+
+  it('completed → payment completed AFTER holdExpiresAt (genuinely late) → still auto-refunds, keyed on the event timestamp (C1 keeps the late-refund path)', async () => {
+    const nowMs = Date.now();
+    const holdExpiresAt = new Date(nowMs - 20 * 60 * 1000).toISOString(); // hold ended 20 min ago
+    const paymentCompletedSec = Math.floor((nowMs - 5 * 60 * 1000) / 1000); // paid 5 min ago → AFTER hold
+    mockConstructEvent.mockReturnValueOnce({
+      id: 'evt_genuine_late',
+      type: 'checkout.session.completed',
+      created: paymentCompletedSec,
+      data: {
+        object: {
+          id: 'cs_glate',
+          payment_intent: 'pi_glate',
+          metadata: { bookingId: '71', bookingReference: 'LC-GLATE001' },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockPayload.find.mockResolvedValueOnce({
+      docs: [{ id: 71, status: 'pending', reference: 'LC-GLATE001', holdExpiresAt, notes: null }],
+    });
+
+    const res = await POST(makeReq('{}'));
+    expect(res.status).toBe(200);
+    expect(mockCreateRefund).toHaveBeenCalledTimes(1);
+    const call = mockPayload.update.mock.calls[0]?.[0] as { data: { status: string } };
+    expect(call.data.status).toBe('refunded');
   });
 
   it('unknown event type → 200 no-op (so Stripe stops retrying)', async () => {

@@ -1,6 +1,6 @@
 import type { Payload } from 'payload';
 
-import type { Booking, Tour } from '../../payload-types';
+import type { Booking, BookingSetting, Rental, Tour } from '../../payload-types';
 import {
   computeSlotAvailability,
   getCDMXDayRange,
@@ -70,6 +70,44 @@ export type AgendaDeparture = {
   bookings: AgendaBookingRow[];
 };
 
+/**
+ * A standalone rental shown on the agenda as a "bikes out" block. The block spans
+ * the buffer-inclusive window `[startTime, startTime + durationMinutes + buffer)`
+ * (ride + recharge) so operators see true fleet occupancy, not only tour
+ * departures (AC29).
+ */
+export type AgendaRentalBlock = {
+  reference: string;
+  /** Rental start, 24h `HH:MM` (CDMX). */
+  startTime: string;
+  /**
+   * Block end = start + durationMinutes + bufferMinutes, 24h `HH:MM` (CDMX),
+   * clamped to `23:59` for display when the real end spills past midnight.
+   */
+  endTime: string;
+  /**
+   * True when the buffer-inclusive window actually ends on the following day
+   * (real end ≥ 24:00). Lets the UI show a "+1 day" indicator instead of silently
+   * pretending the block ends at 23:59.
+   */
+  endsNextDay: boolean;
+  durationMinutes: number;
+  /** Bikes out for this block. */
+  quantity: number;
+  status: Rental['status'];
+};
+
+/** Pre-flattened rental the pure builder consumes (no Payload doc shape). */
+export type AgendaRentalInput = {
+  /** CDMX day of the rental, `YYYY-MM-DD` (precomputed by the caller). */
+  dayISO: string;
+  startTime: string;
+  durationMinutes: number;
+  quantity: number;
+  reference: string;
+  status: Rental['status'];
+};
+
 export type AgendaDay = {
   /** `YYYY-MM-DD` in CDMX. */
   iso: string;
@@ -78,6 +116,8 @@ export type AgendaDay = {
   isToday: boolean;
   isPast: boolean;
   departures: AgendaDeparture[];
+  /** Standalone rental bikes-out blocks for this day (AC29). */
+  rentalBlocks: AgendaRentalBlock[];
 };
 
 export type WeekAgenda = {
@@ -114,6 +154,61 @@ export type AgendaBookingInput = {
 const DAY_MS = 24 * 3_600_000;
 
 /**
+ * Recharge buffer (minutes) used when the `booking-settings` global is missing a
+ * value. Mirrors the fallback in `fleet.ts` / `rentalDayState.ts` so the agenda's
+ * bikes-out window stays consistent with the evaluator's occupancy window.
+ */
+const DEFAULT_BUFFER_MINUTES = 120;
+
+/** Minutes-since-midnight for a 24h `HH:MM` string. */
+function minutesOfDay(hhmmStr: string): number {
+  const [hhRaw, mmRaw] = hhmmStr.split(':');
+  const hh = Number.parseInt(hhRaw ?? '0', 10) || 0;
+  const mm = Number.parseInt(mmRaw ?? '0', 10) || 0;
+  return hh * 60 + mm;
+}
+
+/** Format minutes-since-midnight back to a 24h `HH:MM` string (clamped to 23:59). */
+function hhmmFromMinutes(totalMinutes: number): string {
+  const clamped = Math.max(0, Math.min(totalMinutes, 23 * 60 + 59));
+  const hh = Math.floor(clamped / 60);
+  const mm = clamped % 60;
+  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+}
+
+/**
+ * PURE. Reshapes the week's rentals into per-day bikes-out blocks. The block end
+ * is the buffer-inclusive `start + durationMinutes + bufferMinutes` (ride +
+ * recharge), mirroring the evaluator's occupancy window (AC29).
+ */
+function buildRentalBlocks(
+  rentals: AgendaRentalInput[],
+  bufferMinutes: number
+): Map<string, AgendaRentalBlock[]> {
+  const byDay = new Map<string, AgendaRentalBlock[]>();
+  for (const r of rentals) {
+    const startMin = minutesOfDay(r.startTime);
+    const endMin = startMin + r.durationMinutes + bufferMinutes;
+    const block: AgendaRentalBlock = {
+      reference: r.reference,
+      startTime: r.startTime,
+      endTime: hhmmFromMinutes(endMin),
+      endsNextDay: endMin >= 24 * 60,
+      durationMinutes: r.durationMinutes,
+      quantity: r.quantity,
+      status: r.status,
+    };
+    const list = byDay.get(r.dayISO);
+    if (list) list.push(block);
+    else byDay.set(r.dayISO, [block]);
+  }
+  for (const list of byDay.values()) {
+    list.sort((a, b) => (a.startTime < b.startTime ? -1 : a.startTime > b.startTime ? 1 : 0));
+  }
+  return byDay;
+}
+
+/**
  * Map occupancy to a color bucket:
  *   - empty:      nobody booked yet (neutral / muted)
  *   - available:  room to spare (green)
@@ -142,16 +237,21 @@ function sortByTime(departures: AgendaDeparture[]): AgendaDeparture[] {
 export function buildWeekAgenda({
   tours,
   bookings,
+  rentals = [],
+  bufferMinutes = 0,
   weekDays,
   now,
   todayISO,
 }: {
   tours: AgendaTour[];
   bookings: AgendaBookingInput[];
+  rentals?: AgendaRentalInput[];
+  bufferMinutes?: number;
   weekDays: TourDay[];
   now: Date;
   todayISO: string;
 }): WeekAgenda {
+  const rentalBlocksByDay = buildRentalBlocks(rentals, bufferMinutes);
   // Bucket bookings by (tour, day, time).
   const groups = new Map<
     string,
@@ -215,6 +315,7 @@ export function buildWeekAgenda({
       isToday: d.iso === todayISO,
       isPast: d.iso < todayISO,
       departures: sortByTime(departures),
+      rentalBlocks: rentalBlocksByDay.get(d.iso) ?? [],
     };
   });
 
@@ -304,7 +405,7 @@ export async function getWeekAgenda({
   const startUTC = getCDMXDayRange(weekDays[0].date).startUTC;
   const endUTC = getCDMXDayRange(weekDays[weekDays.length - 1].date).endUTC;
 
-  const [toursRes, bookingsRes] = await Promise.all([
+  const [toursRes, bookingsRes, rentalsRes, settings] = await Promise.all([
     payload.find({
       collection: 'tours',
       pagination: false,
@@ -338,6 +439,31 @@ export async function getWeekAgenda({
         ],
       },
     }),
+    payload.find({
+      collection: 'rentals',
+      pagination: false,
+      limit: 0,
+      depth: 0,
+      overrideAccess: true,
+      where: {
+        and: [
+          { date: { greater_than_equal: startUTC.toISOString() } },
+          { date: { less_than: endUTC.toISOString() } },
+          {
+            or: [
+              { status: { equals: 'paid' } },
+              {
+                and: [
+                  { status: { equals: 'pending' } },
+                  { holdExpiresAt: { greater_than: now.toISOString() } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    }),
+    payload.findGlobal({ slug: 'booking-settings' }),
   ]);
 
   const tours: AgendaTour[] = (toursRes.docs as Tour[]).map((t) => ({
@@ -360,5 +486,23 @@ export async function getWeekAgenda({
     customerName: b.customer?.name ?? '',
   }));
 
-  return buildWeekAgenda({ tours, bookings, weekDays, now, todayISO });
+  // Rentals contribute bikes-out blocks (AC29). Buffer (recharge) comes from the
+  // typed BookingSettings global so the block window matches the evaluator's
+  // occupancy window; fall back to the shared default only if it is ever missing.
+  const settingsDoc = settings as Pick<BookingSetting, 'bufferMinutes'> | null | undefined;
+  const bufferMinutes =
+    typeof settingsDoc?.bufferMinutes === 'number'
+      ? settingsDoc.bufferMinutes
+      : DEFAULT_BUFFER_MINUTES;
+
+  const rentals: AgendaRentalInput[] = (rentalsRes.docs as Rental[]).map((r) => ({
+    dayISO: getTourDayISO(new Date(r.date)),
+    startTime: r.startTime,
+    durationMinutes: r.durationMinutes,
+    quantity: r.quantity,
+    reference: r.reference,
+    status: r.status,
+  }));
+
+  return buildWeekAgenda({ tours, bookings, rentals, bufferMinutes, weekDays, now, todayISO });
 }

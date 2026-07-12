@@ -6,11 +6,14 @@ vi.mock('../../../../src/lib/payload', () => ({
 
 vi.mock('../../../../src/lib/booking/sweep', () => ({
   sweepExpiredHolds: vi.fn(async () => ({ swept: 3 })),
+  sweepExpiredRentalHolds: vi.fn(async () => ({ swept: 2 })),
 }));
 
 const mockPayload = {};
 
-const { sweepExpiredHolds } = await import('../../../../src/lib/booking/sweep');
+const { sweepExpiredHolds, sweepExpiredRentalHolds } = await import(
+  '../../../../src/lib/booking/sweep'
+);
 const { GET } = await import('./route');
 
 function makeReq(authHeader?: string): Request {
@@ -21,6 +24,7 @@ function makeReq(authHeader?: string): Request {
 
 beforeEach(() => {
   vi.mocked(sweepExpiredHolds).mockClear();
+  vi.mocked(sweepExpiredRentalHolds).mockClear();
   process.env.CRON_SECRET = 'super-secret-value';
 });
 
@@ -37,12 +41,14 @@ describe('GET /api/cron/sweep-bookings', () => {
     expect(sweepExpiredHolds).not.toHaveBeenCalled();
   });
 
-  it('returns 200 with {swept} when bearer token matches', async () => {
+  it('returns 200 with {swept, sweptRentals} when bearer token matches', async () => {
     const res = await GET(makeReq('Bearer super-secret-value'));
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { swept: number };
+    const body = (await res.json()) as { swept: number; sweptRentals: number };
     expect(body.swept).toBe(3);
+    expect(body.sweptRentals).toBe(2);
     expect(sweepExpiredHolds).toHaveBeenCalledTimes(1);
+    expect(sweepExpiredRentalHolds).toHaveBeenCalledTimes(1);
   });
 
   it('returns 500 if CRON_SECRET env var is not configured', async () => {
@@ -50,5 +56,6 @@ describe('GET /api/cron/sweep-bookings', () => {
     const res = await GET(makeReq('Bearer anything'));
     expect(res.status).toBe(500);
     expect(sweepExpiredHolds).not.toHaveBeenCalled();
+    expect(sweepExpiredRentalHolds).not.toHaveBeenCalled();
   });
 });

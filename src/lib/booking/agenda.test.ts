@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildWeekAgenda, type AgendaBookingInput, type AgendaTour } from './agenda';
+import { buildWeekAgenda, type AgendaBookingInput, type AgendaRentalInput, type AgendaTour } from './agenda';
 import { getTourWeekDays } from './availability';
 
 /**
@@ -187,6 +187,79 @@ describe('buildWeekAgenda', () => {
     expect(agenda.nextWeekISO).toBe('2026-06-22');
     expect(agenda.totals.bookings).toBe(3);
     expect(agenda.totals.seatsTaken).toBe(13);
+  });
+
+  it('surfaces a live rental as a bikes-out block over [start, start+dur+buffer) (AC29)', () => {
+    const rental: AgendaRentalInput = {
+      dayISO: '2026-06-15',
+      startTime: '10:00',
+      durationMinutes: 120,
+      quantity: 2,
+      reference: 'LC-RENT29',
+      status: 'paid',
+    };
+    const agenda = buildWeekAgenda({
+      tours: [makeTour()],
+      bookings: [],
+      rentals: [rental],
+      bufferMinutes: 120,
+      weekDays: WEEK,
+      now: NOW,
+      todayISO: TODAY_ISO,
+    });
+
+    const monday = agenda.days.find((d) => d.iso === '2026-06-15')!;
+    expect(monday.rentalBlocks).toHaveLength(1);
+    const block = monday.rentalBlocks[0]!;
+    expect(block.startTime).toBe('10:00');
+    // ride 120 + recharge buffer 120 → ends 14:00.
+    expect(block.endTime).toBe('14:00');
+    expect(block.quantity).toBe(2);
+    expect(block.reference).toBe('LC-RENT29');
+
+    // Other days carry an empty rentalBlocks array (no crash, no bleed).
+    const tuesday = agenda.days.find((d) => d.iso === '2026-06-16')!;
+    expect(tuesday.rentalBlocks).toEqual([]);
+    // An in-day block does not spill past midnight.
+    expect(block.endsNextDay).toBe(false);
+  });
+
+  it('flags a rental whose buffer-inclusive window spills past midnight (L2 next-day indicator)', () => {
+    const rental: AgendaRentalInput = {
+      dayISO: '2026-06-15',
+      startTime: '22:00',
+      durationMinutes: 120, // ride ends 00:00, + 120 buffer → 02:00 next day
+      quantity: 1,
+      reference: 'LC-RENTLATE',
+      status: 'paid',
+    };
+    const agenda = buildWeekAgenda({
+      tours: [makeTour()],
+      bookings: [],
+      rentals: [rental],
+      bufferMinutes: 120,
+      weekDays: WEEK,
+      now: NOW,
+      todayISO: TODAY_ISO,
+    });
+
+    const monday = agenda.days.find((d) => d.iso === '2026-06-15')!;
+    const block = monday.rentalBlocks[0]!;
+    // Display end is still clamped to a valid wall-clock time…
+    expect(block.endTime).toBe('23:59');
+    // …but the block is explicitly marked as ending on the next day.
+    expect(block.endsNextDay).toBe(true);
+  });
+
+  it('defaults rentalBlocks to an empty array when no rentals are passed', () => {
+    const agenda = buildWeekAgenda({
+      tours: [makeTour()],
+      bookings: [],
+      weekDays: WEEK,
+      now: NOW,
+      todayISO: TODAY_ISO,
+    });
+    expect(agenda.days.every((d) => Array.isArray(d.rentalBlocks) && d.rentalBlocks.length === 0)).toBe(true);
   });
 
   it('marks days before today as past', () => {

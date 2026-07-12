@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { sweepExpiredHolds } from '../../../../src/lib/booking/sweep';
+import { sweepExpiredHolds, sweepExpiredRentalHolds } from '../../../../src/lib/booking/sweep';
 import { getPayload } from '../../../../src/lib/payload';
 
 /**
@@ -40,9 +40,15 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   const payload = await getPayload();
-  const { swept } = await sweepExpiredHolds(payload, new Date());
+  const now = new Date();
+  // Sweep both booking and rental holds in the same cron tick. Rentals share the
+  // reservation lifecycle; the sweep is label-only (no capacity effect, AC28).
+  const [{ swept }, { swept: sweptRentals }] = await Promise.all([
+    sweepExpiredHolds(payload, now),
+    sweepExpiredRentalHolds(payload, now),
+  ]);
   return NextResponse.json(
-    { swept },
+    { swept, sweptRentals },
     { status: 200, headers: { 'Cache-Control': 'no-store' } }
   );
 }
