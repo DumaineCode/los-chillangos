@@ -70,6 +70,7 @@ export interface Config {
     tours: Tour;
     extras: Extra;
     bookings: Booking;
+    rentals: Rental;
     'contact-messages': ContactMessage;
     users: User;
     media: Media;
@@ -84,6 +85,7 @@ export interface Config {
     tours: ToursSelect<false> | ToursSelect<true>;
     extras: ExtrasSelect<false> | ExtrasSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
+    rentals: RentalsSelect<false> | RentalsSelect<true>;
     'contact-messages': ContactMessagesSelect<false> | ContactMessagesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -176,7 +178,7 @@ export interface Tour {
    */
   distance?: string | null;
   /**
-   * USD price per person.
+   * Price per person (MXN).
    */
   price: number;
   /**
@@ -414,7 +416,7 @@ export interface Extra {
   name: string;
   title?: string | null;
   /**
-   * Whole-dollar USD price. Global — applies to every tour that offers this extra.
+   * Whole-peso MXN price. Global — applies to every tour that offers this extra.
    */
   price: number;
   /**
@@ -484,7 +486,7 @@ export interface Booking {
   totalPersons: number;
   privatize?: boolean | null;
   /**
-   * USD per person at the time of booking (snapshot — not linked).
+   * MXN per person at the time of booking (snapshot — not linked).
    */
   pricePerPerson: number;
   /**
@@ -533,6 +535,75 @@ export interface Booking {
   stripeCheckoutSessionId?: string | null;
   /**
    * Stripe PaymentIntent ID. Filled by the Stripe webhook in Sub-etapa C when payment succeeds.
+   */
+  stripePaymentIntentId?: string | null;
+  paidAt?: string | null;
+  /**
+   * Internal admin notes (not sent to the customer).
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rentals".
+ */
+export interface Rental {
+  id: number;
+  /**
+   * Auto-generated public rental reference.
+   */
+  reference: string;
+  /**
+   * Local calendar date of the rental (no time component).
+   */
+  date: string;
+  /**
+   * Rental start time in HH:MM (CDMX wall clock).
+   */
+  startTime: string;
+  /**
+   * Rental duration in minutes — snapshot from the chosen tier.
+   */
+  durationMinutes: number;
+  /**
+   * MXN per-bike price at rental time (snapshot from the chosen tier).
+   */
+  unitPrice: number;
+  /**
+   * How many bikes are rented.
+   */
+  quantity: number;
+  currency: string;
+  /**
+   * Cached total = quantity × unit price. Stripe charges this amount.
+   */
+  totalAmount: number;
+  customer: {
+    name: string;
+    email: string;
+    whatsapp?: string | null;
+    /**
+     * ISO 3166-1 alpha-2 code (e.g. MX, US, AR).
+     */
+    country: string;
+    locale: 'en' | 'es';
+  };
+  /**
+   * pending: hold active; counts against the fleet until holdExpiresAt. paid: confirmed; counts permanently. expired: hold lapsed without payment; does NOT count. cancelled: cancelled; does NOT count. refunded: paid then refunded; does NOT count.
+   */
+  status: 'pending' | 'paid' | 'expired' | 'cancelled' | 'refunded';
+  /**
+   * When the pending hold lapses. Only meaningful while status = pending.
+   */
+  holdExpiresAt?: string | null;
+  /**
+   * Stripe Checkout Session ID. Filled when the checkout session is created.
+   */
+  stripeCheckoutSessionId?: string | null;
+  /**
+   * Stripe PaymentIntent ID. Filled by the Stripe webhook when payment succeeds.
    */
   stripePaymentIntentId?: string | null;
   paidAt?: string | null;
@@ -626,6 +697,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'bookings';
         value: number | Booking;
+      } | null)
+    | ({
+        relationTo: 'rentals';
+        value: number | Rental;
       } | null)
     | ({
         relationTo: 'contact-messages';
@@ -832,6 +907,37 @@ export interface BookingsSelect<T extends boolean = true> {
         computedAmount?: T;
         id?: T;
       };
+  currency?: T;
+  totalAmount?: T;
+  customer?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        whatsapp?: T;
+        country?: T;
+        locale?: T;
+      };
+  status?: T;
+  holdExpiresAt?: T;
+  stripeCheckoutSessionId?: T;
+  stripePaymentIntentId?: T;
+  paidAt?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rentals_select".
+ */
+export interface RentalsSelect<T extends boolean = true> {
+  reference?: T;
+  date?: T;
+  startTime?: T;
+  durationMinutes?: T;
+  unitPrice?: T;
+  quantity?: T;
   currency?: T;
   totalAmount?: T;
   customer?:
@@ -1486,6 +1592,26 @@ export interface BookingSetting {
    * Minutes the bikes need to recharge after a tour ends before the next bike tour can start. Default 120 (2h).
    */
   bufferMinutes: number;
+  /**
+   * Duration to per-bike price options offered for standalone rentals (MXN).
+   */
+  rentalTiers: {
+    durationMinutes: number;
+    price: number;
+    id?: string | null;
+  }[];
+  /**
+   * Earliest rental start time (HH:MM, CDMX wall clock).
+   */
+  openTime: string;
+  /**
+   * Latest instant a rental ride may end (HH:MM, CDMX wall clock). Must be after open time.
+   */
+  closeTime: string;
+  /**
+   * Step between rental start blocks in the picker grid. Default 30.
+   */
+  rentalGranularityMinutes: number;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1755,6 +1881,16 @@ export interface BookingSettingsSelect<T extends boolean = true> {
   freeCancellationDays?: T;
   totalBikes?: T;
   bufferMinutes?: T;
+  rentalTiers?:
+    | T
+    | {
+        durationMinutes?: T;
+        price?: T;
+        id?: T;
+      };
+  openTime?: T;
+  closeTime?: T;
+  rentalGranularityMinutes?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

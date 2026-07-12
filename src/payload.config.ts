@@ -15,6 +15,7 @@ import { MediaVideo } from './collections/MediaVideo';
 import { Tours } from './collections/Tours';
 import { Extras } from './collections/Extras';
 import { Bookings } from './collections/Bookings';
+import { Rentals } from './collections/Rentals';
 import { ContactMessages } from './collections/ContactMessages';
 import { Landing } from './globals/Landing';
 import { Navigation } from './globals/Navigation';
@@ -142,7 +143,7 @@ export default buildConfig({
   // Order drives the admin sidebar group order (collections are iterated before
   // globals; each nav group appears at its first entity). This sequence yields:
   // Sitio web → Operación → Configuración → Biblioteca de medios. See navGroups.ts.
-  collections: [Tours, Extras, Bookings, ContactMessages, Users, Media, MediaVideo],
+  collections: [Tours, Extras, Bookings, Rentals, ContactMessages, Users, Media, MediaVideo],
   globals: [
     // Landing first — the consolidated single-surface editor for the homepage.
     Landing,

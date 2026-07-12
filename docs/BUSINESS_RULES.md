@@ -188,46 +188,67 @@ bikes truly committed.
 - Before the cutoff, bike inventory is still "reserved" for potential tour sales,
   so nothing is rentable yet.
 
-### Rental availability is a whole-day fleet timeline
+### Rental availability is a whole-day fleet timeline (simplified by the frozen cutoff)
 
-The hard part: a rented bike is unavailable during **`[start, start + duration + buffer]`**
-(ride + recharge). A day may have MULTIPLE tours, and a rented bike unsold for the
-10:00 AM tour might still be NEEDED for the 12:00 PM tour. So the rental must not
-starve any LATER tour of the bikes it sold.
+> **CORRECTED (client-confirmed 2026-07-11).** An earlier version of this section
+> had a defect: its `bikes_free_at(start_i) >= persons_sold_i` count formula was
+> mathematically inconsistent with its own worked example (with 8 bikes and a tour
+> that sold 5, renting 1 bike leaves 7 ≥ 5, so no count rule can reject it — yet the
+> example rejected it). The client confirmed the **count-based, permissive** reading
+> below. The old strict "a rented bike must return before the next tour even when
+> spare bikes exist" rule is **removed**.
+
+Two facts make rental availability simple and deterministic:
+
+1. **Tour demand is frozen.** Rentals only open AFTER the §5 cutoff, at which point
+   no more tour tickets can be sold. `persons_sold` for every bike tour that day is
+   final and permanent. The unsold bikes are pure surplus — they will never be used
+   for a tour.
+2. **Bike tours cannot overlap.** Every bike tour is configured with
+   `capacity = totalBikes` (§4), so two bike tours can never run at once
+   (`totalBikes + totalBikes > totalBikes`). Therefore at any instant **at most one
+   bike tour is active**, and its committed bikes = its `persons_sold`.
+
+Bikes are identical and interchangeable, so the only real constraint is that at no
+instant do the bikes committed to the active tour plus the bikes out on rental exceed
+the fleet:
 
 ```
 For a rental request of Q bikes, start S, duration Dur:
-  rental_busy_window = [S, S + Dur + bufferMinutes]   (ride + recharge)
+  rental_busy_window = [S, S + Dur + bufferMinutes)   (ride + recharge, half-open)
 
-  VALID only if, for EVERY scheduled bike tour Ti later that day:
-    bikes_free_at(start_i) >= persons_sold_i
+  VALID if, for every instant t in rental_busy_window:
+    persons_sold_of_active_tour_at(t)
+      + Σ(quantity of other live rentals whose busy window contains t)
+      + Q
+    <= totalBikes
 
-  where bikes_free_at(t) =
-    totalBikes
-    - Σ(persons_sold for tours whose busy window contains t)
-    - Σ(bikes in other rentals whose busy window contains t)
-    - Q   (this new rental, if its busy window contains t)
+  AND (close-time ceiling):  S + Dur <= closeTime
 ```
 
-### Worked example (user's scenario)
+Equivalently: a rental of Q bikes is valid when Q <= the minimum, across its busy
+window, of `totalBikes - active_tour_persons_sold(t) - other_rentals(t)`.
+
+### Worked example (corrected)
 
 ```
-Sunday: tour at 12:00 PM, duration 120 min, 5 persons sold (of 8 bikes).
-  → 3 bikes unsold → rentable.
-Someone wants to rent Sunday 9:00 AM.
-  - 1h rental at 09:00 → busy [09:00, 12:00] (10:00 end + 2h charge). Charge-done
-    at 12:00 == tour start 12:00 → boundary touch, REJECTED (align with §3 strict).
-    A 1h rental at 08:30 → busy [08:30, 11:30], charged by 11:30 < 12:00 → OK.
-  - 6h rental → busy [09:00, 17:00]. Way past the 12:00 tour → REJECTED
-    ("no alcanzan a estar disponibles para el siguiente tour").
+Sunday: tour at 12:00 PM, 5 persons sold (of 8 bikes). → 3 bikes are surplus.
+Someone wants to rent Sunday 9:00 AM, 1 bike, 1h → busy [09:00, 12:00).
+  - At every instant in [09:00, 12:00) the active tour is none until 12:00; at 12:00
+    (excluded, half-open) the tour needs 5, and 8 - 5 - 1 = 2 ≥ 0. ALLOWED.
+  - The exact boundary (charge-done == tour start) is ALLOWED (half-open, client-
+    confirmed permissive).
+  - A 6h rental → busy [09:00, 17:00) overlaps the 12:00 tour window: during it
+    8 - 5 - Q must stay ≥ 0, so up to 3 bikes are still rentable for 6h. ALLOWED
+    for Q ≤ 3 (subject to closeTime).
 ```
 
-### If there is NO later tour that day
+### If there is NO tour that day
 
 ```
-IF no scheduled bike tour remains after the rental's busy window:
-  → Only §fleet-size limit applies (Q + concurrent rentals ≤ available bikes).
-  → Any duration allowed as long as bikes return by end of operating day.
+IF no bike tour is scheduled that day:
+  → All totalBikes are rentable, any duration, subject only to:
+     Q + concurrent rentals <= totalBikes  AND  S + Dur <= closeTime.
 ```
 
 ### Rental sales channel
@@ -331,8 +352,9 @@ This is an ADDITIONAL safety rule that applies to ALL tours (bike and non-bike).
 
 ## 11. Client Answers (Resolved)
 
-1. **Rental pricing**: Price is **per bike**, per duration tier (1h / 2h / 3h / 6h).
-   Exact amounts still TBD by client. Renting N bikes = N × tier price.
+1. **Rental pricing**: Price is **per bike**, per duration tier (1h / 2h / 4h / 6h).
+   Amounts: 200 / 300 / 450 / 600 MXN. Renting N bikes = N × tier price.
+   Tiers + prices are admin-editable (`rentalTiers[]`).
 
 2. **Rental bikes = unsold tour bikes**: Confirmed. Each tour is configured with
    `capacity = totalBikes`, so rentable bikes = `totalBikes - persons_actually_sold`.
