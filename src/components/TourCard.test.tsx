@@ -42,16 +42,16 @@ function tour(overrides: Partial<Tour> = {}): Tour {
  * no resolvable media render the placeholder block with no <img>.
  */
 describe('TourCard — focal point', () => {
-  it('applies the hero focal point as object-position (FR-1)', async () => {
-    render(await TourCard({ tour: tour({ heroImage: media('/hero.jpg', { focalX: 60, focalY: 20 }) }), locale: 'en' }));
+  it('applies the gallery[0] focal point as object-position (FR-1)', async () => {
+    render(await TourCard({ tour: tour({ gallery: [{ image: media('/hero.jpg', { focalX: 60, focalY: 20 }) }] }), locale: 'en' }));
 
     const img = screen.getByRole('img');
     expect(img).toHaveStyle({ objectPosition: '60% 20%' });
     expect(img).toHaveStyle({ objectFit: 'cover' });
   });
 
-  it('renders no image when no media resolves (FR-5, keeps placeholder)', async () => {
-    render(await TourCard({ tour: tour({ heroImage: null }), locale: 'en' }));
+  it('renders no image when the gallery is empty (FR-5, keeps placeholder)', async () => {
+    render(await TourCard({ tour: tour({ gallery: [] }), locale: 'en' }));
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.getByText('Centro Histórico')).toBeInTheDocument();

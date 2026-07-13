@@ -5,7 +5,8 @@ import type { Tour } from '../../payload-types';
  * Pick the focal-point-aware thumbnail for a tour's home-grid card.
  *
  * Priority:
- *   1. `heroImage` — the standard hero (applies to every tour).
+ *   1. `gallery[0].image` — the standard cover (position 0 of the single ordered
+ *      gallery; applies to every standard tour).
  *   2. `seasonal.seasonalHero.image` — seasonal still, only for seasonal tours.
  *   3. `seasonal.seasonalHero.poster` — covers the seasonal-video case (the
  *      video itself is NEVER used in the grid; the poster is its still).
@@ -16,8 +17,10 @@ import type { Tour } from '../../payload-types';
  * seasonal media. Pure and deterministic.
  */
 export function selectCardThumbnail(tour: Tour): ResolvedImage | null {
-  const hero = resolveMediaImage(tour.heroImage);
-  if (hero) return hero;
+  // Position 0 of the standard gallery is the cover. Null-safe for empty/undefined
+  // galleries: `tour.gallery?.[0]?.image` yields `undefined` → resolver returns null.
+  const cover = resolveMediaImage(tour.gallery?.[0]?.image);
+  if (cover) return cover;
 
   if (tour.isSeasonal === true) {
     const seasonalHero = tour.seasonal?.seasonalHero;

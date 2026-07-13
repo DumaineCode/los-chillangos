@@ -6,10 +6,11 @@ import { selectCardThumbnail } from './cardThumbnail';
 
 /**
  * Unit coverage for `selectCardThumbnail` — the structured variant that returns
- * a focal-point-aware `{ url, objectPosition, alt }` for the home-grid card,
- * preserving the same priority chain as `selectCardThumbnailUrl`.
+ * a focal-point-aware `{ url, objectPosition, alt }` for the home-grid card.
  *
- * Covers FR-1 (focal honored) and FR-5 (single source of truth / null parity).
+ * The cover now resolves from `gallery[0].image` (single ordered source), then
+ * the seasonal fallbacks. Covers FR-1 (focal honored), FR-5 (null parity), and
+ * AC5/AC6 (cover reads gallery[0], seasonal fallbacks unchanged).
  */
 
 function media(url: string, focal?: { focalX: number; focalY: number }): Media {
@@ -21,24 +22,24 @@ function tour(overrides: Partial<Tour>): Tour {
 }
 
 describe('selectCardThumbnail', () => {
-  it('returns the hero image with its focal point as object-position (FR-1)', () => {
+  it('returns gallery[0].image with its focal point as object-position (FR-1, AC5)', () => {
     const result = selectCardThumbnail(
-      tour({ heroImage: media('/hero.jpg', { focalX: 25, focalY: 75 }) })
+      tour({ gallery: [{ image: media('/hero.jpg', { focalX: 25, focalY: 75 }) }] })
     );
     expect(result?.url).toBe('/hero.jpg');
     expect(result?.objectPosition).toBe('25% 75%');
   });
 
-  it('defaults to 50% 50% when the hero has no focal point (FR-2 parity)', () => {
-    const result = selectCardThumbnail(tour({ heroImage: media('/hero.jpg') }));
+  it('defaults to 50% 50% when gallery[0] has no focal point (FR-2 parity)', () => {
+    const result = selectCardThumbnail(tour({ gallery: [{ image: media('/hero.jpg') }] }));
     expect(result?.objectPosition).toBe('50% 50%');
   });
 
-  it('falls back to the seasonal hero image for a seasonal tour without heroImage', () => {
+  it('falls back to the seasonal hero image for a seasonal tour with an empty gallery', () => {
     const result = selectCardThumbnail(
       tour({
         isSeasonal: true,
-        heroImage: null,
+        gallery: [],
         seasonal: {
           seasonalHero: { mediaType: 'image', image: media('/seasonal.jpg', { focalX: 10, focalY: 90 }) },
         },
@@ -52,7 +53,7 @@ describe('selectCardThumbnail', () => {
     const result = selectCardThumbnail(
       tour({
         isSeasonal: true,
-        heroImage: null,
+        gallery: [],
         seasonal: {
           seasonalHero: { mediaType: 'video', image: null, poster: media('/poster.jpg') },
         },
@@ -61,11 +62,11 @@ describe('selectCardThumbnail', () => {
     expect(result?.url).toBe('/poster.jpg');
   });
 
-  it('prefers heroImage over seasonal media when both exist on a seasonal tour', () => {
+  it('prefers gallery[0] over seasonal media when both exist on a seasonal tour', () => {
     const result = selectCardThumbnail(
       tour({
         isSeasonal: true,
-        heroImage: media('/hero.jpg'),
+        gallery: [{ image: media('/hero.jpg') }],
         seasonal: { seasonalHero: { mediaType: 'image', image: media('/seasonal.jpg') } },
       })
     );
@@ -76,10 +77,15 @@ describe('selectCardThumbnail', () => {
     const result = selectCardThumbnail(
       tour({
         isSeasonal: true,
-        heroImage: null,
+        gallery: [],
         seasonal: { seasonalHero: { mediaType: 'image', image: null, poster: null } },
       })
     );
+    expect(result).toBeNull();
+  });
+
+  it('returns null for a standard tour with an empty gallery (FR-5, AC5)', () => {
+    const result = selectCardThumbnail(tour({ isSeasonal: false, gallery: [] }));
     expect(result).toBeNull();
   });
 
@@ -87,7 +93,7 @@ describe('selectCardThumbnail', () => {
     const result = selectCardThumbnail(
       tour({
         isSeasonal: false,
-        heroImage: null,
+        gallery: [],
         seasonal: { seasonalHero: { mediaType: 'image', image: media('/seasonal.jpg') } },
       })
     );

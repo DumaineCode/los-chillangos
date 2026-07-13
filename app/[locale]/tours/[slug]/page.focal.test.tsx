@@ -7,8 +7,8 @@ import TourDetailPage from './page';
 // ---------------------------------------------------------------------------
 // Focal-point integration for the tour detail GalleryTile (FR-13).
 //
-// One change in GalleryTile covers BOTH the hero tile (first) and every gallery
-// tile, each honoring its OWN focal point. TourDetailPage is an async Server
+// One change in GalleryTile covers the cover tile (gallery[0]) and every other
+// gallery tile, each honoring its OWN focal point. TourDetailPage is an async Server
 // Component, so we mock the runtime boundary and render the resolved tree. The
 // next/image mock forwards `style` so we can read object-position per tile.
 // ---------------------------------------------------------------------------
@@ -90,7 +90,6 @@ function makeTour(overrides: Record<string, unknown>) {
     price: 80,
     _status: 'published',
     isSeasonal: false,
-    heroImage: null,
     gallery: [],
     updatedAt: '2026-01-01T00:00:00.000Z',
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -115,11 +114,11 @@ afterEach(() => {
 });
 
 describe('TourDetailPage — GalleryTile focal points (FR-13)', () => {
-  it('frames the hero tile and each gallery tile by its own focal point', async () => {
+  it('frames the cover tile (gallery[0]) and each gallery tile by its own focal point', async () => {
     const { container } = await renderTour(
       makeTour({
-        heroImage: media(80, 20, '/media/hero.jpg'),
         gallery: [
+          { image: media(80, 20, '/media/g0.jpg') },
           { image: media(10, 90, '/media/g1.jpg') },
           { image: media(35, 60, '/media/g2.jpg') },
         ],
@@ -128,16 +127,29 @@ describe('TourDetailPage — GalleryTile focal points (FR-13)', () => {
 
     const imgs = container.querySelectorAll('.gallery-img img');
     expect(imgs).toHaveLength(3);
-    // Hero tile leads, then each gallery tile honors its OWN focal independently.
+    // gallery[0] leads (the cover), then each tile honors its OWN focal independently.
     expect(imgs[0]).toHaveStyle({ objectPosition: '80% 20%' });
     expect(imgs[1]).toHaveStyle({ objectPosition: '10% 90%' });
     expect(imgs[2]).toHaveStyle({ objectPosition: '35% 60%' });
     expect(imgs[0]).toHaveStyle({ objectFit: 'cover' });
   });
 
+  it('caps the rendered gallery at 5 tiles', async () => {
+    const { container } = await renderTour(
+      makeTour({
+        gallery: Array.from({ length: 8 }, (_, i) => ({
+          image: media(50, 50, `/media/g${i}.jpg`),
+        })),
+      })
+    );
+
+    const imgs = container.querySelectorAll('.gallery-img img');
+    expect(imgs).toHaveLength(5);
+  });
+
   it('defaults a null-focal tile to 50% 50%', async () => {
     const { container } = await renderTour(
-      makeTour({ heroImage: media(null, null, '/media/hero.jpg') })
+      makeTour({ gallery: [{ image: media(null, null, '/media/g0.jpg') }] })
     );
 
     const imgs = container.querySelectorAll('.gallery-img img');

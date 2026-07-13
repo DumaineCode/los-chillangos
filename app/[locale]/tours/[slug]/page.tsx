@@ -83,12 +83,12 @@ export default async function TourDetailPage({ params }: Props) {
   const tCommon = await getTranslations({ locale, namespace: 'common' });
   const tNav = await getTranslations({ locale, namespace: 'nav' });
 
-  const heroMedia = resolveMedia(tour.heroImage);
-  const galleryMedia: (Media | null)[] = (tour.gallery ?? []).map((g) => resolveMedia(g.image));
-  // Adaptive gallery: only tiles backed by a real image render, so the grid
-  // reshapes to the actual photo count instead of leaving mocked placeholders.
-  // Hero leads, then gallery photos; capped at 5 (the grid's max layout).
-  const galleryTiles: Media[] = [heroMedia, ...galleryMedia]
+  // Single ordered gallery: gallery[0] is the cover/top tile and the grid
+  // reshapes to the real photo count. Only tiles backed by a real image render.
+  // First gallery photo leads (the cover), then the rest; capped at 5 (the grid's
+  // max layout). resolveMedia/GalleryTile keep each image's focal point.
+  const galleryTiles: Media[] = (tour.gallery ?? [])
+    .map((g) => resolveMedia(g.image))
     .filter((m): m is Media => Boolean(m?.url))
     .slice(0, 5);
   // Drafts shown in Live Preview can be half-filled — Payload skips required-field
@@ -363,8 +363,9 @@ function resolveMedia(value: number | Media | null | undefined): Media | null {
 }
 
 function GalleryTile({ media, alt }: { media: Media; alt: string }) {
-  // Route through the shared resolver so the tile (hero AND every gallery image)
-  // frames by its own focal point and shares the cache-bust/version token.
+  // Route through the shared resolver so the tile (the cover — gallery[0] — AND
+  // every gallery image) frames by its own focal point and shares the
+  // cache-bust/version token.
   const resolved = resolveMediaImage(media);
   if (!resolved) return null;
   return (

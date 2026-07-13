@@ -17,43 +17,48 @@ type SeasonalFlag = { isSeasonal?: boolean | null } | null | undefined;
 /**
  * Whether a STANDARD-ONLY field should be visible in the admin form.
  *
- * Standard-only fields (heroImage, photoDescription, standard gallery,
- * aboutP1/P2) are replaced by the seasonal group, so they hide
- * for seasonal tours and stay visible for every standard/legacy tour — exactly
- * matching today's behavior when `isSeasonal` is false/unset.
+ * Standard-only fields (the standard `gallery`, photoDescription, aboutP1/P2)
+ * are replaced by the seasonal group, so they hide for seasonal tours and stay
+ * visible for every standard/legacy tour — exactly matching today's behavior
+ * when `isSeasonal` is false/unset.
  */
 export function isStandardFieldVisible(data: SeasonalFlag): boolean {
   return !data?.isSeasonal;
 }
 
 /**
- * Whether `heroImage` must be present to publish.
+ * Whether the standard `gallery` must be non-empty to publish.
  *
- * Required for standard tours (the detail layout + card read `heroImage`).
- * Optional for seasonal tours, which render `seasonal.seasonalHero` instead —
- * forcing `heroImage` would block publishing a perfectly valid seasonal tour.
+ * Required for standard tours: the card thumbnail and the detail page render
+ * `gallery[0]` (the cover) / the gallery as the single ordered image source.
+ * Not required for seasonal tours, which render `seasonal.seasonalHero` /
+ * `seasonal.gallery` instead — forcing a standard gallery would block publishing
+ * a perfectly valid seasonal tour.
  */
-export function isHeroImageRequired(data: SeasonalFlag): boolean {
+export function isStandardGalleryRequired(data: SeasonalFlag): boolean {
   return !data?.isSeasonal;
 }
 
 /**
- * Payload `validate` for `heroImage`.
+ * Payload `validate` for the standard `gallery` array.
  *
- * Returns `true` (valid) when the tour is seasonal regardless of value, or when
- * a standard tour actually has an upload. Returns an error string when a
- * standard/legacy tour is missing its hero image. A field hidden by
- * `admin.condition` still runs `validate` on publish, so this guard is what
- * actually unblocks publishing seasonal tours.
+ * Returns `true` when the tour is seasonal (regardless of value), or when a
+ * standard tour has at least one gallery row. Returns an error string when a
+ * standard/legacy tour would publish with an empty gallery.
  *
- * Typed to match Payload's upload-field `validate` signature: the value is the
- * upload reference and `args.data` is the whole document being validated.
+ * Draft saves never reach this: `Tours.versions.drafts` has no `validate`
+ * override, so Payload's default (`validateDrafts: false`) skips all field
+ * validation for drafts — a standard draft with zero images still saves.
+ *
+ * `value` is the array field value; `args.data` is the whole document.
  */
-export function validateHeroImage(
+export function validateStandardGallery(
   value: unknown,
   args: { data?: SeasonalFlag } | undefined
 ): true | string {
-  if (!isHeroImageRequired(args?.data)) return true;
-  if (value === null || value === undefined) return 'Hero image is required.';
+  if (!isStandardGalleryRequired(args?.data)) return true;
+  if (!Array.isArray(value) || value.length === 0) {
+    return 'Add at least one gallery image before publishing.';
+  }
   return true;
 }

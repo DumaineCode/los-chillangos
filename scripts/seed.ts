@@ -6,9 +6,9 @@
  *   - Globals: upsert with `updateGlobal` (last seed wins — fine, the content
  *     is static and version-controlled in `data.js`).
  *
- * Tours are created as DRAFTS (`_status: 'draft'`) because `heroImage` is
- * required for publish and we don't seed real images. The client uploads each
- * tour's photo in /admin and publishes from there.
+ * Tours are created as DRAFTS (`_status: 'draft'`) because a standard tour needs
+ * at least one gallery image to publish and we don't seed real images. The client
+ * uploads each tour's photos in /admin and publishes from there.
  *
  * `data.js` is a browser-style script (assigns to `window.I18N` / `window.TOURS`).
  * We read it as a string and evaluate it in a `vm` sandbox with a fake `window`
@@ -247,7 +247,8 @@ async function seedTours(
             }))
           : undefined,
         includes: isFlagship ? detailEN.includes.map((text) => ({ text })) : undefined,
-        // heroImage intentionally omitted — required for publish, not draft.
+        // gallery intentionally omitted — a non-empty gallery is required for
+        // publish, not for drafts. The client uploads photos in /admin.
         _status: 'draft',
       },
     });

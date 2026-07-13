@@ -35,7 +35,7 @@ type Frame = {
 // Each frame maps to a real cover-crop surface in globals.css, so the editor
 // previews the actual shapes the image will be poured into on the live site.
 const FRAMES: readonly Frame[] = [
-  // .hero-cine-img · .seasonal-hero-img · gallery hero tile · .highlight-seasonal-media
+  // .hero-cine-img · .seasonal-hero-img · gallery cover tile · .highlight-seasonal-media
   { id: 'wide', label: 'Panorámica 16:9', ratio: '16 / 9', circle: false },
   // .tour-card-img · .editorial-img · .event-story-media
   { id: 'portrait', label: 'Retrato 4:5', ratio: '4 / 5', circle: false },

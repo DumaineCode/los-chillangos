@@ -202,13 +202,12 @@ export interface Tour {
    */
   groupSize?: string | null;
   /**
-   * What the hero photo should depict (e.g. "Coyoacán plaza · golden hour"). Hint for the client choosing an image to upload.
+   * What the cover photo should depict (e.g. "Coyoacán plaza · golden hour"). Hint for the client choosing the first image to upload.
    */
   photoDescription?: string | null;
   /**
-   * Main image shown on the tour card and at the top of the tour page.
+   * The tour photos. The first photo is the cover shown on the card and at the top of the tour page — drag to reorder.
    */
-  heroImage?: (number | null) | Media;
   gallery?:
     | {
         image: number | Media;
@@ -778,7 +777,6 @@ export interface ToursSelect<T extends boolean = true> {
   languages?: T;
   groupSize?: T;
   photoDescription?: T;
-  heroImage?: T;
   gallery?:
     | T
     | {

@@ -31,7 +31,6 @@ function makeTour(overrides: Partial<Tour> = {}): Tour {
     duration: '3.5h',
     price: 89,
     shortDescription: 's',
-    heroImage: 1,
     availableDays: ['1', '3', '5'], // Mon Wed Fri
     timeSlots: [
       { time: '09:00', capacity: 8 },

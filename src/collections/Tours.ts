@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload';
 
 import { revalidateToursAfterChange, revalidateToursAfterDelete } from '../hooks/revalidateTours';
-import { isStandardFieldVisible, validateHeroImage } from '../lib/seasonal/fieldVisibility';
+import { isStandardFieldVisible, validateStandardGallery } from '../lib/seasonal/fieldVisibility';
 import { NAV_GROUPS } from '../admin/navGroups';
 
 /**
@@ -25,8 +25,9 @@ import { NAV_GROUPS } from '../admin/navGroups';
  *
  * Drafts:
  *   - `versions.drafts: true` so the client can stage edits and publish.
- *   - Seed creates each tour as `_status: 'draft'` because `heroImage` is a
- *     required upload — the client uploads the photo later, then publishes.
+ *   - Seed creates each tour as `_status: 'draft'` because the gallery must have
+ *     at least one image to publish — the client uploads photos later, then
+ *     publishes.
  *
  * Access:
  *   - Public read so RSC pages can fetch published tours (PR 4 consumers).
@@ -307,8 +308,8 @@ export const Tours: CollectionConfig = {
             condition: isStandardFieldVisible,
           },
           description: {
-            en: 'Hero image, gallery, and the detail-page copy. Used by standard (non-seasonal) tours.',
-            es: 'Imagen principal, galería y los textos de la página de detalle. Para tours estándar (no de temporada).',
+            en: 'Photo gallery and the detail-page copy. Used by standard (non-seasonal) tours.',
+            es: 'Galería de fotos y los textos de la página de detalle. Para tours estándar (no de temporada).',
           },
           fields: [
             {
@@ -321,33 +322,18 @@ export const Tours: CollectionConfig = {
               admin: {
                 condition: isStandardFieldVisible,
                 description: {
-                  en: 'What the hero photo should depict (e.g. "Coyoacán plaza · golden hour"). Hint for the client choosing an image to upload.',
-                  es: 'Qué debería mostrar la foto principal (ej.: "Plaza de Coyoacán · hora dorada"). Una pista para elegir la imagen a subir.',
+                  en: 'What the cover photo should depict (e.g. "Coyoacán plaza · golden hour"). Hint for the client choosing the first image to upload.',
+                  es: 'Qué debería mostrar la foto de portada (ej.: "Plaza de Coyoacán · hora dorada"). Una pista para elegir la primera imagen a subir.',
                 },
               },
             },
             {
-              // STANDARD-ONLY: standard detail/card hero. Seasonal tours render
-              // `seasonal.seasonalHero` instead, so this is hidden and made optional
-              // for them — a hidden `required` field would otherwise block publishing a
-              // valid seasonal tour. `validate` enforces presence only for non-seasonal.
-              name: 'heroImage',
-              type: 'upload',
-              relationTo: 'media',
-              label: { en: 'Hero image', es: 'Imagen principal' },
-              admin: {
-                condition: isStandardFieldVisible,
-                description: {
-                  en: 'Main image shown on the tour card and at the top of the tour page.',
-                  es: 'Imagen principal que se ve en la tarjeta del tour y arriba de la página del tour.',
-                },
-              },
-              // Required for PUBLISH (not draft) only when the tour is NOT seasonal.
-              // Drafts skip required-field validation regardless.
-              validate: validateHeroImage,
-            },
-            {
-              // STANDARD-ONLY: duplicates `seasonal.gallery`. Hidden for seasonal tours.
+              // STANDARD-ONLY single ordered source of tour imagery. Position 0
+              // (`gallery[0]`) is the cover/main image — used by the card thumbnail
+              // and the detail-page top tile. No structural cover flag: position is
+              // the convention. Hidden for seasonal tours, which use their own
+              // `seasonal.seasonalHero` / `seasonal.gallery`. No `maxRows`: there is
+              // no upper limit on the number of gallery images.
               name: 'gallery',
               type: 'array',
               labels: {
@@ -356,13 +342,20 @@ export const Tours: CollectionConfig = {
               },
               admin: {
                 condition: isStandardFieldVisible,
+                description: {
+                  en: 'The tour photos. The first photo is the cover shown on the card and at the top of the tour page — drag to reorder.',
+                  es: 'Las fotos del tour. La primera foto es la portada que se ve en la tarjeta y arriba de la página del tour — arrastra para reordenar.',
+                },
               },
+              // Min-1 on PUBLISH for standard tours only. Seasonal tours and drafts
+              // pass (Payload skips validation on draft saves; see fieldVisibility.ts).
+              validate: validateStandardGallery,
               fields: [
                 {
                   name: 'image',
                   type: 'upload',
                   relationTo: 'media',
-                  required: true,
+                  required: true, // each row must reference an image
                   label: { en: 'Image', es: 'Imagen' },
                 },
               ],

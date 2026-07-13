@@ -16,10 +16,10 @@ type Props = {
  * Tour summary card used on the home grid (Server Component).
  *
  * Thumbnail resolution is delegated to `selectCardThumbnail` (pure, tested):
- * heroImage → seasonal hero image → seasonal poster → null. When nothing
+ * gallery[0].image → seasonal hero image → seasonal poster → null. When nothing
  * resolves we render the legacy `placeholder` block so the layout never
- * collapses — the seed creates tours without a hero and the client uploads
- * later in `/admin`.
+ * collapses — the seed creates tours without a gallery and the client uploads
+ * photos later in `/admin`.
  *
  * Badge: a seasonal tour (`isSeasonal === true`) always shows the terra
  * "Seasonal/Temporada" badge, taking visual priority over any manual `tag`
