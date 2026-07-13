@@ -165,6 +165,11 @@ a { color: inherit; text-decoration: none; }
   white-space: nowrap;
   border: 1px solid transparent;
 }
+/* Gentle 1px lift + press feedback on every button, layered on top of the
+   per-variant color hovers below. Kept tiny so primary CTAs feel responsive,
+   not bouncy. */
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
 .btn-primary {
   background: var(--ink);
   color: var(--bg);
@@ -905,6 +910,15 @@ body:has(.hero-cine) { padding-top: 0; }
   position: relative;
   overflow: hidden;
 }
+/* Subtle photo zoom on card hover — the image lives under overflow:hidden, so it
+   scales inside the frame without pushing layout. Longer easing than the lift so
+   the motion reads as cinematic, not twitchy. */
+.tour-card-img img {
+  transition: transform 450ms ease;
+}
+.tour-card:hover .tour-card-img img {
+  transform: scale(1.045);
+}
 .tour-card-tag {
   position: absolute;
   top: 12px; right: 12px;
@@ -982,6 +996,14 @@ body:has(.hero-cine) { padding-top: 0; }
   align-items: center;
   gap: 6px;
 }
+/* Arrow that advances on card hover (pseudo-element so the markup stays clean). */
+.tour-card-cta::after {
+  content: "\2192";
+  transition: transform 220ms ease;
+}
+.tour-card:hover .tour-card-cta::after {
+  transform: translateX(4px);
+}
 
 /* === Filter bar === */
 .filter-bar {
@@ -1017,14 +1039,39 @@ body:has(.hero-cine) { padding-top: 0; }
 .value-cell {
   padding: 36px 28px 36px 0;
   border-right: 1px solid var(--line);
+  position: relative;
+  transition: transform 220ms ease;
 }
+/* Inner cells: breathing room from the divider line they sit against, so the
+   number/title/text aren't glued to the border on their left. First cell stays
+   flush-left to line up with the section title. */
+.value-cell + .value-cell { padding-left: 28px; }
 .value-cell:last-child { border-right: none; padding-right: 0; }
+/* Hover: a terra accent grows from the left along the cell's top edge — echoing
+   the dividing lines the content is "born" from — while the cell lifts a touch
+   and the number nudges right. */
+.value-cell::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--terra);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 320ms ease;
+}
+.value-cell:hover { transform: translateY(-4px); }
+.value-cell:hover::before { transform: scaleX(1); }
+.value-cell:hover .value-num { transform: translateX(4px); }
 .value-num {
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.12em;
   color: var(--terra);
   margin-bottom: 16px;
+  transition: transform 220ms ease;
 }
 .value-title {
   font-family: var(--serif);
@@ -1176,6 +1223,13 @@ body:has(.hero-cine) { padding-top: 0; }
   gap: 12px;
   padding: 16px 0;
   border-bottom: 1px solid var(--line);
+  transition: padding-left 200ms ease, background 200ms ease;
+}
+/* Row highlight on hover: a soft warm wash + a small inset so the price line
+   feels selectable, matching the rest of the hover language. */
+.rental-price-row:hover {
+  background: color-mix(in srgb, var(--terra) 6%, transparent);
+  padding-left: 10px;
 }
 .rental-price-row:first-child {
   border-top: 1px solid var(--line);
@@ -1221,6 +1275,14 @@ body:has(.hero-cine) { padding-top: 0; }
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+/* Match the tour-card lift language + a terra border cue, so the services block
+   reads as the same interactive family. */
+.strip-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--terra) 45%, var(--line));
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--ink) 10%, transparent);
 }
 .strip-card-icon {
   width: 40px; height: 40px;
@@ -1230,6 +1292,13 @@ body:has(.hero-cine) { padding-top: 0; }
   align-items: center;
   justify-content: center;
   color: var(--terra);
+  transition: background 220ms ease, border-color 220ms ease, transform 220ms ease;
+}
+/* Icon fills with a soft terra wash and lifts slightly on card hover. */
+.strip-card:hover .strip-card-icon {
+  background: color-mix(in srgb, var(--terra) 12%, transparent);
+  border-color: color-mix(in srgb, var(--terra) 45%, var(--line-strong));
+  transform: translateY(-2px);
 }
 .strip-card-title {
   font-family: var(--serif);
@@ -1254,10 +1323,14 @@ body:has(.hero-cine) { padding-top: 0; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: color 200ms ease;
+  transition: color 200ms ease, transform 200ms ease;
 }
 .strip-card-link:hover {
   color: var(--ink);
+}
+/* The link (with its literal arrow) advances when the whole card is hovered. */
+.strip-card:hover .strip-card-link {
+  transform: translateX(4px);
 }
 
 /* === Testimonials === */
@@ -1403,10 +1476,12 @@ body:has(.hero-cine) { padding-top: 0; }
   border-radius: 50%;
   background: var(--ink-muted);
   opacity: 0.35;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
 }
 .testimonial-dot:hover {
   opacity: 0.7;
+  transform: scale(1.4);
+  background: var(--terra);
 }
 
 /* === Team === */
@@ -1428,6 +1503,20 @@ body:has(.hero-cine) { padding-top: 0; }
   margin-bottom: 18px;
   border: 1px solid var(--line-strong);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  transition: border-color 260ms ease, box-shadow 260ms ease;
+}
+/* The circular photo comes alive on member hover: the inner image zooms behind
+   the fixed circular frame (overflow:hidden set inline on the photo wrapper),
+   the ring warms to terra, and the shadow deepens. */
+.team-photo img {
+  transition: transform 500ms ease;
+}
+.team-member:hover .team-photo {
+  border-color: color-mix(in srgb, var(--terra) 45%, var(--line-strong));
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.14);
+}
+.team-member:hover .team-photo img {
+  transform: scale(1.06);
 }
 .team-name {
   font-family: var(--serif);
@@ -1460,12 +1549,19 @@ body:has(.hero-cine) { padding-top: 0; }
   font-size: 26px;
   line-height: 1.15;
   letter-spacing: -0.01em;
+  transition: color 200ms ease;
+}
+/* Hovering a (closed or open) row hints it's interactive; the +/× toggle warms
+   to terra alongside the question. */
+.faq-item:hover .faq-q,
+.faq-item:hover .faq-toggle {
+  color: var(--terra);
 }
 .faq-toggle {
   font-family: var(--sans);
   font-size: 24px;
   color: var(--ink-muted);
-  transition: transform 200ms;
+  transition: transform 200ms, color 200ms ease;
 }
 .faq-item.open .faq-toggle { transform: rotate(45deg); }
 .faq-a {
@@ -1533,8 +1629,18 @@ body:has(.hero-cine) { padding-top: 0; }
   font-weight: 400;
 }
 .footer ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
-.footer ul a { font-size: 14px; color: #ffffffCC; }
-.footer ul a:hover { color: var(--cream); }
+.footer ul a {
+  font-size: 14px;
+  color: #ffffffCC;
+  /* Underline drawn with a gradient background so it can grow left→right on
+     hover without shifting layout (unlike text-decoration). */
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 250ms ease, color 200ms ease;
+}
+.footer ul a:hover { color: var(--cream); background-size: 100% 1px; }
 .footer-bottom {
   display: flex;
   justify-content: space-between;
@@ -2161,6 +2267,11 @@ body:has(.hero-cine) { padding-top: 0; }
   gap: 64px;
   animation: marquee 32s linear infinite;
 }
+/* Pause the scroll when the visitor hovers — invites reading without stopping
+   the motion elsewhere. */
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
 .marquee em { font-style: italic; color: var(--terra); margin: 0 16px; }
 @keyframes marquee {
   from { transform: translateX(0); }
@@ -2174,6 +2285,8 @@ body:has(.hero-cine) { padding-top: 0; }
   .tour-grid { grid-template-columns: 1fr 1fr; }
   .values { grid-template-columns: 1fr 1fr; }
   .value-cell { border-right: none; padding: 24px 0; border-top: 1px solid var(--line); }
+  /* Cancel the desktop inner-cell left padding once the grid stacks. */
+  .value-cell + .value-cell { padding-left: 0; }
   .editorial { grid-template-columns: 1fr; gap: 32px; }
   /* Stack the bike photo on top of the content column. */
   .rental-panel { grid-template-columns: 1fr; }
@@ -2734,6 +2847,47 @@ body:has(.hero-cine) { padding-top: 0; }
     transform: none;
     animation: none;
   }
+  /* Value-prop hover: keep the terra accent as an instant state change, drop the
+     lift and nudge motion. */
+  .value-cell,
+  .value-cell::before,
+  .value-num {
+    transition: none;
+  }
+  .value-cell:hover,
+  .value-cell:hover .value-num {
+    transform: none;
+  }
+  /* Landing micro-interactions: keep every color/border cue, strip the motion.
+     Transform-based hovers collapse to no movement; the marquee stops scrolling. */
+  .tour-card,
+  .tour-card-img img,
+  .tour-card-cta::after,
+  .strip-card,
+  .strip-card-icon,
+  .strip-card-link,
+  .btn,
+  .team-photo,
+  .team-photo img,
+  .testimonial-dot,
+  .rental-price-row,
+  .marquee-track {
+    transition-property: color, background, border-color, box-shadow, opacity;
+    animation: none;
+  }
+  .tour-card:hover,
+  .tour-card:hover .tour-card-img img,
+  .tour-card:hover .tour-card-cta::after,
+  .strip-card:hover,
+  .strip-card:hover .strip-card-icon,
+  .strip-card:hover .strip-card-link,
+  .btn:hover,
+  .btn:active,
+  .team-member:hover .team-photo img,
+  .testimonial-dot:hover,
+  .rental-price-row:hover {
+    transform: none;
+  }
 }
 
 /* Visible keyboard focus. A single brand ring on every interactive control,
@@ -2758,4 +2912,31 @@ summary:focus-visible,
 .btn-primary:focus-visible,
 .btn-terra:focus-visible {
   outline-color: #FFFFFF;
+}
+
+/* ========================================================================
+   JUSTIFIED BODY COPY
+   Justify long-form paragraphs and descriptions (NOT titles, mono labels,
+   eyebrows, or centered display text). Desktop-only (>900px): narrow mobile
+   columns are left-aligned to avoid ragged white-space "rivers". Hyphenation
+   is enabled so the browser can break long words and distribute space evenly
+   — important for Spanish copy. Centered blocks (.confirm-sub,
+   .catalog-notfound-sub) are intentionally excluded.
+   ======================================================================== */
+@media (min-width: 901px) {
+  .section-sub,
+  .tour-card-desc,
+  .value-desc,
+  .editorial p,
+  .rental-aside-lead,
+  .strip-card-desc,
+  .faq-a,
+  .detail-content p,
+  .booking-main > p.lede,
+  .event-story-text p,
+  .contact-success-body {
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+  }
 }
