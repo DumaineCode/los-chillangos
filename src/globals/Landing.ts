@@ -578,8 +578,22 @@ export const Landing: GlobalConfig = {
               label: { en: 'Button destination', es: 'Destino del botón' },
               admin: {
                 description: {
-                  en: 'Where the button goes. Default "#contact" (the contact section). Can be a WhatsApp/phone link.',
-                  es: 'A dónde lleva el botón. Predeterminado "#contact" (la sección de contacto). Puede ser un enlace de WhatsApp/teléfono.',
+                  en: 'Where the button goes. Default "#contact" (the contact section). To send visitors to the online rental flow, use "/rent". Can also be a WhatsApp/phone link.',
+                  es: 'A dónde lleva el botón. Predeterminado "#contact" (la sección de contacto). Para llevar al flujo de renta en línea, usá "/rent". También puede ser un enlace de WhatsApp/teléfono.',
+                },
+              },
+            },
+            {
+              // Bike photo shown alongside the price list. Optional: when empty a
+              // styled placeholder is rendered so the block never looks broken.
+              name: 'image',
+              type: 'upload',
+              relationTo: 'media',
+              label: { en: 'Bike photo', es: 'Foto de la bici' },
+              admin: {
+                description: {
+                  en: 'Optional photo shown next to the price list, e.g. the rental bike. If empty, a placeholder is shown.',
+                  es: 'Foto opcional que se muestra junto a la lista de precios, ej.: la bici de renta. Si se deja vacía, se muestra un marcador.',
                 },
               },
             },

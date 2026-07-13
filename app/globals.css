@@ -1092,31 +1092,66 @@ body:has(.hero-cine) { padding-top: 0; }
    and the section never leaves a dead half-width. */
 .rental-panel {
   display: grid;
-  grid-template-columns: 1.35fr 0.65fr;
+  grid-template-columns: 0.82fr 1.18fr;
   gap: 0;
   align-items: stretch;
   background: var(--bg-warm);
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 40px 48px;
+  /* Clip the bike photo to the panel's rounded corners; padding now lives on
+     the body so the image can bleed to the panel edge. */
+  overflow: hidden;
 }
 .rental-panel-empty {
-  grid-template-columns: 1fr;
-  max-width: 560px;
+  grid-template-columns: 0.9fr 1.1fr;
+  max-width: 760px;
+}
+/* Bike photo column — fills its cell; the <Image fill> covers it. */
+.rental-media {
+  position: relative;
+  min-height: 360px;
+  background: var(--cream);
+  border-right: 1px solid var(--line);
+}
+/* Placeholder shown until the client uploads a photo. */
+.rental-media-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 32px;
+  text-align: center;
+  color: var(--ink-muted);
+  background:
+    repeating-linear-gradient(135deg, transparent 0 15px, rgba(0, 0, 0, 0.025) 15px 16px),
+    var(--cream);
+}
+.rental-media-caption {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  max-width: 22ch;
+  line-height: 1.5;
+}
+/* Content column — price list stacked over the value prop + CTA. */
+.rental-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+  padding: 44px 48px;
 }
 .rental-aside {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 22px;
-  margin-left: 48px;
-  padding-left: 48px;
-  border-left: 1px solid var(--line-strong);
 }
-.rental-panel-empty .rental-aside {
-  margin-left: 0;
-  padding-left: 0;
-  border-left: none;
+/* Separator only when the aside follows the price list (priced panel). */
+.rental-price-list + .rental-aside {
+  padding-top: 26px;
+  border-top: 1px solid var(--line-strong);
 }
 .rental-aside-lead {
   font-family: var(--serif);
@@ -2079,15 +2114,10 @@ body:has(.hero-cine) { padding-top: 0; }
   .values { grid-template-columns: 1fr 1fr; }
   .value-cell { border-right: none; padding: 24px 0; border-top: 1px solid var(--line); }
   .editorial { grid-template-columns: 1fr; gap: 32px; }
-  .rental-panel { grid-template-columns: 1fr; padding: 28px 24px; }
-  .rental-aside {
-    margin-left: 0;
-    padding-left: 0;
-    padding-top: 28px;
-    margin-top: 4px;
-    border-left: none;
-    border-top: 1px solid var(--line-strong);
-  }
+  /* Stack the bike photo on top of the content column. */
+  .rental-panel { grid-template-columns: 1fr; }
+  .rental-media { min-height: 220px; border-right: none; border-bottom: 1px solid var(--line); }
+  .rental-body { padding: 28px 24px; }
   .strip-cards { grid-template-columns: 1fr; }
   .team { grid-template-columns: 1fr 1fr 1fr; gap: 24px 12px; }
   .team-photo { width: clamp(78px, 26vw, 140px); height: clamp(78px, 26vw, 140px); margin-bottom: 12px; }

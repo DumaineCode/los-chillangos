@@ -173,6 +173,9 @@ export default async function HomePage({ params }: Props) {
   // the catalog links to /book. An admin can still override it via the Landing
   // `rentals` tab.
   const rentalsCtaHref = rentalsBlock?.ctaHref?.trim() || '/rent';
+  // Optional bike photo for the rentals block. Focal-point aware so it frames
+  // by its focal point; when absent the panel renders a styled placeholder.
+  const rentalImage = resolveMediaImage(rentalsBlock?.image);
 
   const valuesItems = (values?.items ?? []).map((v) => ({ t: v.title, d: v.description }));
   const servicesItems = (services?.items ?? []).map((s) => ({ t: s.title, d: s.description }));
@@ -457,56 +460,67 @@ export default async function HomePage({ params }: Props) {
           </div>
 
           {rentalDurations.length > 0 ? (
-            // Warm, self-contained "rental menu": price list on the left, value
-            // prop + CTA on the right. Balances the composition (no dead
-            // half-width) and echoes the seasonal banner's cream surface so the
-            // two feature blocks read as siblings.
+            // Warm, self-contained "rental menu": bike photo on the left, price
+            // list + value prop + CTA on the right. Echoes the seasonal banner's
+            // cream surface so the two feature blocks read as siblings.
             <div className="rental-panel">
-              <ul className="rental-price-list" data-testid="rental-price-list">
-                {rentalDurations.map((d, i) => (
-                  <li className="rental-price-row" key={d.id ?? i}>
-                    <span className="rental-price-label">{d.label}</span>
-                    <span className="rental-price-dots" aria-hidden="true" />
-                    <span className="rental-price-value">{d.price}</span>
-                  </li>
-                ))}
-                {showHelmet ? (
-                  <li
-                    className="rental-price-row rental-price-row-addon"
-                    data-testid="rental-helmet-row"
+              <RentalMedia
+                image={rentalImage}
+                caption={rentalsBlock?.title || tRentals('home.title')}
+              />
+              <div className="rental-body">
+                <ul className="rental-price-list" data-testid="rental-price-list">
+                  {rentalDurations.map((d, i) => (
+                    <li className="rental-price-row" key={d.id ?? i}>
+                      <span className="rental-price-label">{d.label}</span>
+                      <span className="rental-price-dots" aria-hidden="true" />
+                      <span className="rental-price-value">{d.price}</span>
+                    </li>
+                  ))}
+                  {showHelmet ? (
+                    <li
+                      className="rental-price-row rental-price-row-addon"
+                      data-testid="rental-helmet-row"
+                    >
+                      <span className="rental-price-label">{helmetLabel}</span>
+                      <span className="rental-price-dots" aria-hidden="true" />
+                      <span className="rental-price-value">{helmetPrice}</span>
+                    </li>
+                  ) : null}
+                </ul>
+                <div className="rental-aside">
+                  <p className="rental-aside-lead">
+                    {rentalsBlock?.sub || tRentals('home.sub')}
+                  </p>
+                  <HeroCta
+                    href={rentalsCtaHref}
+                    className="btn btn-primary btn-lg"
+                    testId="rentals-home-cta"
                   >
-                    <span className="rental-price-label">{helmetLabel}</span>
-                    <span className="rental-price-dots" aria-hidden="true" />
-                    <span className="rental-price-value">{helmetPrice}</span>
-                  </li>
-                ) : null}
-              </ul>
-              <div className="rental-aside">
-                <p className="rental-aside-lead">
-                  {rentalsBlock?.sub || tRentals('home.sub')}
-                </p>
-                <HeroCta
-                  href={rentalsCtaHref}
-                  className="btn btn-primary btn-lg"
-                  testId="rentals-home-cta"
-                >
-                  {rentalsBlock?.ctaLabel || tRentals('home.cta')}
-                </HeroCta>
+                    {rentalsBlock?.ctaLabel || tRentals('home.cta')}
+                  </HeroCta>
+                </div>
               </div>
             </div>
           ) : (
             <div className="rental-panel rental-panel-empty">
-              <div className="rental-aside">
-                <p className="rental-aside-lead">
-                  {rentalsBlock?.sub || tRentals('home.sub')}
-                </p>
-                <HeroCta
-                  href={rentalsCtaHref}
-                  className="btn btn-primary btn-lg"
-                  testId="rentals-home-cta"
-                >
-                  {rentalsBlock?.ctaLabel || tRentals('home.cta')}
-                </HeroCta>
+              <RentalMedia
+                image={rentalImage}
+                caption={rentalsBlock?.title || tRentals('home.title')}
+              />
+              <div className="rental-body">
+                <div className="rental-aside">
+                  <p className="rental-aside-lead">
+                    {rentalsBlock?.sub || tRentals('home.sub')}
+                  </p>
+                  <HeroCta
+                    href={rentalsCtaHref}
+                    className="btn btn-primary btn-lg"
+                    testId="rentals-home-cta"
+                  >
+                    {rentalsBlock?.ctaLabel || tRentals('home.cta')}
+                  </HeroCta>
+                </div>
               </div>
             </div>
           )}
@@ -682,6 +696,47 @@ export default async function HomePage({ params }: Props) {
 function resolveMediaUrl(value: number | Media | MediaVideo | null | undefined): string | null {
   if (!value || typeof value === 'number') return null;
   return value.url ?? null;
+}
+
+/**
+ * Bike photo frame for the rentals block. Renders the focal-point-aware image
+ * when the client has uploaded one; otherwise a styled placeholder with an
+ * inline bike glyph and a caption, so the panel never looks broken/empty.
+ */
+function RentalMedia({ image, caption }: { image: ResolvedImage | null; caption?: string }) {
+  if (image) {
+    return (
+      <div className="rental-media">
+        <Image
+          src={image.url}
+          alt={caption || 'Rental bike'}
+          fill
+          sizes="(max-width: 860px) 100vw, 40vw"
+          style={{ objectFit: 'cover', objectPosition: image.objectPosition }}
+        />
+      </div>
+    );
+  }
+  return (
+    <div className="rental-media rental-media-empty" data-testid="rental-media-placeholder">
+      <svg
+        width="56"
+        height="56"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="5.5" cy="17.5" r="3.5" />
+        <circle cx="18.5" cy="17.5" r="3.5" />
+        <path d="M5.5 17.5 9 9h5l3.5 8.5M9 9l3 5.5h5.5M14 9l1-2.5h2.5" />
+      </svg>
+      {caption ? <span className="rental-media-caption">{caption}</span> : null}
+    </div>
+  );
 }
 
 /**

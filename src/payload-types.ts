@@ -1263,9 +1263,13 @@ export interface Landing {
      */
     ctaLabel?: string | null;
     /**
-     * Where the button goes. Default "#contact" (the contact section). Can be a WhatsApp/phone link.
+     * Where the button goes. Default "#contact" (the contact section). To send visitors to the online rental flow, use "/rent". Can also be a WhatsApp/phone link.
      */
     ctaHref?: string | null;
+    /**
+     * Optional photo shown next to the price list, e.g. the rental bike. If empty, a placeholder is shown.
+     */
+    image?: (number | null) | Media;
   };
   about?: {
     /**
@@ -1700,6 +1704,7 @@ export interface LandingSelect<T extends boolean = true> {
         helmetPrice?: T;
         ctaLabel?: T;
         ctaHref?: T;
+        image?: T;
       };
   about?:
     | T
