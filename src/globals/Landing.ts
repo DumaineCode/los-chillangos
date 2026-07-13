@@ -744,11 +744,50 @@ export const Landing: GlobalConfig = {
                   name: 'loc',
                   type: 'text',
                   localized: true,
-                  label: { en: 'Location / date', es: 'Lugar / fecha' },
+                  label: { en: 'Location', es: 'Lugar' },
                   admin: {
                     description: {
-                      en: 'Location / date line, e.g. "Brooklyn, NY · Mar 2026".',
+                      en: 'Optional location line, e.g. "Brooklyn, NY". The date is set separately below.',
                       es: 'Línea de lugar y fecha, ej.: "Brooklyn, NY · Mar 2026".',
+                    },
+                  },
+                },
+                {
+                  name: 'rating',
+                  type: 'number',
+                  min: 1,
+                  max: 5,
+                  defaultValue: 5,
+                  label: { en: 'Star rating', es: 'Calificacion (estrellas)' },
+                  admin: {
+                    step: 1,
+                    description: {
+                      en: 'Number of filled stars, 1 to 5. Shown as a gold star row like a Google review.',
+                      es: 'Cantidad de estrellas llenas, de 1 a 5. Se muestra como fila dorada, estilo resena de Google.',
+                    },
+                  },
+                },
+                {
+                  name: 'date',
+                  type: 'date',
+                  label: { en: 'Review date', es: 'Fecha de la resena' },
+                  admin: {
+                    date: { pickerAppearance: 'dayOnly', displayFormat: 'd MMM yyyy' },
+                    description: {
+                      en: 'Date the review was left. Auto-formatted per language, e.g. "4 May 2026".',
+                      es: 'Fecha en que se dejo la resena. Se formatea automaticamente por idioma, ej.: "4 may 2026".',
+                    },
+                  },
+                },
+                {
+                  name: 'verified',
+                  type: 'checkbox',
+                  defaultValue: true,
+                  label: { en: 'Verified badge', es: 'Insignia de verificado' },
+                  admin: {
+                    description: {
+                      en: 'Show the blue verification checkmark over the profile photo.',
+                      es: 'Muestra la palomita azul de verificacion sobre la foto de perfil.',
                     },
                   },
                 },

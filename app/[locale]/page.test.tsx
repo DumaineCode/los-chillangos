@@ -745,10 +745,12 @@ describe('HomePage — testimonial empty states', () => {
     expect(slides[0].textContent).toContain('Best ride in CDMX.');
     // The empty-quote guest never renders.
     expect(container.textContent).not.toContain('Ana Ramos');
-    // No-avatar guest falls back to an initials monogram (BC), not an empty circle.
+    // No-avatar guest falls back to a Google-style single-letter monogram (B),
+    // not an empty circle. Reviews use one letter (getFirstLetter), unlike the
+    // team grid which still uses two-letter initials.
     const monogram = container.querySelector('.avatar-monogram');
     expect(monogram).not.toBeNull();
-    expect(monogram!.textContent).toBe('BC');
+    expect(monogram!.textContent).toBe('B');
   });
 
   it('hides the whole testimonial section when no row has a quote', async () => {

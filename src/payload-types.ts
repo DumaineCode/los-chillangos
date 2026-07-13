@@ -1323,9 +1323,21 @@ export interface Landing {
            */
           name?: string | null;
           /**
-           * Location / date line, e.g. "Brooklyn, NY · Mar 2026".
+           * Optional location line, e.g. "Brooklyn, NY". The date is set separately below.
            */
           loc?: string | null;
+          /**
+           * Number of filled stars, 1 to 5. Shown as a gold star row like a Google review.
+           */
+          rating?: number | null;
+          /**
+           * Date the review was left. Auto-formatted per language, e.g. "4 May 2026".
+           */
+          date?: string | null;
+          /**
+           * Show the blue verification checkmark over the profile photo.
+           */
+          verified?: boolean | null;
           /**
            * Guest photo. If empty, a placeholder circle is shown.
            */
@@ -1733,6 +1745,9 @@ export interface LandingSelect<T extends boolean = true> {
               quote?: T;
               name?: T;
               loc?: T;
+              rating?: T;
+              date?: T;
+              verified?: T;
               avatar?: T;
               id?: T;
             };

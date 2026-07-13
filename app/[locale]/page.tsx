@@ -243,11 +243,21 @@ export default async function HomePage({ params }: Props) {
   // name but no quote text would otherwise render as empty quotation marks —
   // filtering here keeps the slider meaningful, and the `length > 0` guard in
   // the JSX hides the whole section when nothing valid remains.
+  const testimonialDateFormatter = new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
   const testimonialItems = (testimonial?.items ?? [])
     .map((item) => ({
       quote: (item.quote ?? '').trim(),
       name: item.name,
       loc: item.loc,
+      // Clamp the CMS rating into a valid 1-5 star count; default to a full
+      // 5 stars so a row that predates the field still renders sensibly.
+      rating: Math.max(1, Math.min(5, Math.round(item.rating ?? 5))),
+      verified: item.verified ?? false,
+      date: item.date ? testimonialDateFormatter.format(new Date(item.date)) : null,
       avatar: resolveMediaImage(item.avatar),
     }))
     .filter((item) => item.quote !== '');
@@ -489,9 +499,7 @@ export default async function HomePage({ params }: Props) {
                   ) : null}
                 </ul>
                 <div className="rental-aside">
-                  <p className="rental-aside-lead">
-                    {rentalsBlock?.sub || tRentals('home.sub')}
-                  </p>
+                  <p className="rental-aside-lead">{rentalsBlock?.sub || tRentals('home.sub')}</p>
                   <HeroCta
                     href={rentalsCtaHref}
                     className="btn btn-primary btn-lg"
@@ -510,9 +518,7 @@ export default async function HomePage({ params }: Props) {
               />
               <div className="rental-body">
                 <div className="rental-aside">
-                  <p className="rental-aside-lead">
-                    {rentalsBlock?.sub || tRentals('home.sub')}
-                  </p>
+                  <p className="rental-aside-lead">{rentalsBlock?.sub || tRentals('home.sub')}</p>
                   <HeroCta
                     href={rentalsCtaHref}
                     className="btn btn-primary btn-lg"
@@ -578,36 +584,91 @@ export default async function HomePage({ params }: Props) {
               <div className="testimonial-track">
                 {testimonialItems.map((item, i) => (
                   <article key={i} id={`testimonial-${i}`} className="testimonial-slide">
+                    <div className="testimonial-stars" role="img" aria-label={`${item.rating} / 5`}>
+                      {Array.from({ length: 5 }).map((_, s) => (
+                        <span
+                          key={s}
+                          className={s < item.rating ? 'star star-on' : 'star star-off'}
+                          aria-hidden="true"
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
                     <p className="testimonial">{item.quote}</p>
                     <div className="testimonial-meta" style={{ justifyContent: 'center' }}>
-                      {item.avatar ? (
-                        <div
-                          className="testimonial-avatar"
-                          style={{ position: 'relative', overflow: 'hidden' }}
-                        >
-                          <Image
-                            src={item.avatar.url}
-                            alt={item.name || 'Guest'}
-                            fill
-                            sizes="64px"
-                            style={{
-                              objectFit: 'cover',
-                              objectPosition: item.avatar.objectPosition,
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div
-                          className="testimonial-avatar avatar-monogram"
-                          role="img"
-                          aria-label={item.name || 'Guest'}
-                        >
-                          <span aria-hidden="true">{getInitials(item.name)}</span>
-                        </div>
-                      )}
-                      <div>
+                      <div className="testimonial-avatar-wrap">
+                        {item.avatar ? (
+                          <div
+                            className="testimonial-avatar"
+                            style={{ position: 'relative', overflow: 'hidden' }}
+                          >
+                            <Image
+                              src={item.avatar.url}
+                              alt={item.name || 'Guest'}
+                              fill
+                              sizes="64px"
+                              style={{
+                                objectFit: 'cover',
+                                objectPosition: item.avatar.objectPosition,
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div
+                            className="testimonial-avatar avatar-monogram avatar-monogram-g"
+                            role="img"
+                            aria-label={item.name || 'Guest'}
+                            style={{ background: getAvatarColor(item.name) }}
+                          >
+                            <span aria-hidden="true">{getFirstLetter(item.name)}</span>
+                          </div>
+                        )}
+                        {item.verified ? (
+                          <span className="testimonial-verified" role="img" aria-label="Verified">
+                            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                              <circle cx="12" cy="12" r="12" fill="#1A73E8" />
+                              <path
+                                d="M7 12.4l3.2 3.1L17 8.6"
+                                fill="none"
+                                stroke="#fff"
+                                strokeWidth="2.4"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="testimonial-id">
                         <div className="testimonial-name">{item.name}</div>
-                        <div className="testimonial-loc">{item.loc}</div>
+                        <div className="testimonial-loc">
+                          <svg
+                            className="testimonial-google"
+                            viewBox="0 0 24 24"
+                            width="15"
+                            height="15"
+                            aria-hidden="true"
+                          >
+                            <path
+                              fill="#4285F4"
+                              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                            />
+                            <path
+                              fill="#34A853"
+                              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"
+                            />
+                            <path
+                              fill="#FBBC05"
+                              d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"
+                            />
+                            <path
+                              fill="#EA4335"
+                              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"
+                            />
+                          </svg>
+                          {[item.date, item.loc].filter(Boolean).join(' · ')}
+                        </div>
                       </div>
                     </div>
                   </article>
@@ -751,6 +812,40 @@ function getInitials(name: string | null | undefined): string {
   const first = parts[0]?.[0] ?? '';
   const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? '') : '';
   return (first + last).toUpperCase();
+}
+
+// Google-style avatar fallback for reviews: a single uppercase letter on a solid
+// colored disc. Unlike getInitials (used by the team grid), this returns just the
+// first character, matching how Google renders account avatars without a photo.
+function getFirstLetter(name: string | null | undefined): string {
+  const first = (name ?? '').trim()[0];
+  return first ? first.toUpperCase() : '\u00B7';
+}
+
+// Deterministic disc color from a curated Material-ish palette. Keyed off the
+// name so a given reviewer always gets the same color across renders, while
+// different reviewers vary — the effect the user asked for ("not always the same
+// color"), just like Google's letter avatars.
+const AVATAR_COLORS = [
+  '#DB4437', // red
+  '#E91E63', // pink
+  '#9C27B0', // purple
+  '#673AB7', // deep purple
+  '#3F51B5', // indigo
+  '#0288D1', // blue
+  '#00897B', // teal
+  '#0F9D58', // green
+  '#F4511E', // deep orange
+  '#8D6E63', // brown
+];
+function getAvatarColor(name: string | null | undefined): string {
+  const key = (name ?? '').trim();
+  if (!key) return AVATAR_COLORS[0]!;
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  }
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length]!;
 }
 
 /**

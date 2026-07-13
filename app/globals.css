@@ -1298,6 +1298,18 @@ body:has(.hero-cine) { padding-top: 0; }
 .testimonial-avatar.avatar-monogram {
   font-size: 18px;
 }
+
+/* Google-style letter avatar (reviews only): single letter, sans-serif, white on
+   a solid colored disc. The disc color is set inline per reviewer (see
+   getAvatarColor) so it varies by name instead of the fixed brand ink. */
+.avatar-monogram.avatar-monogram-g {
+  font-family: var(--sans);
+  font-weight: 500;
+  color: #fff;
+}
+.testimonial-avatar.avatar-monogram.avatar-monogram-g {
+  font-size: 22px;
+}
 .team-photo.avatar-monogram {
   font-size: clamp(40px, 6vw, 60px);
 }
@@ -1311,6 +1323,55 @@ body:has(.hero-cine) { padding-top: 0; }
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Google-review cues layered onto the existing slider without touching its
+   serif-quote hero. Stars sit above the quote like an eyebrow; the Google mark
+   and verified badge stay small so they read as trust signals, not decoration. */
+.testimonial-stars {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  font-size: 20px;
+  line-height: 1;
+}
+.testimonial-stars .star-on {
+  color: #f5b301; /* classic Google-review gold */
+}
+.testimonial-stars .star-off {
+  color: var(--line-strong);
+}
+.testimonial-google {
+  flex: 0 0 auto;
+  display: block;
+}
+/* Anchor the verified badge to the avatar's bottom-right, Google/Trustpilot
+   style. Wrapper hugs the circular avatar; the ring uses the page background so
+   the badge reads as cut out from the photo in both light and dark themes. */
+.testimonial-avatar-wrap {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  line-height: 0;
+}
+.testimonial-verified {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: block;
+  border-radius: 50%;
+  background: var(--bg);
+  padding: 2px;
+  line-height: 0;
+}
+.testimonial-verified svg {
+  display: block;
+}
+.testimonial-id {
+  text-align: left;
 }
 
 /* Slider — keeps each slide's layout identical, only adds horizontal paging. */
