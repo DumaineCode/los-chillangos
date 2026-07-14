@@ -5,6 +5,7 @@ import Image from 'next/image';
 
 import { Link } from '../../i18n/navigation';
 import type { Locale } from '../../i18n/routing';
+import { resolveGoogleFont } from '../lib/fonts/googleFont';
 import { resolveMediaImage, type ResolvedImage } from '../lib/media';
 import { getPayload } from '../lib/payload';
 import type { Media } from '../payload-types';
@@ -63,11 +64,17 @@ export async function Footer({ locale }: Props) {
 
   const columns = footer?.columns ?? [];
   const ctaLabel = footer?.cta ?? navigation?.bookCtaLabel ?? 'Book a tour';
-  // Footer sits on a dark surface: prefer the dark logo, fall back to the
-  // primary (light) one, then to the bundled PNG inside <Logo>.
-  const footerLogoSrc = resolveMediaUrl(branding?.logoDark) ?? resolveMediaUrl(branding?.logoLight);
+  // Use the same logo as the header: the primary (light) logo, falling back
+  // to the bundled PNG inside <Logo>.
+  const footerLogoSrc = resolveMediaUrl(branding?.logoLight);
   const footerLogoAlt = branding?.logoAltText ?? 'Los Chillangos';
   const wall = resolveFooterWall(resolveMediaImage(footer?.backgroundImage));
+  // Optional CMS-chosen Google Font for the tease headline. Footer default is
+  // the serif face at clamp(48px, 7vw, 112px), so mirror that ramp + fallback.
+  const headlineFont = resolveGoogleFont(footer?.headingFont, {
+    sizeRamp: { floorPx: 48, vw: 7 },
+    fallbackVar: '--serif',
+  });
 
   return (
     <footer className="footer">
@@ -85,7 +92,11 @@ export async function Footer({ locale }: Props) {
         </>
       ) : null}
       <div className="container">
-        <h2 className="footer-headline">
+        {/* Runtime Google Font load for the tease headline. React hoists
+            this stylesheet <link> into <head>; only when a custom family was
+            picked in the admin. */}
+        {headlineFont.linkHref ? <link rel="stylesheet" href={headlineFont.linkHref} /> : null}
+        <h2 className="footer-headline" style={headlineFont.style}>
           {footer?.tease}
           <br />
           <em>{footer?.teaseEm}</em>
@@ -96,7 +107,7 @@ export async function Footer({ locale }: Props) {
         <div className="footer-grid">
           <div>
             <div className="logo" style={{ marginBottom: 16 }}>
-              <Logo src={footerLogoSrc} alt={footerLogoAlt} variant="dark" height={56} />
+              <Logo src={footerLogoSrc} alt={footerLogoAlt} variant="light" height={56} />
             </div>
             <p
               style={{

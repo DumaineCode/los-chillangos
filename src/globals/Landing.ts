@@ -2,6 +2,7 @@ import type { GlobalConfig } from 'payload';
 
 import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
 import { NAV_GROUPS } from '../admin/navGroups';
+import { headingFontField } from './fields/headingFont';
 
 /**
  * Landing global — the SINGLE editing surface for the homepage body.
@@ -93,6 +94,28 @@ export const Landing: GlobalConfig = {
                 description: {
                   en: 'Optional attribution shown under the heading, e.g. "Frida Kahlo".',
                   es: 'Atribución opcional que se muestra bajo el título, ej.: "Frida Kahlo".',
+                },
+              },
+            },
+            // ── Hero heading typography (Google Fonts, runtime) ──────────
+            // Optional font override for the big <h1>. Blank → site default
+            // (Oswald Bold 700, responsive clamp cap 82px). When `family` is
+            // set, the page loads that Google Font at runtime via a <link> to
+            // fonts.googleapis.com. Shared builder with the footer headline.
+            headingFontField(82),
+            // Hero logo / icon (optional). Small brand mark shown CENTERED at
+            // the very TOP of the hero, above the quote heading. Transparent PNG
+            // or SVG works best. Renders only when uploaded, so existing rows
+            // keep the exact original layout until the owner adds one.
+            {
+              name: 'logo',
+              type: 'upload',
+              relationTo: 'media',
+              label: { en: 'Hero logo / icon', es: 'Logo / ícono de portada' },
+              admin: {
+                description: {
+                  en: 'Optional small logo or icon shown centered at the top of the hero, above the heading. A transparent PNG or SVG looks best. Leave empty to show nothing.',
+                  es: 'Logo o ícono pequeño opcional que se muestra centrado arriba en la portada, sobre el título. Un PNG o SVG con fondo transparente se ve mejor. Déjalo vacío para no mostrar nada.',
                 },
               },
             },

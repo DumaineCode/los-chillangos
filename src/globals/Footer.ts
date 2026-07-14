@@ -2,6 +2,7 @@ import type { GlobalConfig } from 'payload';
 
 import { revalidateGlobalAfterChange } from '../hooks/revalidateGlobals';
 import { NAV_GROUPS } from '../admin/navGroups';
+import { headingFontField } from './fields/headingFont';
 
 /**
  * Footer global — bottom-of-page link columns + tease copy + copyright.
@@ -61,6 +62,11 @@ export const Footer: GlobalConfig = {
         },
       },
     },
+    // ── Footer headline typography (Google Fonts, runtime) ──────────
+    // Optional font override for the big footer tease (`tease` + `teaseEm`).
+    // Blank → default serif face (responsive clamp cap 112px). Shared builder
+    // with the hero heading; loaded at runtime via a Google Fonts <link>.
+    headingFontField(112),
     {
       name: 'cta',
       type: 'text',

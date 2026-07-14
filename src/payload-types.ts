@@ -1117,6 +1117,27 @@ export interface Landing {
      * Optional attribution shown under the heading, e.g. "Frida Kahlo".
      */
     quoteAuthor?: string | null;
+    /**
+     * Optional. Override the font of the main heading using any Google Font. Leave blank to keep the default.
+     */
+    headingFont?: {
+      /**
+       * Exact Google Fonts family name, e.g. "Playfair Display", "Oswald", "Montserrat". Copy it as written on fonts.google.com. Leave blank for the default.
+       */
+      family?: string | null;
+      /**
+       * Font weight, matching the weights shown on Google Fonts. If the chosen font lacks this weight, the closest available one is used.
+       */
+      weight?: ('100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900') | null;
+      /**
+       * Optional. Maximum heading size on large screens, in pixels (e.g. 82). It still scales down responsively on smaller screens. Leave blank for the default (82).
+       */
+      sizePx?: number | null;
+    };
+    /**
+     * Optional small logo or icon shown centered at the top of the hero, above the heading. A transparent PNG or SVG looks best. Leave empty to show nothing.
+     */
+    logo?: (number | null) | Media;
     ctaPrimary?: string | null;
     /**
      * Where the primary button takes the visitor. Examples: "#tours" (section on the home page), "/book" (another page on your site), "https://wa.me/52...".
@@ -1463,6 +1484,23 @@ export interface Footer {
    * Emphasized (italic) tease, e.g. "CDMX is waiting.".
    */
   teaseEm?: string | null;
+  /**
+   * Optional. Override the font of the main heading using any Google Font. Leave blank to keep the default.
+   */
+  headingFont?: {
+    /**
+     * Exact Google Fonts family name, e.g. "Playfair Display", "Oswald", "Montserrat". Copy it as written on fonts.google.com. Leave blank for the default.
+     */
+    family?: string | null;
+    /**
+     * Font weight, matching the weights shown on Google Fonts. If the chosen font lacks this weight, the closest available one is used.
+     */
+    weight?: ('100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900') | null;
+    /**
+     * Optional. Maximum heading size on large screens, in pixels (e.g. 112). It still scales down responsively on smaller screens. Leave blank for the default (112).
+     */
+    sizePx?: number | null;
+  };
   cta?: string | null;
   copyright?: string | null;
   /**
@@ -1639,6 +1677,14 @@ export interface LandingSelect<T extends boolean = true> {
     | {
         quote?: T;
         quoteAuthor?: T;
+        headingFont?:
+          | T
+          | {
+              family?: T;
+              weight?: T;
+              sizePx?: T;
+            };
+        logo?: T;
         ctaPrimary?: T;
         ctaPrimaryHref?: T;
         ctaRentals?: T;
@@ -1822,6 +1868,13 @@ export interface FooterSelect<T extends boolean = true> {
   backgroundImage?: T;
   tease?: T;
   teaseEm?: T;
+  headingFont?:
+    | T
+    | {
+        family?: T;
+        weight?: T;
+        sizePx?: T;
+      };
   cta?: T;
   copyright?: T;
   geoLabel?: T;

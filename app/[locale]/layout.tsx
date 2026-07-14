@@ -1,6 +1,6 @@
 import { hasLocale } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
-import { Anton, DM_Sans, Instrument_Serif, JetBrains_Mono, Rye } from 'next/font/google';
+import { Anton, DM_Sans, Instrument_Serif, JetBrains_Mono, Oswald } from 'next/font/google';
 import { notFound } from 'next/navigation';
 
 import { routing, type Locale } from '../../i18n/routing';
@@ -63,12 +63,12 @@ const anton = Anton({
   display: 'swap',
 });
 
-// Rye — rustic Western display face used for the home hero headline.
-// Single weight (400), no italic. Exposed as `--font-rye` / `--display-alt`.
-const rye = Rye({
+// Oswald — condensed grotesque display face used for the home hero headline.
+// Bold weight (700), no true italic. Exposed as `--font-oswald` / `--display-alt`.
+const oswald = Oswald({
   subsets: ['latin'],
-  weight: '400',
-  variable: '--font-rye',
+  weight: '700',
+  variable: '--font-oswald',
   display: 'swap',
 });
 
@@ -126,7 +126,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`${instrumentSerif.variable} ${dmSans.variable} ${jetbrainsMono.variable} ${anton.variable} ${rye.variable}`}
+      className={`${instrumentSerif.variable} ${dmSans.variable} ${jetbrainsMono.variable} ${anton.variable} ${oswald.variable}`}
     >
       <head>
         {/* Sets data-theme before first paint to avoid a flash of the wrong theme. */}

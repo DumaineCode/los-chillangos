@@ -16,6 +16,7 @@ import { HighlightSeasonal } from '../../src/components/seasonal/HighlightSeason
 import { TourCard } from '../../src/components/TourCard';
 import { getPayload } from '../../src/lib/payload';
 import { parseQuoteAccents } from '../../src/lib/hero/parseQuoteAccents';
+import { resolveGoogleFont } from '../../src/lib/fonts/googleFont';
 import { resolveMediaImage, type ResolvedImage } from '../../src/lib/media';
 import { getActiveSeasonalTour } from '../../src/lib/seasonal/getActiveSeasonalTour';
 import type { Media, MediaVideo } from '../../src/payload-types';
@@ -209,6 +210,9 @@ export default async function HomePage({ params }: Props) {
   }));
 
   const heroImage = resolveMediaImage(hero?.heroImage);
+  // Optional hero logo/icon shown centered above the heading. Resolved to a
+  // url-only triple; renders only when the owner uploads one.
+  const heroLogo = resolveMediaImage(hero?.logo);
   const heroVideoUrl = resolveMediaUrl(hero?.heroVideo);
   const showHeroVideo = hero?.mediaType === 'video' && heroVideoUrl !== null;
   // The <video> object-position frames the clip by its own focal point. Routed
@@ -232,6 +236,10 @@ export default async function HomePage({ params }: Props) {
   // the JSX (guarantees a non-empty single <h1>). Author is optional attribution.
   const heroQuote = hero?.quote?.trim() ?? '';
   const heroQuoteAuthor = hero?.quoteAuthor?.trim() ?? '';
+  // Optional CMS-chosen Google Font for the headline. When a family is set this
+  // yields a fonts.googleapis.com <link> (loaded below) plus an inline style;
+  // otherwise it's a no-op and the self-hosted default (Oswald) is used.
+  const heroFont = resolveGoogleFont(hero?.headingFont);
 
   // Gallery first (slider), single `image` as fallback for legacy content.
   // Resolved to focal-point-aware images so each slide frames by its focal point.
@@ -312,11 +320,31 @@ export default async function HomePage({ params }: Props) {
         </div>
         <div className="container hero-cine-inner">
           <div className="hero-cine-mid">
+            {/* Optional brand logo/icon crowning the hero. Rendered above the
+                <h1> only when the owner uploads one; fixed height, auto width so
+                any aspect ratio stays undistorted (same pattern as Logo). */}
+            {heroLogo ? (
+              <Image
+                className="hero-cine-logo fade-in"
+                src={heroLogo.url}
+                alt={heroLogo.alt || 'Los Chillangos'}
+                width={1100}
+                height={440}
+                priority
+                style={{ height: 'auto', width: 'auto' }}
+              />
+            ) : null}
             {/* The required `quote` is the primary hero heading — heading TEXT,
                 not a nested blockquote — so there is exactly one <h1> per page.
                 Empty/legacy-dirty quote falls back to the brand name so the
                 <h1> is never rendered empty (a11y). */}
-            <h1 className="hero-cine-headline hero-cine-quote-h1">
+            {/* Runtime Google Font load for the headline. React hoists this
+                stylesheet <link> into <head>; rendered only when the owner
+                picked a custom family in the admin. */}
+            {heroFont.linkHref ? (
+              <link rel="stylesheet" href={heroFont.linkHref} />
+            ) : null}
+            <h1 className="hero-cine-headline hero-cine-quote-h1" style={heroFont.style}>
               {/* The owner marks accent runs with *asterisks*; we parse that
                   into REAL React nodes (never dangerouslySetInnerHTML) so every
                   character is auto-escaped and the markers stay invisible. */}

@@ -93,8 +93,8 @@
   --sans: var(--font-dm-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
   --mono: var(--font-jetbrains-mono), "IBM Plex Mono", ui-monospace, monospace;
   --display: var(--font-anton), "Anton", "Impact", sans-serif;
-  /* Rye — rustic Western display, used in the home hero headline. */
-  --display-alt: var(--font-rye), "Rye", "Rockwell", Georgia, serif;
+  /* Oswald — condensed grotesque display, used in the home hero headline. */
+  --display-alt: var(--font-oswald), "Oswald", "Impact", "Arial Narrow", sans-serif;
 }
 
 [data-theme="dark"] {
@@ -585,6 +585,10 @@ body:has(.hero-cine) { padding-top: 0; }
    an auto-height, centered sub-block sitting directly above the CTAs. */
 .hero-cine-mid {
   flex: 0 0 auto;
+  /* Occupy the full container width instead of shrinking to the text. Without
+     this the block is shrink-to-fit and the browser balances the quote into two
+     ~even lines, so no `max-width` or `text-wrap` change is visible. */
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -592,20 +596,45 @@ body:has(.hero-cine) { padding-top: 0; }
   padding: 0;
 }
 
-/* Headline set in Rye (rustic Western display). Rye is upright-only and runs
-   wide, so we drop the serif italic + negative tracking and use a gentler size
+/* Headline set in Oswald Bold 700 (condensed grotesque display). Oswald runs
+   narrow, so we drop the serif italic + negative tracking and use a gentler size
    ramp than the old serif headline. */
+/* Optional brand logo/icon crowning the hero, centered above the headline.
+   Fixed max height with auto width keeps any aspect ratio undistorted; the
+   drop-shadow lifts it off busy background media for legibility. */
+.hero-cine-logo {
+  display: block;
+  height: auto;
+  width: auto;
+  max-height: 300px;
+  max-width: min(92vw, 1100px);
+  margin: 0 auto 28px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.35));
+}
+@media (max-width: 640px) {
+  .hero-cine-logo {
+    max-height: 180px;
+    margin-bottom: 20px;
+  }
+}
+
 .hero-cine-headline {
   font-family: var(--display-alt);
-  font-weight: 400;
+  font-weight: 700;
   font-style: normal;
-  font-size: clamp(48px, 7vw, 118px);
+  /* Upper cap at 82px (96→86→82): on wide monitors 5.6vw hits the cap, and the
+     Spanish quote (“Viajar es una invitación.” ≈1189px at 86px) overflowed the
+     1180px measure into a second line. 82px puts it at ~1134px — one line with
+     ~46px of slack — while still reading as a large hero headline. Measured with
+     agent-browser at 1920px on the /es locale, not guessed. */
+  font-size: clamp(40px, 5.6vw, 82px);
   line-height: 1.04;
   letter-spacing: 0;
   margin: 0;
   color: var(--cream-fixed);
   text-wrap: balance;
-  max-width: 16ch;
+  max-width: 24ch;
 }
 .hero-cine-headline em {
   font-style: italic;
@@ -616,11 +645,20 @@ body:has(.hero-cine) { padding-top: 0; }
    a 4-word headline (esp. Spanish), so it gets a wider measure, a slightly
    looser line-height, and italic emphasis to read as an editorial quote. */
 .hero-cine-quote-h1 {
-  /* Rye has no italic; the quote reads as an upright Western headline. */
+  /* Oswald has no true italic; the quote reads as an upright condensed headline. */
   font-style: normal;
-  max-width: 18ch;
+  /* Take the full available width (centered), capped just under the container so
+     long lines run close to the edges before wrapping but never touch the
+     viewport. `width: 100%` is what makes `text-wrap: pretty` actually fill the
+     first line to the edge instead of balancing into two even short lines. */
+  width: 100%;
+  max-width: min(94vw, 1180px);
+  margin: 0 auto;
   line-height: 1.06;
-  text-wrap: balance;
+  /* NOT `balance`: balance evens the two lines and forces an early break even
+     when the line could run wider. `pretty` fills each line normally (edge to
+     edge) and only tidies orphans, so the quote reaches closer to the borders. */
+  text-wrap: pretty;
 }
 /* Owner-authored *asterisk* runs inside the quote render in the brand pink.
    The whole quote is already italic via .hero-cine-quote-h1, so we only tint
@@ -746,7 +784,7 @@ body:has(.hero-cine) { padding-top: 0; }
 @media (max-width: 480px) {
   .hero-cine-headline,
   .hero-cine-quote-h1 {
-    font-size: clamp(44px, 13vw, 72px);
+    font-size: clamp(38px, 11.5vw, 64px);
   }
   /* Narrow phones: keep the full-width stack but step the size down. */
   .hero-cine-ctas .btn-xl {
