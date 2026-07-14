@@ -83,6 +83,7 @@
   --terra-deep: #D11F60;  /* Rosa Mexicano oscurecido para hovers */
   --terra-text: #B4124F;  /* Rosa Mexicano profundo — SOLO texto chico; el terra vivo no llega a 4.5:1 como texto sobre superficies claras */
   --moss: #00B2D6;        /* Azul Maya — acento secundario */
+  --moss-deep: #007E9A;   /* Azul Maya oscurecido — SOLO para fills con texto BLANCO; el Azul Maya vivo con blanco solo llega a ~2.5:1, este pasa AA (~4.7:1). */
   --cream: #FFF3D6;       /* Crema saturado — SOLO acentos chicos (badges, tags, sellos). No usar en fills grandes: para eso está --bg-warm. (TEMÁTICO: se invierte en dark) */
   --cream-fixed: #FFF3D6; /* Crema CONSTANTE en ambos temas — para texto/fondos sobre superficies oscuras fijas (hero, footer, badges). NO redefinir en dark. */
   --rose: #FF2E7A;        /* alias del Rosa Mexicano */
@@ -182,6 +183,15 @@ a { color: inherit; text-decoration: none; }
   color: #FFFFFF;
 }
 .btn-terra:hover { background: #A8124C; }
+.btn-maya {
+  /* Deepened Azul Maya (--moss-deep) fill with WHITE text. Vivid --moss + white
+     only reaches ~2.5:1, so we drop to the darker brand cyan which clears AA
+     (~4.7:1) while still reading as the logo/mask accent blue. Used for the hero
+     "rent a bike" CTA. */
+  background: var(--moss-deep);
+  color: #FFFFFF;
+}
+.btn-maya:hover { background: #006E86; color: #FFFFFF; }
 .btn-ghost {
   background: transparent;
   color: var(--ink);

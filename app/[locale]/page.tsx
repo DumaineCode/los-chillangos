@@ -374,7 +374,7 @@ export default async function HomePage({ params }: Props) {
                 <ArrowRight size={18} aria-hidden="true" />
               </HeroCta>
               {heroCtaRentals ? (
-                <HeroCta href={heroCtaRentalsHref} className="btn btn-ghost btn-xl">
+                <HeroCta href={heroCtaRentalsHref} className="btn btn-maya btn-xl">
                   {heroCtaRentals}
                 </HeroCta>
               ) : null}
