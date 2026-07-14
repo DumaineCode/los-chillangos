@@ -180,3 +180,24 @@ New:
 - `next_recommended`: `verify` (then human runs the staging migration for E1/E5 before the
   prod release step; no commit made — orchestrator handles commit after review).
 - `actionContext`: no warnings; all edits within the authoritative workspace.
+
+---
+
+## Post-delivery note — migrations discarded (2026-07-14)
+
+Context changed after implementation: there is no production database, dev uses
+Payload/Drizzle `push` (not `migrate`), and existing dev tour data was disposable
+test data. Running `pnpm dev` + accepting the schema push dropped `hero_image_id`
+directly, WITHOUT the backfill (push and migrate are different mechanisms).
+
+Decision (user-approved): the two migrations no longer fit this project's reality
+and the backfill would FAIL if `payload migrate` ever ran (it references a column
+`push` already dropped). Therefore removed:
+- `src/migrations/20260713_000000_backfill_tour_hero_into_gallery.ts`
+- `src/migrations/index.ts`
+- `src/lib/tours/prependHeroToGallery.ts` (+ test) — only the backfill used it
+
+The CODE change (unified gallery, gallery[0] = cover, min-1 publish validation,
+consumer updates) stays and is live in dev. PR #2 (deferred drop) is abandoned —
+the drop already happened via dev push. If a real prod is defined later, design a
+fresh DB strategy then (push-from-scratch or freshly generated migrations).
