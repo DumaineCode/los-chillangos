@@ -1,5 +1,6 @@
 # Los Chillangos
 
+.
 CDMX e-bike & walking tours marketing site. Tour catalog, booking intent flow (WhatsApp), bilingual (en/es), client-editable via Payload CMS.
 
 ## Stack
