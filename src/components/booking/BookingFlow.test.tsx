@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import enMessages from '../../../messages/en.json';
+import { getYMDInTourTZ } from '../../lib/booking/availability';
 import { BookingFlow, type WizardExtra } from './BookingFlow';
 
 /**
@@ -48,6 +49,14 @@ function renderFlow(props = baseProps) {
 }
 
 beforeEach(() => {
+  // Pin the clock: Wednesday 2026-08-12, 12:00 CDMX (18:00Z). The date-picking
+  // helper clicks the first enabled cell of the CURRENT CDMX month, so on a
+  // real clock any month ending on a Monday (fixture closes Mondays) would
+  // have zero clickable cells and fail these tests with no code change.
+  // Only `Date` is faked — testing-library's `waitFor` needs real timers.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-08-12T18:00:00Z'));
+
   // Default stub: availability returns no taken seats; checkout returns a URL.
   vi.stubGlobal(
     'fetch',
@@ -68,6 +77,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -94,7 +104,7 @@ describe('BookingFlow', () => {
 
     renderFlow();
 
-    selectAFutureNonMondayDay();
+    const clickedDay = selectAFutureNonMondayDay();
     fireEvent.click(screen.getByRole('button', { name: /09:00/ }));
     fireEvent.click(screen.getByTestId('booking-next'));
 
@@ -130,11 +140,19 @@ describe('BookingFlow', () => {
     expect(checkoutCall).toBeDefined();
     const body = JSON.parse(checkoutCall![1]!.body as string) as {
       tourId: number;
+      date: string;
       time: string;
       adults: number;
       customer: { name: string; email: string; country: string; locale: string };
     };
     expect(body.tourId).toBe(1);
+    // TZ-shift regression (Bug A): the payload day must be EXACTLY the
+    // clicked calendar cell of the current CDMX month — device-local
+    // formatting used to shift it by one day east of UTC-6.
+    const todayYMD = getYMDInTourTZ(new Date());
+    expect(body.date).toBe(
+      `${todayYMD.year}-${String(todayYMD.month).padStart(2, '0')}-${String(clickedDay).padStart(2, '0')}`
+    );
     expect(body.time).toBe('09:00');
     expect(body.adults).toBe(2);
     expect(body.customer.name).toBe('Hana Kobayashi');
@@ -257,9 +275,10 @@ describe('BookingFlow', () => {
 
 /**
  * Click the first calendar day cell that is `available`. Mondays are
- * filtered out by the fixture's availableDays.
+ * filtered out by the fixture's availableDays. Returns the day-of-month
+ * number of the clicked cell so callers can assert the payload date.
  */
-function selectAFutureNonMondayDay() {
+function selectAFutureNonMondayDay(): number {
   const buttons = screen.getAllByRole('button');
   const dayCells = buttons.filter((btn) => /^\d+$/.test(btn.textContent ?? ''));
   const available = dayCells.find((btn) => !(btn as HTMLButtonElement).disabled);
@@ -267,4 +286,5 @@ function selectAFutureNonMondayDay() {
   act(() => {
     fireEvent.click(available!);
   });
+  return Number.parseInt(available!.textContent ?? '0', 10);
 }

@@ -153,6 +153,30 @@ describe('RentalFlow', () => {
     });
   });
 
+  it('surfaces an availability fetch failure and retries on demand', async () => {
+    // The GET used to fail silently: no combos, no notice, dead step.
+    const fetchMock = vi.fn(async () => ({ ok: false, json: async () => ({}) }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderFlow();
+    selectFirstAvailableDay();
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(/couldn.t load the availability/i);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    // Retry refetches; on success the error clears and start times appear.
+    fetchMock.mockImplementation(async () => ({
+      ok: true,
+      json: async () => ({ date: '2099-01-01', rentable: true, combos: COMBOS }),
+    }));
+    fireEvent.click(screen.getByRole('button', { name: /retry/i }));
+
+    expect(await screen.findByRole('button', { name: /10:00/ })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('shows a not-rentable notice when the day returns rentable:false', async () => {
     vi.stubGlobal(
       'fetch',

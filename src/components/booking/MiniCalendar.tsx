@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react';
 
+import { getYMDInTourTZ, ymdToCDMXNoonInstant } from '../../lib/booking/availability';
+
 type Props = {
   value: Date | null;
   onChange: (date: Date) => void;
@@ -25,6 +27,12 @@ type Props = {
  * `isDateAvailable` prop the parent builds from the tour's `availableDays`
  * field. Locale only drives the month-name + weekday-letter rendering via
  * `Intl.DateTimeFormat`.
+ *
+ * Calendar-day contract: every `Date` this component emits or feeds into
+ * `isDateAvailable` is the CDMX-noon instant of the displayed cell
+ * (`ymdToCDMXNoonInstant`), NOT device-local midnight. This keeps the clicked
+ * calendar day stable end to end (gating → availability fetch → checkout
+ * payload) no matter what timezone the visitor's device is in.
  */
 export function MiniCalendar({
   value,
@@ -34,16 +42,14 @@ export function MiniCalendar({
   nextLabel,
   isDateAvailable,
 }: Props) {
-  const today = useMemo(() => {
-    const t = new Date();
-    t.setHours(0, 0, 0, 0);
-    return t;
-  }, []);
+  // "Today" on the tour's calendar (CDMX), not the device's — the grid
+  // highlights and month defaults must match what is actually bookable.
+  const todayYMD = useMemo(() => getYMDInTourTZ(new Date()), []);
 
-  const [view, setView] = useState(() => ({
-    y: (value ?? today).getFullYear(),
-    m: (value ?? today).getMonth(),
-  }));
+  const [view, setView] = useState(() => {
+    const anchor = value ? getYMDInTourTZ(value) : todayYMD;
+    return { y: anchor.year, m: anchor.month - 1 };
+  });
 
   const bcp47 = locale === 'es' ? 'es-MX' : 'en-US';
   const monthLabel = useMemo(() => {
@@ -72,8 +78,12 @@ export function MiniCalendar({
     cells.push(<div key={`e${i}`} className="cal-day empty" />);
   }
   for (let d = 1; d <= daysInMonth; d++) {
-    const date = new Date(view.y, view.m, d);
-    const isToday = date.getTime() === today.getTime();
+    // Canonical instant for this cell: noon CDMX on the displayed Y/M/D.
+    // Gating, selection, and onChange all receive this same instant so the
+    // calendar day can never shift with the device timezone.
+    const date = ymdToCDMXNoonInstant({ year: view.y, month: view.m + 1, day: d });
+    const isToday =
+      view.y === todayYMD.year && view.m + 1 === todayYMD.month && d === todayYMD.day;
     const selected = value ? value.getTime() === date.getTime() : false;
     const disabled = isDateAvailable ? !isDateAvailable(date) : false;
 
@@ -87,7 +97,7 @@ export function MiniCalendar({
         }}
         disabled={disabled}
         aria-pressed={selected}
-        aria-label={date.toDateString()}
+        aria-label={new Date(view.y, view.m, d).toDateString()}
       >
         {d}
       </button>

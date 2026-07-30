@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
+import { TOUR_TIMEZONE } from '../../lib/booking/availability';
 import type { PriceBreakdown } from '../../lib/booking/pricing';
 
 type Props = {
@@ -35,10 +36,15 @@ export function BookingSummary({
   const t = useTranslations('booking.summary');
 
   const bcp47 = locale === 'es' ? 'es-MX' : 'en-US';
+  // Format in the tour timezone (CDMX): the selected instant represents a
+  // CDMX calendar day, so device-local formatting could show the wrong day.
   const dateStr = date
-    ? new Intl.DateTimeFormat(bcp47, { weekday: 'long', month: 'long', day: 'numeric' }).format(
-        date
-      )
+    ? new Intl.DateTimeFormat(bcp47, {
+        timeZone: TOUR_TIMEZONE,
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      }).format(date)
     : '—';
   // Peso-first display: the whole site charges MXN (no selector), so amounts
   // render with the peso sign `$` in both locales, consistent with the extra

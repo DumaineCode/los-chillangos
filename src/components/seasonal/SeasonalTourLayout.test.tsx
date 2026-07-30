@@ -87,6 +87,14 @@ describe('SeasonalTourLayout', () => {
     expect(bookLink).toHaveAttribute('href', expect.stringContaining('dia-de-muertos'));
   });
 
+  it('labels the sidebar price as per person, never as a total', () => {
+    renderLayout(makeTour());
+    // `tour.price` is per person — the wizard defaults to 2 adults, so
+    // labeling it "Total" showed users a price that then "doubled" at Step 2.
+    expect(screen.getByText(enMessages.detail.summary.perPerson)).toBeInTheDocument();
+    expect(screen.queryByText(enMessages.detail.summary.total)).not.toBeInTheDocument();
+  });
+
   it('does not crash when gallery and storytelling are missing', () => {
     const tour = makeTour({
       seasonal: {

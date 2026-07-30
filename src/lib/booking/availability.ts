@@ -270,6 +270,22 @@ export function getTourDayISO(date: Date): string {
 }
 
 /**
+ * The UTC instant at NOON (12:00) CDMX of the given calendar day.
+ *
+ * This is the canonical "calendar day handle" the booking UI passes around.
+ * The wizard used to represent a clicked day as device-LOCAL midnight
+ * (`new Date(y, m, d)`), which reads as the PREVIOUS CDMX day on devices east
+ * of UTC-6 — shifting gating, the availability fetch, and the checkout
+ * payload by one day. Noon sits safely inside the CDMX day, so every consumer
+ * that re-reads the instant through `getYMDInTourTZ` (bookability gating,
+ * `getTourDayISO`, checkout formatting) recovers exactly the Y/M/D that was
+ * clicked, regardless of the device timezone.
+ */
+export function ymdToCDMXNoonInstant(ymd: YMD): Date {
+  return ymdHHMMToCDMXInstant(ymd, '12:00');
+}
+
+/**
  * The seven CDMX days of the week that contains `anchor`.
  *
  * `weekStartsOn`: 1 = Monday (default, business week), 0 = Sunday.

@@ -17,7 +17,11 @@ export const revalidateToursAfterChange: CollectionAfterChangeHook = ({ doc, req
     revalidateTag('tours');
     if (doc?.slug) {
       revalidateTag(`tour:${doc.slug}`);
-      revalidatePath(`/[locale]/tours/${doc.slug}`, 'page');
+      // Dynamic routes must be revalidated with the ROUTE PATTERN, not a mix
+      // of placeholder + concrete slug (`/[locale]/tours/${slug}` matches
+      // nothing and silently no-ops). The per-slug `tour:${slug}` tag above
+      // keeps the data-cache invalidation scoped to this tour.
+      revalidatePath('/[locale]/tours/[slug]', 'page');
     }
     revalidatePath('/[locale]', 'page');
   } catch (err) {

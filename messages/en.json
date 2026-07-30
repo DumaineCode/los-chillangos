@@ -188,7 +188,8 @@
     "mapPlaceholder": "Map · meeting point",
     "summary": {
       "fee": "Booking fee",
-      "total": "Total"
+      "total": "Total",
+      "perPerson": "Price per person"
     },
     "fallbackEmpty": "Content coming soon."
   },
@@ -370,6 +371,8 @@
       "next": "Next month"
     },
     "tourPaused": "This tour is currently unavailable. Please contact us.",
+    "availabilityError": "We couldn't check live availability for this date — seat counts may be out of date.",
+    "availabilityRetry": "Retry",
     "slotSeatsLabel": "seats",
     "slotSoldOut": "Sold out",
     "slotTooLate": "Too late"
@@ -422,6 +425,8 @@
       "loading": "Checking availability…",
       "notRentable": "Bike rentals aren't open for that day yet. Pick today or tomorrow.",
       "noCombos": "No rental slots are available for that day.",
+      "availabilityError": "We couldn't load the availability for this day.",
+      "availabilityRetry": "Retry",
       "hoursLabel": "{count, plural, one {# hour} other {# hours}}",
       "minutesLabel": "{count} min",
       "payCta": "Pay & confirm",

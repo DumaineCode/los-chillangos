@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 
 import {
   getTimeSlotsForTour,
+  getTourDayISO,
   isDateBeforeTodayInTourTZ,
   isDateBookableForTour,
 } from '../../lib/booking/availability';
@@ -78,31 +79,44 @@ export function StepDate({
 
   // Live availability per slot for the selected date. Defaults to the static
   // slot capacity (so the chips render before the fetch resolves). If the
-  // fetch fails we keep the defaults — fail open; server validation in
-  // Sub-etapa C still rejects overbooking on submit.
+  // fetch fails we keep the defaults BUT surface a non-blocking warning with
+  // a retry — otherwise sold-out slots would silently render as available.
+  // Server validation in Sub-etapa C still rejects overbooking on submit.
   const [liveSlots, setLiveSlots] = useState<SlotState[] | null>(null);
+  const [availabilityError, setAvailabilityError] = useState(false);
+  const [retryTick, setRetryTick] = useState(0);
 
   useEffect(() => {
     if (!date || isTourPaused || baseSlots.length === 0) {
       setLiveSlots(null);
+      setAvailabilityError(false);
       return;
     }
-    const isoDate = formatISODate(date);
+    // CDMX calendar day of the selected instant — the same day the checkout
+    // payload formats, so the availability shown always matches what is booked.
+    const isoDate = getTourDayISO(date);
     const ctrl = new AbortController();
+    setAvailabilityError(false);
 
     const url = `/api/booking/availability?tourId=${tour.id}&date=${encodeURIComponent(isoDate)}`;
     fetch(url, { signal: ctrl.signal, cache: 'no-store' })
-      .then((res) => (res.ok ? (res.json() as Promise<AvailabilityResponse>) : null))
+      .then((res) => {
+        if (!res.ok) throw new Error(`availability fetch failed: ${res.status}`);
+        return res.json() as Promise<AvailabilityResponse>;
+      })
       .then((data) => {
-        if (!data) return;
         setLiveSlots(data.slots);
       })
-      .catch(() => {
-        /* fail open — chips render enabled with default capacity */
+      .catch((err: unknown) => {
+        // Aborts are routine (date change / unmount) — only real failures
+        // surface the warning.
+        if (err instanceof Error && err.name === 'AbortError') return;
+        setLiveSlots(null);
+        setAvailabilityError(true);
       });
 
     return () => ctrl.abort();
-  }, [date, isTourPaused, baseSlots.length, tour.id]);
+  }, [date, isTourPaused, baseSlots.length, tour.id, retryTick]);
 
   // Effective slot state: live data when available, fallback to base capacity.
   const effectiveSlots: SlotState[] = useMemo(() => {
@@ -148,6 +162,38 @@ export function StepDate({
       {error ? (
         <p role="alert" style={{ color: 'var(--terra)', marginTop: 12, fontSize: 14 }}>
           {tErr(error.replace(/^errors\./, ''))}
+        </p>
+      ) : null}
+
+      {availabilityError ? (
+        <p
+          role="alert"
+          style={{
+            marginTop: 16,
+            padding: '12px 14px',
+            borderRadius: 6,
+            background: 'var(--cream)',
+            border: '1px solid var(--terra)',
+            color: 'var(--terra)',
+            fontSize: 14,
+          }}
+        >
+          {tBooking('availabilityError')}{' '}
+          <button
+            type="button"
+            onClick={() => setRetryTick((tick) => tick + 1)}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              color: 'inherit',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              font: 'inherit',
+            }}
+          >
+            {tBooking('availabilityRetry')}
+          </button>
         </p>
       ) : null}
 
@@ -204,10 +250,3 @@ export function StepDate({
   );
 }
 
-/** Returns "YYYY-MM-DD" in local wall-clock; matches the route handler's parser. */
-function formatISODate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}

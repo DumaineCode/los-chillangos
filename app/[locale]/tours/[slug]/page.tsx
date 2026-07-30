@@ -282,8 +282,10 @@ export default async function TourDetailPage({ params }: Props) {
               </div>
               <div className="price-label">{tCommon('perPerson')}</div>
             </div>
+            {/* `tour.price` is PER PERSON — labeling it "Total" misled users
+                once the wizard defaulted to 2 adults and doubled the amount. */}
             <div className="summary-row total">
-              <span>{t('summary.total')}</span>
+              <span>{t('summary.perPerson')}</span>
               <span>${tour.price}</span>
             </div>
             <Link

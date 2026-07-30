@@ -14,6 +14,7 @@ type CheckoutPayload = {
     name: string;
     email: string;
     whatsapp: string;
+    country: string;
     locale: 'en' | 'es';
   };
 };

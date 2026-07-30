@@ -53,6 +53,8 @@ export function RentalFlow({ locale }: Props) {
 
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState(false);
+  const [retryTick, setRetryTick] = useState(0);
 
   const [dateError, setDateError] = useState<string | null>(null);
   const [optionError, setOptionError] = useState<string | null>(null);
@@ -65,32 +67,42 @@ export function RentalFlow({ locale }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Fetch the advisory grid whenever the chosen day changes.
+  // Fetch the advisory grid whenever the chosen day changes. Failures are
+  // surfaced with a retry — otherwise the step dead-ends with no start times
+  // and no feedback (the picker still fails closed; server re-validates).
   useEffect(() => {
     if (!date) {
       setAvailability(null);
+      setAvailabilityError(false);
       return;
     }
     const isoDate = formatCDMXDate(date);
     const ctrl = new AbortController();
     setLoading(true);
     setAvailability(null);
+    setAvailabilityError(false);
 
     fetch(`/api/rental/availability?date=${encodeURIComponent(isoDate)}`, {
       signal: ctrl.signal,
       cache: 'no-store',
     })
-      .then((res) => (res.ok ? (res.json() as Promise<AvailabilityResponse>) : null))
-      .then((data) => {
-        if (data) setAvailability(data);
+      .then((res) => {
+        if (!res.ok) throw new Error(`rental availability fetch failed: ${res.status}`);
+        return res.json() as Promise<AvailabilityResponse>;
       })
-      .catch(() => {
-        /* fail closed for the picker; server re-validates on submit */
+      .then((data) => {
+        setAvailability(data);
+      })
+      .catch((err: unknown) => {
+        // Aborts are routine (date change / unmount) — only real failures
+        // surface the warning.
+        if (err instanceof Error && err.name === 'AbortError') return;
+        setAvailabilityError(true);
       })
       .finally(() => setLoading(false));
 
     return () => ctrl.abort();
-  }, [date]);
+  }, [date, retryTick]);
 
   const combos = useMemo<ReadonlyArray<RentalCombo>>(
     () => availability?.combos ?? [],
@@ -259,6 +271,26 @@ export function RentalFlow({ locale }: Props) {
                     {t('loading')}
                   </p>
                 ) : null}
+                {date && !loading && availabilityError ? (
+                  <p role="alert" style={alertStyle}>
+                    {t('availabilityError')}{' '}
+                    <button
+                      type="button"
+                      onClick={() => setRetryTick((n) => n + 1)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        color: 'inherit',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        font: 'inherit',
+                      }}
+                    >
+                      {t('availabilityRetry')}
+                    </button>
+                  </p>
+                ) : null}
                 {date && !loading && dayRentable === false ? (
                   <p role="status" style={noticeStyle}>
                     {t('notRentable')}
@@ -399,8 +431,14 @@ type SummaryProps = {
 function RentalSummary({ date, startTime, durationMinutes, unitPrice, quantity, locale }: SummaryProps) {
   const t = useTranslations('rentals.flow');
   const bcp47 = locale === 'es' ? 'es-MX' : 'en-US';
+  // Format in CDMX — the selected instant represents a CDMX calendar day.
   const dateStr = date
-    ? new Intl.DateTimeFormat(bcp47, { weekday: 'long', month: 'long', day: 'numeric' }).format(date)
+    ? new Intl.DateTimeFormat(bcp47, {
+        timeZone: TOUR_TIMEZONE,
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      }).format(date)
     : '—';
   const money = (n: number) =>
     `$${new Intl.NumberFormat(bcp47, { maximumFractionDigits: 0 }).format(n)}`;
