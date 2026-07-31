@@ -1728,7 +1728,9 @@ body:has(.hero-cine) { padding-top: 0; }
 }
 .detail-meta {
   display: flex;
-  gap: 32px;
+  /* Wrap on narrow viewports so serif values never force horizontal scroll. */
+  flex-wrap: wrap;
+  gap: 12px 32px;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.1em;
@@ -2331,6 +2333,8 @@ body:has(.hero-cine) { padding-top: 0; }
   .container { padding: 0 20px; }
   .hero-grid { grid-template-columns: 1fr; }
   .tour-grid { grid-template-columns: 1fr 1fr; }
+  /* Let card titles scale down so the 2-col range keeps whole words per line. */
+  .tour-card-title { font-size: clamp(20px, 5vw, 28px); }
   .values { grid-template-columns: 1fr 1fr; }
   .value-cell { border-right: none; padding: 24px 0; border-top: 1px solid var(--line); }
   /* Cancel the desktop inner-cell left padding once the grid stacks. */
@@ -2356,6 +2360,27 @@ body:has(.hero-cine) { padding-top: 0; }
   .field-grid { grid-template-columns: 1fr; }
   .nav-links { display: none; }
   .nav-burger { display: flex; }
+}
+
+@media (max-width: 700px) {
+  /* Stack section headers so the serif title keeps its full line length. */
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  /* Wizard steps: keep every circle visible, show only the active label. */
+  .step:not(.active) {
+    flex: 0 0 auto;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .step:not(.active) span:not(.step-num) { display: none; }
+}
+
+@media (max-width: 600px) {
+  /* Single column on phones: 2-up cards get too narrow for serif titles. */
+  .tour-grid { grid-template-columns: 1fr; }
 }
 
 /* ========================================================================
